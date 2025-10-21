@@ -1,0 +1,8 @@
+{
+  "sessionSeconds": 120,
+  "spawnRate": 3,
+  "comboDecayPerSecond": 0.5,
+  "maxTornadoes": 3,
+  "tornadoSpawnInterval": 45
+}
+
