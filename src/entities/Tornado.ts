@@ -6,12 +6,23 @@ export class Tornado extends Phaser.GameObjects.Container {
   targetStrength = 1
   spinning = true
   moveSpeed = TORNADO_SPEEDS.EF1 // Current movement speed
+  speedMultiplier = 1.0 // External speed multiplier (for final tornado)
   
   private core: Phaser.GameObjects.Sprite
   private particles: Phaser.GameObjects.Particles.ParticleEmitter
   private clouds: Phaser.GameObjects.Graphics[]
   private vortex: Phaser.GameObjects.Graphics
   private strengthChangeTimer = 0
+  
+  // Erratic movement system
+  private movementPattern: 'straight' | 'zigzag' | 'circular' | 'chaotic' = 'straight'
+  private patternTimer = 0
+  private patternChangeInterval = 8 // Change pattern every 8 seconds
+  private speedVariation = 0 // Random speed modifier
+  private speedVariationTimer = 0
+  private targetX = 0
+  private targetY = 0
+  private circularAngle = 0
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y)
@@ -60,9 +71,9 @@ export class Tornado extends Phaser.GameObjects.Container {
   preUpdate(time: number, delta: number) {
     const dt = delta / 1000
 
-    // Gradually change strength toward target
+    // Gradually change strength toward target (MORE FREQUENT)
     if (Math.abs(this.strength - this.targetStrength) > 0.01) {
-      const changeRate = 0.3 * dt
+      const changeRate = 0.5 * dt // Faster strength changes
       if (this.strength < this.targetStrength) {
         this.strength = Math.min(this.strength + changeRate, this.targetStrength)
       } else {
@@ -71,17 +82,35 @@ export class Tornado extends Phaser.GameObjects.Container {
       this.updateVisuals()
     }
 
-    // Randomly change target strength
+    // MORE FREQUENT and DRAMATIC strength changes
     this.strengthChangeTimer += dt
-    if (this.strengthChangeTimer > 5) {
+    if (this.strengthChangeTimer > 3) { // Changed from 5 to 3 seconds
       this.strengthChangeTimer = 0
-      this.targetStrength = Phaser.Math.FloatBetween(0.5, 5)
+      // More dramatic swings between weak and strong
+      this.targetStrength = Phaser.Math.FloatBetween(0.3, 5)
     }
 
-    // Rotate core and particles
+    // Erratic movement pattern changes
+    this.patternTimer += dt
+    if (this.patternTimer > this.patternChangeInterval) {
+      this.patternTimer = 0
+      // Randomly pick new movement pattern
+      const patterns: Array<'straight' | 'zigzag' | 'circular' | 'chaotic'> = ['straight', 'zigzag', 'circular', 'chaotic']
+      this.movementPattern = patterns[Math.floor(Math.random() * patterns.length)]
+      console.log(`🌪️ Tornado movement pattern: ${this.movementPattern}`)
+    }
+
+    // Speed variation (tornado speeds up and slows down randomly)
+    this.speedVariationTimer += dt
+    if (this.speedVariationTimer > 2) {
+      this.speedVariationTimer = 0
+      this.speedVariation = Phaser.Math.FloatBetween(-0.3, 0.5) // -30% to +50% speed
+    }
+
+    // Rotate core and particles (faster with strength)
     if (this.spinning) {
-      this.core.rotation += (2 + this.strength * 0.5) * dt
-      this.vortex.rotation += (1.5 + this.strength * 0.3) * dt
+      this.core.rotation += (2 + this.strength * 0.8) * dt
+      this.vortex.rotation += (1.5 + this.strength * 0.5) * dt
     }
   }
 
@@ -204,7 +233,57 @@ export class Tornado extends Phaser.GameObjects.Container {
   }
 
   getMoveSpeed(): number {
-    return this.moveSpeed
+    return this.moveSpeed * (1 + this.speedVariation) * this.speedMultiplier
+  }
+  
+  setSpeedMultiplier(multiplier: number) {
+    this.speedMultiplier = multiplier
+  }
+  
+  getMovementPattern(): string {
+    return this.movementPattern
+  }
+  
+  setMovementTarget(x: number, y: number) {
+    this.targetX = x
+    this.targetY = y
+  }
+  
+  getErraticTarget(currentX: number, currentY: number, worldWidth: number, worldHeight: number): { x: number, y: number } {
+    switch (this.movementPattern) {
+      case 'zigzag':
+        // Move in zigzag pattern
+        const zigzagOffset = Math.sin(this.patternTimer * 2) * 200
+        return {
+          x: Phaser.Math.Clamp(this.targetX + zigzagOffset, 150, worldWidth - 150),
+          y: Phaser.Math.Clamp(this.targetY, 150, worldHeight - 150)
+        }
+      
+      case 'circular':
+        // Move in circular patterns
+        this.circularAngle += 0.5
+        const radius = 300
+        return {
+          x: Phaser.Math.Clamp(currentX + Math.cos(this.circularAngle) * radius, 150, worldWidth - 150),
+          y: Phaser.Math.Clamp(currentY + Math.sin(this.circularAngle) * radius, 150, worldHeight - 150)
+        }
+      
+      case 'chaotic':
+        // Completely random direction changes
+        if (Math.random() < 0.1) { // 10% chance per update to change direction
+          return {
+            x: Phaser.Math.Between(150, worldWidth - 150),
+            y: Phaser.Math.Between(150, worldHeight - 150)
+          }
+        }
+        return { x: this.targetX, y: this.targetY }
+      
+      case 'straight':
+      default:
+        // Normal straight movement to target
+        return { x: this.targetX, y: this.targetY }
+    }
   }
 }
+
 

@@ -550,25 +550,32 @@ export class TerrainGenerator {
    */
   private getTileSpeedModifier(type: string): number {
     const modifiers = {
-      highway: 1.3,
-      highway_horizontal: 1.3,
-      highway_vertical: 1.3,
-      road: 1.1,
-      road_horizontal: 1.1,
-      road_vertical: 1.1,
-      sidewalk: 0.9,
-      grass: 0.8,
-      field: 0.7,
-      mud: 0.5,
-      water: 0.3,
-      parking: 0.9,
-      building: 0.0, // Can't drive through
+      // Roads - Fast (good for chasing)
+      highway: 1.5,              // 50% faster on highways!
+      highway_horizontal: 1.5,
+      highway_vertical: 1.5,
+      road: 1.2,                 // 20% faster on roads
+      road_horizontal: 1.2,
+      road_vertical: 1.2,
+      sidewalk: 1.0,             // Normal speed
+      parking: 1.0,              // Normal speed
+      
+      // Off-road - Slow (penalty for shortcuts)
+      grass: 0.7,                // 30% slower in grass
+      field: 0.5,                // 50% slower in fields (crop rows, uneven)
+      forest: 0.4,               // 60% slower in forest
+      mud: 0.3,                  // 70% slower in mud!
+      water: 0.2,                // 80% slower in water (really bad!)
+      
+      // Buildings - Can't drive through
+      building: 0.0,
       tree: 0.0,
       house: 0.0,
       barn: 0.0,
       silo: 0.0,
       office: 0.0,
-      gas_station: 0.0
+      gas_station: 0.0,
+      farm: 0.6                  // Farm areas are rough terrain
     }
     
     return modifiers[type as keyof typeof modifiers] || 1.0

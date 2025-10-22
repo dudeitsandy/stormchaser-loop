@@ -105,24 +105,30 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body
     if (!body) return
     
-    // Wind affects velocity (pulls toward tornado)
+    // Wind affects velocity (pulls toward tornado) - STRONGER EFFECT
     const currentVelX = body.velocity.x
     const currentVelY = body.velocity.y
     
-    // Apply wind force with resistance
-    const windEffectX = windForce.x * (1 - this.windResistance)
-    const windEffectY = windForce.y * (1 - this.windResistance)
+    // Apply wind force with reduced resistance (wind is MORE powerful)
+    const effectiveResistance = this.windResistance * 0.5 // 50% less resistance = stronger wind
+    const windStrength = 150 // Base wind strength multiplier
+    const windEffectX = windForce.x * windStrength * (1 - effectiveResistance)
+    const windEffectY = windForce.y * windStrength * (1 - effectiveResistance)
     
-    // Add wind to current velocity
+    // Add wind to current velocity (MORE NOTICEABLE)
     body.setVelocity(
       currentVelX + windEffectX,
       currentVelY + windEffectY
     )
     
-    // Visual feedback - car tilts in wind
-    if (windForce.magnitude > 0.1) {
-      const tiltAngle = Math.atan2(windForce.y, windForce.x) * 0.1
-      this.setRotation(this.rotation + tiltAngle * 0.1)
+    // Visual feedback - car tilts in wind (MORE DRAMATIC)
+    if (windForce.magnitude > 0.05) {
+      const windAngle = Math.atan2(windForce.y, windForce.x)
+      const tiltAmount = windForce.magnitude * 0.3 // Increased tilt
+      
+      // Blend current rotation with wind direction
+      const targetRotation = this.rotation + Math.sin(windAngle - this.rotation) * tiltAmount
+      this.setRotation(Phaser.Math.Linear(this.rotation, targetRotation, 0.1))
     }
   }
 
@@ -285,13 +291,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Camera aiming state (only if enabled)
     this.isAiming = this.keys.camera.isDown && this.keys.camera.enabled
 
-    // Visual feedback for terrain
-    if (this.terrainMaxSpeedMultiplier > 1.2 && this.damageFlashTimer <= 0) {
-      this.setTint(0x88ff88) // Green on highways
-    } else if (this.terrainMaxSpeedMultiplier < 0.5 && this.damageFlashTimer <= 0) {
-      this.setTint(0xff8844) // Orange in mud
-    } else if (this.damageFlashTimer <= 0) {
-      this.clearTint()
+    // Visual feedback for terrain (ENHANCED)
+    if (this.damageFlashTimer <= 0) {
+      if (this.terrainMaxSpeedMultiplier >= 1.5) {
+        this.setTint(0x00ff00) // Bright green on highways (50% boost!)
+      } else if (this.terrainMaxSpeedMultiplier >= 1.2) {
+        this.setTint(0x88ff88) // Light green on roads (20% boost)
+      } else if (this.terrainMaxSpeedMultiplier <= 0.3) {
+        this.setTint(0xff0000) // Red in mud/water (70%+ penalty!)
+      } else if (this.terrainMaxSpeedMultiplier <= 0.5) {
+        this.setTint(0xff8844) // Orange in fields (50% penalty)
+      } else if (this.terrainMaxSpeedMultiplier <= 0.7) {
+        this.setTint(0xffcc00) // Yellow in grass (30% penalty)
+      } else {
+        this.clearTint() // Normal terrain
+      }
     }
   }
 

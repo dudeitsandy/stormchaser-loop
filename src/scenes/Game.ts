@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { Player } from '../entities/Player'
 import { Tornado } from '../entities/Tornado'
+import { NPC } from '../entities/NPC'
 import { HUD } from '../ui/HUD'
 import { Minimap } from '../ui/Minimap'
 import { WeatherAlert } from '../ui/WeatherAlert'
@@ -37,6 +38,18 @@ export class GameScene extends Phaser.Scene {
   terrainRenderer!: TerrainRenderer
   collisionTiles: Phaser.GameObjects.Rectangle[] = []
   weatherParticles!: Phaser.GameObjects.Particles.ParticleEmitter
+  
+  // NPCs
+  npcs: NPC[] = []
+  npcSpawnTimer = 0
+  npcSpawnInterval = 5 // Spawn NPC every 5 seconds
+  maxNPCs = 15 // Maximum NPCs on screen
+  
+  // Tornado lifecycle management
+  tornadoCount = 0 // Which tornado (1st, 2nd, 3rd)
+  tornadoPhase: 'watch' | 'warning' | 'active' | 'ended' | 'waiting' = 'watch'
+  nextTornadoTimer = 0
+  nextTornadoDelay = 0
   
   private wasAiming = false // Track previous aim state
   private lastTornadoStrength = 1 // Track strength changes
@@ -159,18 +172,19 @@ export class GameScene extends Phaser.Scene {
       })
     })
 
-    // Tornado (animated) - spawns randomly in world
-    this.tornado = new Tornado(this, Phaser.Math.Between(400,2000), Phaser.Math.Between(400,1000))
-    this.tornado.setDepth(10)
-    this.physics.add.existing(this.tornado)
-    const tornadoBody = this.tornado.body as Phaser.Physics.Arcade.Body
-    tornadoBody.setCircle(50)
+    // Initialize tornado lifecycle - start with watch phase
+    this.tornadoCount = 0
+    this.tornadoPhase = 'watch'
+    this.tornado = null! // Will be spawned after watch phase
 
     // Pickups
     this.pickups = this.physics.add.group({ classType: Collectable, runChildUpdate: false })
 
     // Collisions
     this.physics.add.overlap(this.player, this.pickups, (_p, c) => this.onPickup(c as Collectable))
+    
+    // Spawn initial NPCs
+    this.spawnInitialNPCs()
 
     // Camera System
     this.cameraSystem = new CameraSystem(this)
@@ -187,11 +201,14 @@ export class GameScene extends Phaser.Scene {
     // Weather Alert System
     this.weatherAlert = new WeatherAlert(this)
     
-    // Show initial tornado warning
+    // Show initial tornado WATCH (conditions favorable)
     this.time.delayedCall(1000, () => {
-      const efRating = Math.floor(this.tornado.getStrength())
-      this.weatherAlert.showTornadoAlert(efRating, 'YOUR AREA')
-      this.weatherAlert.showTicker(`TORNADO WARNING: EF${efRating} tornado detected in your area. Seek shelter immediately. · BREAKING: Storm chasers report large tornado on the ground. · Stay tuned for updates.`)
+      this.weatherAlert.showTicker(`TORNADO WATCH: Conditions favorable for tornado development in your area. · Storm chasers on standby. · Monitor weather conditions closely.`)
+    })
+    
+    // Spawn first tornado after watch period (5 seconds)
+    this.time.delayedCall(5000, () => {
+      this.spawnNextTornado()
     })
 
     // Debug Panel (toggle with ` key)
@@ -298,8 +315,18 @@ export class GameScene extends Phaser.Scene {
         // Strength changed by at least one EF level
         if (currentStrength > this.lastTornadoStrength) {
           this.weatherAlert.showTicker(`TORNADO INTENSIFYING: Now EF${currentStrength}! EXTREMELY DANGEROUS SITUATION!`)
+          this.weatherAlert.showTornadoAlert(currentStrength, 'YOUR AREA')
+          
+          // Visual feedback - screen flash red
+          this.cameras.main.flash(200, 255, 0, 0, false, undefined, 0.3)
+          this.cameras.main.shake(300, 0.01)
+          
+          SoundService.playAlert()
         } else {
           this.weatherAlert.showTicker(`Tornado weakening to EF${currentStrength}. Continue to monitor conditions.`)
+          
+          // Visual feedback - screen flash green (relief)
+          this.cameras.main.flash(200, 0, 255, 0, false, undefined, 0.2)
         }
       }
       this.lastTornadoStrength = this.tornado.getStrength()
@@ -313,9 +340,7 @@ export class GameScene extends Phaser.Scene {
       return // Stop update loop
     }
 
-    // Check if player died - ENHANCED DEBUGGING
-    console.log(`🔍 HEALTH CHECK: Health=${this.player.health}, GameOver=${this.gameOver}`)
-    
+    // Check if player died
     if (this.player.health <= 0 && !this.gameOver) {
       console.log('💀 DEATH TRIGGERED - Health:', this.player.health)
       console.log('💀 Player exists:', !!this.player)
@@ -332,9 +357,20 @@ export class GameScene extends Phaser.Scene {
       return // Stop update loop
     }
 
+    // Tornado lifecycle management
+    if (this.tornadoPhase === 'waiting') {
+      // Waiting for next tornado
+      this.nextTornadoTimer += dt
+      if (this.nextTornadoTimer >= this.nextTornadoDelay) {
+        this.spawnNextTornado()
+      }
+      // Skip tornado logic during waiting phase
+      if (!this.tornado) return
+    }
+    
     // Move tornado - prefers roads and avoids water (only if tornado exists)
     if (!this.tornado) {
-      return // No tornado to move
+      return // No tornado during watch/waiting phase
     }
     
     const tw = this.tornado
@@ -348,37 +384,21 @@ export class GameScene extends Phaser.Scene {
       return
     }
     
-    // CRITICAL: Check if tornado is off the map and destroy it
+    // CRITICAL: Check if tornado hit edge of map - END tornado lifecycle
     const worldBounds = this.physics.world.bounds
-    if (tw.x < worldBounds.x - 100 || tw.x > worldBounds.x + worldBounds.width + 100 ||
-        tw.y < worldBounds.y - 100 || tw.y > worldBounds.y + worldBounds.height + 100) {
+    const edgeBuffer = 100 // How close to edge before ending
+    
+    if (tw.x < worldBounds.x + edgeBuffer || 
+        tw.x > worldBounds.x + worldBounds.width - edgeBuffer ||
+        tw.y < worldBounds.y + edgeBuffer || 
+        tw.y > worldBounds.y + worldBounds.height - edgeBuffer) {
       
-      console.log('🌪️ TORNADO OFF MAP - Destroying tornado')
-      console.log(`🌪️ Tornado position: (${tw.x}, ${tw.y})`)
-      console.log(`🌪️ World bounds: (${worldBounds.x}, ${worldBounds.y}) to (${worldBounds.x + worldBounds.width}, ${worldBounds.y + worldBounds.height})`)
-      
-      // Destroy tornado safely
-      try {
-        tw.destroy()
-        this.tornado = null
-        console.log('🌪️ Tornado destroyed successfully')
-        
-        // Clear any weather alerts
-        if (this.weatherAlert) {
-          this.weatherAlert.dismiss()
-        }
-        
-        // Show tornado dissipated message
-        this.weatherAlert.showTicker('TORNADO DISSIPATED: Storm has moved out of the area. Session continues.')
-        
-      } catch (error) {
-        console.error('🌪️ ERROR destroying tornado:', error)
-      }
-      
-      return // Skip tornado movement for this frame
+      console.log(`🌪️ Tornado ${this.tornadoCount} reached edge of map - ENDING EVENT`)
+      this.endTornadoEvent()
+      return // Skip rest of tornado logic
     }
     
-    // Use realistic tornado movement speeds based on strength
+    // Use realistic tornado movement speeds based on strength with ERRATIC patterns
     const tornadoSpeed = tw.getMoveSpeed()
     if (body.speed < 20) {
       let tx, ty, attempts = 0
@@ -388,19 +408,39 @@ export class GameScene extends Phaser.Scene {
         attempts++
       } while (attempts < 10 && this.terrain.getTerrainAt(tx, ty).type === 'water')
       
-      // Tornado moves at speed based on its strength (EF0=15mph to EF5=70mph)
-      this.physics.moveTo(tw, tx, ty, tornadoSpeed)
+      // Set the base target
+      tw.setMovementTarget(tx, ty)
+      
+      // Get erratic target based on movement pattern (constrained to world bounds)
+      const erraticTarget = tw.getErraticTarget(tw.x, tw.y, 2400, 1350)
+      
+      // Ensure target is within world bounds
+      const constrainedTargetX = Phaser.Math.Clamp(erraticTarget.x, 200, 2200)
+      const constrainedTargetY = Phaser.Math.Clamp(erraticTarget.y, 200, 1150)
+      
+      // Tornado moves at speed based on its strength with erratic behavior
+      this.physics.moveTo(tw, constrainedTargetX, constrainedTargetY, tornadoSpeed)
     }
     
     // Tornado path destruction - damage terrain as it moves
     this.destroyTerrainInPath(this.tornado.x, this.tornado.y, this.tornado.getDestructionRadius())
 
-    // Spawns
+    // Spawns (pickups)
     this.spawnTimer += dt
     if (this.spawnTimer >= ConfigService.instance.cfg.spawnRate) {
       this.spawnTimer = 0
       this.spawnPickup()
     }
+    
+    // Spawn NPCs periodically
+    this.npcSpawnTimer += dt
+    if (this.npcSpawnTimer >= this.npcSpawnInterval && this.npcs.length < this.maxNPCs) {
+      this.npcSpawnTimer = 0
+      this.spawnNPC()
+    }
+    
+    // Update NPCs
+    this.updateNPCs(_time, delta)
 
     // Distance to tornado (only if tornado exists)
     let dist = 0
@@ -410,21 +450,39 @@ export class GameScene extends Phaser.Scene {
     if (this.tornado) {
       dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, tw.x, tw.y)
       
-      // Danger zone - take damage if too close
+      // Danger zone - take damage if too close (MORE ACCURATE)
       damage = this.tornado.shouldDealDamage(dist)
       inDanger = damage > 0
       if (damage > 0) {
-        this.player.takeDamage(damage * dt)
+        const actualDamage = damage * dt
+        // Only log damage occasionally to avoid spam
+        if (Math.random() < 0.01) {
+          console.log(`⚠️ TORNADO DAMAGE: ${actualDamage.toFixed(2)} dmg/frame (${damage.toFixed(1)} dmg/sec), Health: ${this.player.health.toFixed(1)}`)
+        }
+        this.player.takeDamage(actualDamage)
+        
+        // Visual feedback for danger
+        this.cameras.main.shake(50, 0.002 * damage)
+        
+        // Sound warning when taking damage
+        if (Math.random() < 0.05) { // 5% chance per frame
+          SoundService.playAlert()
+        }
       }
       
-      // Wind effects - pull car toward tornado
+      // Wind effects - pull car toward tornado (MORE PROMINENT)
       const windForce = this.tornado.getWindForce(dist, this.player.x, this.player.y)
       if (windForce.magnitude > 0) {
         this.player.applyWindForce(windForce)
         
-        // Visual wind effect on camera
-        if (windForce.magnitude > 0.2) {
-          this.cameras.main.shake(50, windForce.magnitude * 0.001)
+        // Visual wind effect on camera (ENHANCED)
+        if (windForce.magnitude > 0.1) {
+          this.cameras.main.shake(50, windForce.magnitude * 0.005) // More shake
+          
+          // Dust particles in wind
+          if (Math.random() < windForce.magnitude && Math.random() < 0.2) {
+            this.createWindDustEffect(this.player.x, this.player.y, windForce.magnitude)
+          }
         }
       }
     }
@@ -594,14 +652,14 @@ export class GameScene extends Phaser.Scene {
         const terrainType = this.terrain.getTerrainAt(tile.x, tile.y).type
         
         if (terrainType === 'building' || terrainType === 'tree') {
+          // Calculate direction from tornado to object for directional damage
+          const angle = Math.atan2(tile.y - tornadoY, tile.x - tornadoX)
+          
           // Remove collision
           tile.destroy()
           
-          // Update terrain to be destroyed (debris)
-          this.terrain.setTerrainAt(tile.x, tile.y, 'debris')
-          
-          // Visual effect - debris particles
-          this.createDebrisEffect(tile.x, tile.y)
+          // Update terrain to be destroyed (debris) with directional scatter
+          this.createDirectionalDebris(tile.x, tile.y, angle, terrainType)
           
           console.log(`🌪️ Destroyed ${terrainType} at (${tile.x}, ${tile.y})`)
         }
@@ -629,6 +687,40 @@ export class GameScene extends Phaser.Scene {
     // Clean up particles
     this.time.delayedCall(1000, () => {
       debris.destroy()
+    })
+  }
+
+  createDirectionalDebris(x: number, y: number, angle: number, terrainType: string) {
+    // Create directional debris that flies away from tornado
+    const debrisGraphics = this.add.graphics()
+    debrisGraphics.fillStyle(terrainType === 'building' ? 0x8b7355 : 0x654321, 1)
+    debrisGraphics.fillRect(0, 0, 4, 4)
+    debrisGraphics.generateTexture(`directional_debris_${x}_${y}`, 4, 4)
+    debrisGraphics.destroy()
+    
+    // Create debris flying in the tornado's throw direction
+    const debris = this.add.particles(x, y, `directional_debris_${x}_${y}`, {
+      speed: { min: 100, max: 300 },
+      angle: { min: (angle * 180 / Math.PI) - 30, max: (angle * 180 / Math.PI) + 30 },
+      scale: { start: 1.5, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 2000,
+      quantity: 10,
+      gravityY: 100, // Debris falls down
+      tint: terrainType === 'building' ? [0x8b7355, 0x654321, 0x4a2c2a] : [0x654321, 0x4a2c2a, 0x8b4513],
+      rotate: { min: 0, max: 360 }
+    })
+    
+    // Create damaged terrain tile where object was
+    const damageRect = this.add.rectangle(x, y, 50, 50, 0x4a2c2a, 0.5)
+    
+    // Clean up particles and damaged tile
+    this.time.delayedCall(2000, () => {
+      debris.destroy()
+    })
+    
+    this.time.delayedCall(10000, () => {
+      damageRect.destroy()
     })
   }
 
@@ -729,4 +821,260 @@ export class GameScene extends Phaser.Scene {
   togglePause() { this.paused = !this.paused }
   autoPause() { this.paused = true }
   autoResume() { this.paused = false }
+  
+  spawnNextTornado() {
+    this.tornadoCount++
+    this.tornadoPhase = 'warning'
+    
+    // Spawn location
+    const x = Phaser.Math.Between(400, 2000)
+    const y = Phaser.Math.Between(400, 950)
+    
+    console.log(`🌪️ Spawning Tornado #${this.tornadoCount} at (${x}, ${y})`)
+    
+    // Create tornado
+    this.tornado = new Tornado(this, x, y)
+    this.tornado.setDepth(10)
+    this.physics.add.existing(this.tornado)
+    const tornadoBody = this.tornado.body as Phaser.Physics.Arcade.Body
+    tornadoBody.setCircle(50)
+    
+    // Progressive difficulty based on tornado count
+    let initialStrength: number
+    let movementPattern: 'straight' | 'zigzag' | 'circular' | 'chaotic'
+    
+    if (this.tornadoCount === 1) {
+      // First tornado: Moderate difficulty
+      initialStrength = Phaser.Math.Between(1, 3)
+      // Let it use default erratic patterns
+    } else if (this.tornadoCount === 2) {
+      // Second tornado: More erratic, stronger
+      initialStrength = Phaser.Math.Between(2, 4)
+      // Force more erratic patterns by reducing pattern change interval
+      this.time.addEvent({
+        delay: 4000, // Change pattern every 4 seconds (more erratic)
+        loop: true,
+        callback: () => {
+          if (this.tornado) {
+            // Force chaotic or circular patterns more often
+            const patterns: Array<'zigzag' | 'circular' | 'chaotic'> = ['zigzag', 'circular', 'chaotic']
+            const pattern = patterns[Math.floor(Math.random() * patterns.length)]
+            console.log(`🌪️ Tornado 2 forcing erratic pattern: ${pattern}`)
+          }
+        }
+      })
+    } else {
+      // Final tornado: EXTREMELY fast and chaotic
+      initialStrength = Phaser.Math.Between(3, 5)
+      // Super fast movement by increasing base speed (2x faster)
+      this.tornado.setSpeedMultiplier(2.0)
+      // Force extremely erratic patterns
+      this.time.addEvent({
+        delay: 2000, // Change pattern every 2 seconds (VERY erratic)
+        loop: true,
+        callback: () => {
+          if (this.tornado) {
+            // Always use chaotic pattern for final tornado
+            console.log(`🌪️ FINAL TORNADO - EXTREME CHAOS MODE`)
+          }
+        }
+      })
+      console.log(`🌪️ FINAL TORNADO - EXTREME DIFFICULTY - 2X SPEED`)
+    }
+    
+    this.tornado.setStrength(initialStrength)
+    
+    // Show WARNING alert
+    const efRating = Math.floor(this.tornado.getStrength())
+    const tornadoLabel = this.tornadoCount === 3 ? 'FINAL TORNADO' : `TORNADO #${this.tornadoCount}`
+    
+    this.weatherAlert.showTornadoAlert(efRating, 'YOUR AREA')
+    
+    if (this.tornadoCount === 1) {
+      this.weatherAlert.showTicker(`TORNADO WARNING: EF${efRating} tornado has formed! · Storm chasers report funnel cloud on the ground. · Seek shelter immediately!`)
+    } else if (this.tornadoCount === 2) {
+      this.weatherAlert.showTicker(`SECOND TORNADO WARNING: Another EF${efRating} tornado detected! · Multiple vortices reported. · EXTREMELY DANGEROUS SITUATION!`)
+    } else {
+      this.weatherAlert.showTicker(`FINAL TORNADO WARNING: Massive EF${efRating} tornado approaching! · LIFE THREATENING SITUATION! · THIS IS YOUR LAST CHANCE FOR PHOTOS!`)
+    }
+    
+    SoundService.playAlert()
+    
+    // Camera flash for dramatic effect
+    this.cameras.main.flash(300, 255, 255, 255, false, undefined, 0.5)
+    
+    this.tornadoPhase = 'active'
+  }
+  
+  endTornadoEvent() {
+    console.log(`🌪️ Ending Tornado #${this.tornadoCount} event`)
+    
+    // Destroy tornado
+    if (this.tornado) {
+      this.tornado.destroy()
+      this.tornado = null!
+    }
+    
+    // Dismiss weather alerts
+    this.weatherAlert.dismiss()
+    this.weatherAlert.showTicker(`Tornado has moved out of the area. · Storm system continuing to develop. · Remain alert for additional tornados.`)
+    
+    this.tornadoPhase = 'ended'
+    
+    // Determine if we should spawn another tornado
+    if (this.tornadoCount < 3 && this.timeLeft > 20) {
+      // Spawn another tornado after delay
+      this.tornadoPhase = 'waiting'
+      this.nextTornadoTimer = 0
+      
+      if (this.tornadoCount === 1) {
+        // 10-15 seconds until second tornado
+        this.nextTornadoDelay = Phaser.Math.Between(10, 15)
+        console.log(`⏱️ Second tornado will spawn in ${this.nextTornadoDelay} seconds`)
+        this.weatherAlert.showTicker(`Tornado dissipated. · Radar shows another storm system developing. · Stay vigilant.`)
+      } else if (this.tornadoCount === 2) {
+        // Final tornado spawns based on remaining time
+        const remainingTime = this.timeLeft
+        this.nextTornadoDelay = Math.max(5, Math.min(remainingTime - 15, 10)) // Spawn with 15s left minimum
+        console.log(`⏱️ FINAL tornado will spawn in ${this.nextTornadoDelay} seconds`)
+        this.weatherAlert.showTicker(`Second tornado dissipated. · SEVERE WARNING: Major supercell developing. · Prepare for intense final tornado!`)
+      }
+    } else if (this.tornadoCount === 3) {
+      // FINAL tornado has ended - END SESSION after 5 seconds
+      console.log(`🏁 FINAL tornado dissipated - Session will end in 5 seconds`)
+      this.tornadoPhase = 'ended'
+      this.weatherAlert.showTicker(`FINAL tornado dissipated. · All tornado activity has ceased. · Storm system moving out. · Session ending...`)
+      
+      // End session after 5 seconds
+      this.time.delayedCall(5000, () => {
+        if (!this.gameOver) {
+          console.log(`🏁 FINAL TORNADO DELAY COMPLETE - Ending session`)
+          this.endSession('time', 'Storm Chasing Complete')
+        }
+      })
+    } else {
+      console.log(`🌪️ No more tornados will spawn (count: ${this.tornadoCount}, time: ${this.timeLeft.toFixed(1)}s)`)
+      this.tornadoPhase = 'ended'
+      this.weatherAlert.showTicker(`All tornado activity has ended. · Storm system moving away. · Session will complete soon.`)
+    }
+  }
+  
+  spawnInitialNPCs() {
+    // Spawn 10 initial NPCs scattered around the map
+    for (let i = 0; i < 10; i++) {
+      this.spawnNPC()
+    }
+  }
+  
+  spawnNPC() {
+    // Randomly choose NPC type
+    const types: Array<'civilian_car' | 'stormchaser' | 'civilian'> = ['civilian_car', 'stormchaser', 'civilian']
+    const weights = [0.5, 0.2, 0.3] // 50% cars, 20% stormchasers, 30% pedestrians
+    
+    const random = Math.random()
+    let npcType: 'civilian_car' | 'stormchaser' | 'civilian'
+    if (random < weights[0]) {
+      npcType = 'civilian_car'
+    } else if (random < weights[0] + weights[1]) {
+      npcType = 'stormchaser'
+    } else {
+      npcType = 'civilian'
+    }
+    
+    // Spawn at random location (avoid tornado)
+    let x, y, attempts = 0
+    do {
+      x = Phaser.Math.Between(200, 2200)
+      y = Phaser.Math.Between(200, 1150)
+      attempts++
+      
+      // Check distance from tornado
+      const distToTornado = this.tornado ? Phaser.Math.Distance.Between(x, y, this.tornado.x, this.tornado.y) : 1000
+      
+      // Check distance from player
+      const distToPlayer = Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y)
+      
+      // Good spawn if far from tornado and player
+      if (distToTornado > 400 && distToPlayer > 200) break
+    } while (attempts < 20)
+    
+    const npc = new NPC(this, x, y, npcType)
+    this.add.existing(npc)
+    this.physics.add.existing(npc)
+    npc.setCollideWorldBounds(true)
+    
+    // Random initial rotation for vehicles
+    if (npc.isVehicle) {
+      npc.rotation = Phaser.Math.FloatBetween(0, Math.PI * 2)
+    }
+    
+    // Add collision with player (can bump into NPCs)
+    this.physics.add.collider(this.player, npc, () => {
+      // Minor collision feedback
+      SoundService.playCollision(0.3)
+      this.player.takeDamage(2) // Small damage from hitting NPCs
+    })
+    
+    // Add collision with terrain
+    this.collisionTiles.forEach(tile => {
+      this.physics.add.collider(npc, tile)
+    })
+    
+    this.npcs.push(npc)
+    console.log(`👤 Spawned ${npcType} at (${x}, ${y})`)
+  }
+  
+  updateNPCs(time: number, delta: number) {
+    if (!this.tornado) return
+    
+    // Update each NPC's behavior
+    this.npcs.forEach((npc, index) => {
+      if (!npc.active) return
+      
+      npc.updateBehavior(time, delta, this.tornado.x, this.tornado.y, this.tornado.getStrength())
+      
+      // Check if NPC is too far from player (despawn to save performance)
+      const distToPlayer = Phaser.Math.Distance.Between(npc.x, npc.y, this.player.x, this.player.y)
+      if (distToPlayer > 1000) {
+        npc.destroy()
+        this.npcs.splice(index, 1)
+        console.log(`👤 Despawned ${npc.npcType} (too far)`)
+      }
+      
+      // Check if NPC hit by tornado (destroy with effect)
+      const distToTornado = Phaser.Math.Distance.Between(npc.x, npc.y, this.tornado.x, this.tornado.y)
+      if (distToTornado < this.tornado.getDangerRadius()) {
+        // NPC destroyed by tornado!
+        this.createDebrisEffect(npc.x, npc.y)
+        npc.destroy()
+        this.npcs.splice(index, 1)
+        console.log(`💀 ${npc.npcType} destroyed by tornado!`)
+      }
+    })
+  }
+  
+  createWindDustEffect(x: number, y: number, magnitude: number) {
+    // Create dust particles for wind visualization
+    const dustGraphics = this.add.graphics()
+    dustGraphics.fillStyle(0xcccccc, 1)
+    dustGraphics.fillCircle(0, 0, 1)
+    dustGraphics.generateTexture(`wind_dust_${x}_${y}`, 2, 2)
+    dustGraphics.destroy()
+    
+    const dust = this.add.particles(x, y, `wind_dust_${x}_${y}`, {
+      speed: { min: 50, max: 150 },
+      angle: { min: 0, max: 360 },
+      scale: { start: magnitude, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      lifespan: 500,
+      quantity: 2,
+      tint: [0xcccccc, 0xaaaaaa, 0x888888]
+    })
+    
+    // Clean up
+    this.time.delayedCall(500, () => {
+      dust.destroy()
+    })
+  }
 }
+
