@@ -1,0 +1,75 @@
+{
+    "version": 1,
+    "name": "StormChaserControls",
+    "maps": [
+        {
+            "name": "Driving",
+            "id": "659e07a8-2bbe-4a9d-beb6-f889f3907091",
+            "actions": [
+                {
+                    "name": "Move",
+                    "type": "Value",
+                    "id": "6911d046-058a-44b4-ba28-093e7d4f1eeb",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "AimCamera",
+                    "type": "Value",
+                    "id": "70ad65fd-375b-4fe3-a599-7285ab740981",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "AimHold",
+                    "type": "Button",
+                    "id": "ead1caef-0af3-4701-846d-e9516c45e5e6",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "4a516c3a-dd47-4830-afa7-b184313b664d",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d02cf1ef-267f-4dc4-a0ae-475e8b4ba66d",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AimCamera",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e5045c24-ff2e-4a71-bb0a-8bbc1d7f850f",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AimHold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
