@@ -17,12 +17,22 @@ aim is calculated from truck facing and distance.
 
 ## Tasks
 
+### Architecture (Doomsday Foundation)
+
+Low-effort decisions made now that prevent a rewrite in Season 2. See `design/vision/vision-1.0.md`.
+
+| ID | Task | Est. Hours | Dependencies | Acceptance Criteria |
+|----|------|-----------|--------------|---------------------|
+| S3-A1 | DisasterEntity base class — abstract MonoBehaviour with ThreatClass (I–V enum), BehaviorPattern enum, and MoveSpeed; refactor TornadoController to inherit it; add ThreatClass + BehaviorPattern fields to TornadoData SO | 1.5h | S2-03, S2-04 | TornadoController compiles as DisasterEntity subclass; TornadoData has ThreatClass + BehaviorPattern fields; no gameplay change |
+
+**Architecture total: ~1.5 hours**
+
 ### Must Have (Critical Path)
 
 | ID | Task | Est. Hours | Dependencies | Acceptance Criteria |
 |----|------|-----------|--------------|---------------------|
-| S3-01 | TornadoSpawner.cs — auto-spawns tornado at random map edge every N seconds during session | 2h | S2-03, S2-05 | Tornado spawns without manual placement; spawn interval configurable via ScriptableObject; stops spawning when session ends |
-| S3-02 | PhotoTrigger.cs — press L2/Space to photograph; calculates AimScore (dot product) + DistanceScore (bell curve, optimal 20 units) | 2h | S2-01, S2-03, S2-06 | Button press calls ScoringSystem.CalculatePhotoScore; score logs to Console; only scores nearest active tornado |
+| S3-01 | DisasterSpawner.cs — spawns disaster entities (typed by DisasterData SO list) at random map edge every N seconds; stops on session end | 2h | S3-A1, S2-05 | Tornado spawns without manual placement; spawn interval + disaster roster configurable via ScriptableObject; stops spawning when session ends |
+| S3-02 | PhotoTrigger.cs — press L2/Space to photograph; calculates AimScore (dot product) + DistanceScore (bell curve, optimal 20 units) | 2h | S2-01, S3-A1, S2-06 | Button press calls ScoringSystem.CalculatePhotoScore; score logs to Console; only scores nearest active disaster entity |
 | S3-03 | ScoreAccumulator.cs — tracks running total across all photos; logs final score when OnSessionEnd fires | 1h | S2-05, S3-02 | Final score printed to Console at session end; individual photo scores additive |
 | S3-04 | Basic terrain — replace flat Plane with grass-colored material + road stripe running through the field | 1.5h | — | Scene has visible grass area and road; truck drives on it; no procedural generation yet |
 
@@ -68,7 +78,22 @@ None — Sprint 2 completed 7/7 tasks.
 
 ---
 
+## Deferred Architecture Tasks
+
+These are not Sprint 3 scope but must land before the systems they extend get expanded.
+Tracked here so they don't get lost. See `design/vision/vision-1.0.md` for full context.
+
+| Target Sprint | Task | Trigger |
+|--------------|------|---------|
+| Sprint 4–5 | ScoringSystem → 4-axis (Documentation, Intervention, Style, Objectives) + style multiplier | When intervention scoring or stunt detection is added |
+| Sprint 5–6 | VehicleData → VehicleLoadout with module slots (Engine, Armor, Payload, Wheels, Electronics) | Before first vehicle customization feature |
+| Sprint 5–6 | SessionTimer → RunManager with objective tracking + per-run modifier state | Before dynamic objectives or modifiers are implemented |
+| Sprint 6–7 | Vehicle Feel pass — momentum physics, drift, boost, stunt detection | Ships with Style scoring axis; Rocket League energy goal |
+
+---
+
 ## Definition of Done for Sprint 3
+- [ ] S3-A1 complete — DisasterEntity base class; TornadoController inherits it
 - [ ] S3-01 through S3-04 complete (Must Have)
 - [ ] Press Space/L2 near a tornado → score appears in Console
 - [ ] 90-second session ends with total score logged
