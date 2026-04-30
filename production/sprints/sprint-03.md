@@ -93,7 +93,7 @@ Tracked here so they don't get lost. See `design/vision/vision-1.0.md` for full 
 ---
 
 ## Definition of Done for Sprint 3
-- [ ] S3-A1 complete — DisasterEntity base class; TornadoController inherits it
+- [x] S3-A1 complete — DisasterEntity base class; TornadoController inherits it
 - [ ] S3-01 through S3-04 complete (Must Have)
 - [ ] Press Space/L2 near a tornado → score appears in Console
 - [ ] 90-second session ends with total score logged

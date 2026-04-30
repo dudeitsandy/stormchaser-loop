@@ -108,13 +108,41 @@ All disasters implement a **DisasterEntity** interface:
 
 ### Disaster Interaction Examples
 
-| Pairing | Effect |
-|---------|--------|
-| Tornado + Kaiju | Kaiju movement destabilized; debris becomes projectiles |
-| EMP Mech + Player Vehicle | Systems temporarily offline; momentum-only movement |
-| Tsunami + Wildfire | Fire suppressed on contact; steam cloud reduces visibility |
-| Two Tornadoes (close) | Merge into larger entity or repel based on rotation direction |
-| Kaiju + Earthquake | Kaiju stumbles during shockwave; brief stagger window |
+| Season | Pairing | Effect | Model |
+|--------|---------|--------|-------|
+| S1 | Tornado + Wildfire | Tornado absorbs fire → Fire Tornado; merged entity, +1 ThreatClass | Merge |
+| S1 | Tornado + Hailstorm | Tornado picks up hail → ice debris radius; player damage risk increases | Modify |
+| S1 | Two Wildfires (adjacent) | Merge into larger wildfire with expanded radius and higher ThreatClass | Merge |
+| S1 | Wildfire + Hailstorm | Fire partially suppressed; steam cloud reduces visibility in overlap zone | Modify |
+| S1 | Two Tornadoes (close) | Merge into larger entity or repel based on rotation direction | Merge |
+| S2 | Tornado + Kaiju | Kaiju movement destabilized; debris becomes projectiles | Modify |
+| S2 | EMP Mech + Player Vehicle | Systems temporarily offline; momentum-only movement | Modify |
+| S2 | Tsunami + Wildfire | Fire suppressed on contact; steam cloud reduces visibility | Modify |
+| S3 | Kaiju + Earthquake | Kaiju stumbles during shockwave; brief stagger window | Modify |
+
+### Interaction Models
+
+Two distinct models govern how disasters interact:
+
+**Merge** — two entities collide and produce a third. Both source entities despawn;
+a new DisasterEntity of higher ThreatClass spawns at the collision point. The fire
+tornado is the canonical Season 1 example: Tornado + Wildfire → Fire Tornado,
+ThreatClass upgraded by +1, photographable as a single entity.
+
+**Modify** — two entities in proximity alter each other's behavior but both persist.
+Each gains a behavior modifier while in range. The kaiju destabilized by a tornado
+is the canonical Season 3 example.
+
+**Open architectural question (resolve before Sprint 4–5):**
+Is a Fire Tornado a new DisasterEntity subclass with its own DisasterData SO, or a
+TornadoController in a modified state? This decision affects three things:
+- How it's photographed (which ThreatClass does PhotoTrigger read?)
+- What asset it references (new SO or runtime mutation of existing one?)
+- How it despawns (does it revert to source entities or simply die?)
+
+Recommendation: treat merged entities as new subclasses with their own DisasterData.
+Cleaner serialization, cleaner scoring, and the fire tornado *is* genuinely a
+different thing — not a tornado that happens to be on fire.
 
 ---
 

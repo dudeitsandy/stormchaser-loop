@@ -3,8 +3,13 @@ using UnityEngine;
 public static class ScoringSystem
 {
     /// <summary>
-    /// Calculates photo score from aim quality, distance quality, and tornado EF strength.
+    /// Calculates photo score from aim quality, distance quality, and EF strength.
     /// Formula: (AimScore * 0.6 + DistanceScore * 0.4) * EFStrength * 100
+    ///
+    /// Season 2+ extension point — multi-entity composition:
+    ///   Replace efStrength with combinedThreatLevel (sum of ThreatClass for all
+    ///   entities in frame). Add styleMultiplier as a final factor (Style scoring axis).
+    ///   Extended formula: quality * combinedThreat * styleMultiplier * 100
     /// </summary>
     /// <param name="aimScore">0.0–1.0 — how centered the tornado is in the frame</param>
     /// <param name="distanceScore">0.0–1.0 — how close to optimal distance</param>

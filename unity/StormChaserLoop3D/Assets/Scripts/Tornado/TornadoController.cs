@@ -1,13 +1,14 @@
 using UnityEngine;
 
-public class TornadoController : MonoBehaviour
+public class TornadoController : DisasterEntity
 {
-    [SerializeField] private TornadoData _data;
-    [SerializeField] private float _despawnX = 60f;  // despawn when past this X position
+    [SerializeField] private float _despawnX = 60f;
+
+    private TornadoData TornadoData => _data as TornadoData;
 
     private void Update()
     {
-        transform.Translate(Vector3.right * _data.MoveSpeed * Time.deltaTime, Space.World);
+        transform.Translate(Vector3.right * MoveSpeed * Time.deltaTime, Space.World);
 
         if (transform.position.x >= _despawnX)
             Destroy(gameObject);
