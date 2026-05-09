@@ -32,6 +32,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Photograph",
+                    "type": "Button",
+                    "id": "f1a2b3c4-d5e6-7890-abcd-ef0123456789",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -120,6 +129,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "AimHold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Photograph",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b2c3d4e5-f6a7-8901-2345-67890abcdef1",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Photograph",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

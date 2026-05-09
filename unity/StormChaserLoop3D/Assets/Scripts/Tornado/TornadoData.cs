@@ -9,4 +9,6 @@ public class TornadoData : DisasterData
 
     [Header("Visual")]
     public float ConeScale = 1f;
+
+    public override float ThreatMultiplier => StrengthMultiplier;
 }

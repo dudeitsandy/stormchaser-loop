@@ -118,6 +118,15 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Photograph"",
+                    ""type"": ""Button"",
+                    ""id"": ""f1a2b3c4-d5e6-7890-abcd-ef0123456789"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -208,6 +217,28 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
                     ""action"": ""AimHold"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a1b2c3d4-e5f6-7890-1234-567890abcdef"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Photograph"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-f6a7-8901-2345-67890abcdef1"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Photograph"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -219,6 +250,7 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
         m_Driving_Move = m_Driving.FindAction("Move", throwIfNotFound: true);
         m_Driving_AimCamera = m_Driving.FindAction("AimCamera", throwIfNotFound: true);
         m_Driving_AimHold = m_Driving.FindAction("AimHold", throwIfNotFound: true);
+        m_Driving_Photograph = m_Driving.FindAction("Photograph", throwIfNotFound: true);
     }
 
     ~@StormChaserControls()
@@ -302,6 +334,7 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Driving_Move;
     private readonly InputAction m_Driving_AimCamera;
     private readonly InputAction m_Driving_AimHold;
+    private readonly InputAction m_Driving_Photograph;
     /// <summary>
     /// Provides access to input actions defined in input action map "Driving".
     /// </summary>
@@ -325,6 +358,10 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Driving/AimHold".
         /// </summary>
         public InputAction @AimHold => m_Wrapper.m_Driving_AimHold;
+        /// <summary>
+        /// Provides access to the underlying input action "Driving/Photograph".
+        /// </summary>
+        public InputAction @Photograph => m_Wrapper.m_Driving_Photograph;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -360,6 +397,9 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
             @AimHold.started += instance.OnAimHold;
             @AimHold.performed += instance.OnAimHold;
             @AimHold.canceled += instance.OnAimHold;
+            @Photograph.started += instance.OnPhotograph;
+            @Photograph.performed += instance.OnPhotograph;
+            @Photograph.canceled += instance.OnPhotograph;
         }
 
         /// <summary>
@@ -380,6 +420,9 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
             @AimHold.started -= instance.OnAimHold;
             @AimHold.performed -= instance.OnAimHold;
             @AimHold.canceled -= instance.OnAimHold;
+            @Photograph.started -= instance.OnPhotograph;
+            @Photograph.performed -= instance.OnPhotograph;
+            @Photograph.canceled -= instance.OnPhotograph;
         }
 
         /// <summary>
@@ -441,5 +484,12 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnAimHold(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Photograph" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPhotograph(InputAction.CallbackContext context);
     }
 }

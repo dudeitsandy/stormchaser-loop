@@ -15,6 +15,7 @@ public class DisasterSpawner : MonoBehaviour
     private void Start()
     {
         _sessionTimer.OnSessionEnd.AddListener(StopSpawning);
+        SpawnRandom();
         _spawnLoop = StartCoroutine(SpawnLoop());
     }
 
@@ -34,13 +35,15 @@ public class DisasterSpawner : MonoBehaviour
 
     private void SpawnRandom()
     {
-        // TODO S3-01: implement
+        if (_disasterPrefabs == null || _disasterPrefabs.Count == 0) return;
+        int index = Random.Range(0, _disasterPrefabs.Count);
+        Instantiate(_disasterPrefabs[index], GetSpawnPosition(), Quaternion.identity);
     }
 
     private Vector3 GetSpawnPosition()
     {
-        // TODO S3-01: implement
-        return Vector3.zero;
+        float z = Random.Range(-_spawnRangeZ, _spawnRangeZ);
+        return new Vector3(_spawnEdgeX, 0f, z);
     }
 
     private void StopSpawning()

@@ -12,4 +12,6 @@ public class DisasterData : ScriptableObject
 
     [Header("Movement")]
     public float MoveSpeed = 5f;
+
+    public virtual float ThreatMultiplier => 1f;
 }

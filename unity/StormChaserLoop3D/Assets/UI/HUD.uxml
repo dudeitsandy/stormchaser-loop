@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="HUD.uss" />
+    <ui:VisualElement name="HudRoot" class="hud-root">
+        <ui:Label name="TimeLabel" text="1:30" class="hud-label" />
+        <ui:Label name="ScoreLabel" text="0" class="hud-label hud-score" />
+    </ui:VisualElement>
+</ui:UXML>
