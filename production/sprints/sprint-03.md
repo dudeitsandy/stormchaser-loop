@@ -94,9 +94,20 @@ Tracked here so they don't get lost. See `design/vision/vision-1.0.md` for full 
 
 ## Definition of Done for Sprint 3
 - [x] S3-A1 complete — DisasterEntity base class; TornadoController inherits it
-- [ ] S3-01 through S3-04 complete (Must Have)
-- [ ] Press Space/L2 near a tornado → score appears in Console
-- [ ] 90-second session ends with total score logged
-- [ ] Scene has road + grass terrain (no procedural generation)
-- [ ] No hardcoded values — spawn interval in ScriptableObject
-- [ ] Sprint 4 scope drafted
+- [x] S3-01 DisasterSpawner — spawns on start + every 10s, stops on session end
+- [x] S3-02 PhotoTrigger — Space/L2; aim (dot product) + distance (Gaussian bell, optimal 20u) scored
+- [x] S3-03 ScoreAccumulator — running total; final score logged on session end
+- [x] S3-04 Basic terrain — grass + road stripe (completed 2026-06-17)
+- [x] S3-05 HUD stub — live countdown + score in top-right overlay (UI Toolkit, code-driven)
+- [x] S3-06 Tornado cone prefab (completed 2026-06-17)
+- [x] Press Space/L2 near a tornado → score appears in Console (verified in play test)
+- [x] 90-second session ends with total score logged (verified)
+- [x] Scene has road + grass terrain (no procedural generation)
+- [x] No hardcoded values — spawn interval configurable via Inspector
+- [x] Sprint 4 scope drafted
+
+## Implementation Notes
+- HudController builds labels in code (not from UXML) — UXML Source Asset on UIDocument set to None
+- ThreatMultiplier: virtual property on DisasterData, override on TornadoData, exposed on DisasterEntity
+- Tornado_EF3.prefab created in Assets/Prefabs — template for future EF0–EF5 prefab set
+- Game view must be at 1x scale to see HUD during editor testing (normal behavior)

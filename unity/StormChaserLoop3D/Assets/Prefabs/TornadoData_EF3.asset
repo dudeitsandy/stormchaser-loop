@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9aa6515cae65344081bb44b39541304, type: 3}
   m_Name: TornadoData_EF3
   m_EditorClassIdentifier: Assembly-CSharp::TornadoData
+  ThreatClass: 0
+  BehaviorPattern: 0
+  MoveSpeed: 10
   EFRating: EF3
   StrengthMultiplier: 2.5
-  MoveSpeed: 10
-  ConeScale: 1.4
+  ConeScale: 1.5
