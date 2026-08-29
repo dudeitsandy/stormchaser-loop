@@ -111,3 +111,10 @@ Tracked here so they don't get lost. See `design/vision/vision-1.0.md` for full 
 - ThreatMultiplier: virtual property on DisasterData, override on TornadoData, exposed on DisasterEntity
 - Tornado_EF3.prefab created in Assets/Prefabs — template for future EF0–EF5 prefab set
 - Game view must be at 1x scale to see HUD during editor testing (normal behavior)
+
+## Correction (2026-08-28)
+The S3-04 checkbox above was marked done on 2026-06-17 on the strength of `TerrainSetup.cs`
+existing, but it was never actually attached to a GameObject — the scene still had the original
+flat `Plane`. Found and fixed via live Unity MCP verification during Sprint 4 resumption; see
+`sprint-04.md`'s Carryover section for details. Leaving the original checkbox as-is for the
+historical record rather than rewriting it.

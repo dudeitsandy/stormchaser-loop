@@ -61,22 +61,33 @@ unchanged except for progress already banked (see Carryover).
 ---
 
 ## Carryover from Sprint 3
-None — S3-04 and S3-06 completed 2026-06-17 (committed 2026-08-28 alongside this redate).
+S3-04 (terrain) and S3-06 (tornado cone) were marked complete in Sprint 3's DoD on the strength
+of the files existing, but that claim was wrong for S3-04 — see below. Both are now genuinely
+verified as of 2026-08-28.
 
 ## Carryover from the Pre-Gap Session (2026-06-17)
-- `CameraController.cs` (written 2026-06-17) looked like finished S4-03 work from the file
-  alone, but a live Editor check (via Unity MCP, once connected) showed it was never actually
-  attached to anything — `grep` for it in `VerificationScene.unity` returned zero hits. The
-  scene's real camera follow has been running on a **Cinemachine** rig (`CinemachineBrain` +
-  `FollowCam` with `CinemachineCamera`/`CinemachineFollow`/`CinemachineHardLookAt`) since
-  Sprint 2's `manifest.json` commit — `CameraController.cs` was dead code sitting next to it.
-- **Resolution (2026-08-28):** given the vision doc's Kinetic Chaos pillar (drift/trick camera
-  work in Sprint 6-7) and Season 3 kaiju/multi-entity framing, decided to keep Cinemachine as
-  the camera backbone rather than replace it — reinventing damped follow, impulse shake, and
-  target-group framing by hand isn't worth it for a solo dev (R03). `CameraController.cs` was
-  deleted. S4-03's FOV-pulse requirement was reimplemented as `DisasterProximityFov.cs`, a
-  `CinemachineExtension` attached to `FollowCam` — verified compiling clean and attached via
-  Unity MCP, scene saved. S4-03 is genuinely done now, not just "written."
+Two "done" items from this session turned out not to be, once checked against the live Editor
+via Unity MCP instead of trusting file existence + DoD checkboxes:
+
+- **S4-03 (Camera):** `CameraController.cs` compiled but was never attached to anything — `grep`
+  for it in `VerificationScene.unity` returned zero hits. The scene's real camera follow had
+  been running on a **Cinemachine** rig (`CinemachineBrain` + `FollowCam` with
+  `CinemachineCamera`/`CinemachineFollow`/`CinemachineHardLookAt`) since Sprint 2's
+  `manifest.json` commit. **Resolution:** given the vision doc's Kinetic Chaos pillar (drift/trick
+  camera work in Sprint 6-7) and Season 3 kaiju/multi-entity framing, kept Cinemachine as the
+  backbone rather than hand-rolling a replacement (R03 — solo-dev scope creep). Deleted
+  `CameraController.cs`; reimplemented the FOV-pulse requirement as `DisasterProximityFov.cs`, a
+  `CinemachineExtension` on `FollowCam`. **Verified numerically, not just by attachment**: pinned
+  the truck exactly 10 units from a tornado in a live Play session (Unity MCP), confirmed
+  `nearestDist=10`, `targetBoost=3.75` (matches `(1 − 10/40) × 5` exactly), and
+  `Camera.main.fieldOfView=63.75` (60 base + 3.75 boost) — the full pipeline works end to end.
+- **S3-04 (Terrain):** `TerrainSetup.cs` was also never attached — the scene still had the
+  original flat `Plane` from Sprint 1. The fix already existed, though: a Unity crash-recovery
+  autosave from 2026-07-03 (`Assets/_Recovery/0 (3).unity`, gitignored) showed the terrain *had*
+  been wired up that day (`Plane` replaced by a `Terrain` GameObject with `TerrainSetup`,
+  default field values) — it just never got saved back before the crash. Recreated that exact
+  setup live and verified in Play mode: `Terrain_Grass`/`Terrain_Road`/`Terrain_Stripe` all
+  generate correctly via `Awake()`, zero console errors.
 - Nothing else from Sprint 4's original scope was started — S4-A1, S4-01, S4-02, S4-04, S4-05
   are all still fully open.
 
