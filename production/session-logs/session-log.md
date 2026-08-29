@@ -2144,3 +2144,99 @@ unity/StormChaserLoop3D/Assets/Scripts/Tornado/TornadoController.cs
 unity/StormChaserLoop3D/Assets/UI/PanelSettings.asset
 ---
 
+## Session End: 20260828_211500
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+---
+
+## Session End: 20260828_211635
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+production/session-logs/session-log.md
+---
+
+## Session End: 20260828_214225
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+production/session-logs/session-log.md
+unity/StormChaserLoop3D/Packages/manifest.json
+unity/StormChaserLoop3D/Packages/packages-lock.json
+---
+
+## Session End: 20260828_214304
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+production/session-logs/session-log.md
+unity/StormChaserLoop3D/Packages/manifest.json
+unity/StormChaserLoop3D/Packages/packages-lock.json
+---
+
+## Session End: 20260828_214419
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+production/session-logs/session-log.md
+unity/StormChaserLoop3D/Packages/manifest.json
+unity/StormChaserLoop3D/Packages/packages-lock.json
+---
+
+## Session End: 20260828_214633
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+production/session-logs/session-log.md
+unity/StormChaserLoop3D/Packages/manifest.json
+unity/StormChaserLoop3D/Packages/packages-lock.json
+---
+
+## Session End: 20260828_215114
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+production/session-logs/session-log.md
+unity/StormChaserLoop3D/Packages/manifest.json
+unity/StormChaserLoop3D/Packages/packages-lock.json
+---
+
+## Session End: 20260828_215340
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+production/session-logs/session-log.md
+unity/StormChaserLoop3D/Packages/manifest.json
+unity/StormChaserLoop3D/Packages/packages-lock.json
+---
+
+## Session End: 20260828_220621
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+production/session-logs/session-log.md
+unity/StormChaserLoop3D/Packages/manifest.json
+unity/StormChaserLoop3D/Packages/packages-lock.json
+---
+
+## Session End: 20260828_220959
+### Commits
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+production/session-logs/session-log.md
+production/sprints/sprint-04.md
+unity/StormChaserLoop3D/Assets/Scenes/VerificationScene.unity
+unity/StormChaserLoop3D/Packages/manifest.json
+unity/StormChaserLoop3D/Packages/packages-lock.json
+---
+

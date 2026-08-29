@@ -64,11 +64,19 @@ unchanged except for progress already banked (see Carryover).
 None — S3-04 and S3-06 completed 2026-06-17 (committed 2026-08-28 alongside this redate).
 
 ## Carryover from the Pre-Gap Session (2026-06-17)
-- **S4-03 (Camera system) is implemented**, not just estimated: `CameraController.cs` has
-  SmoothDamp follow, look-ahead, and an FOV pulse at 40 units — matches the acceptance criteria.
-  It has **not been Play-mode verified since being written** (8-week gap, one crash in between),
-  so treat it as "needs verification," not "done." First task this sprint: confirm it still
-  behaves correctly, then check off S4-03 in the Definition of Done.
+- `CameraController.cs` (written 2026-06-17) looked like finished S4-03 work from the file
+  alone, but a live Editor check (via Unity MCP, once connected) showed it was never actually
+  attached to anything — `grep` for it in `VerificationScene.unity` returned zero hits. The
+  scene's real camera follow has been running on a **Cinemachine** rig (`CinemachineBrain` +
+  `FollowCam` with `CinemachineCamera`/`CinemachineFollow`/`CinemachineHardLookAt`) since
+  Sprint 2's `manifest.json` commit — `CameraController.cs` was dead code sitting next to it.
+- **Resolution (2026-08-28):** given the vision doc's Kinetic Chaos pillar (drift/trick camera
+  work in Sprint 6-7) and Season 3 kaiju/multi-entity framing, decided to keep Cinemachine as
+  the camera backbone rather than replace it — reinventing damped follow, impulse shake, and
+  target-group framing by hand isn't worth it for a solo dev (R03). `CameraController.cs` was
+  deleted. S4-03's FOV-pulse requirement was reimplemented as `DisasterProximityFov.cs`, a
+  `CinemachineExtension` attached to `FollowCam` — verified compiling clean and attached via
+  Unity MCP, scene saved. S4-03 is genuinely done now, not just "written."
 - Nothing else from Sprint 4's original scope was started — S4-A1, S4-01, S4-02, S4-04, S4-05
   are all still fully open.
 
@@ -79,7 +87,7 @@ None — S3-04 and S3-06 completed 2026-06-17 (committed 2026-08-28 alongside th
 | Risk | Probability | Impact | Mitigation |
 |------|------------|--------|------------|
 | PiP RenderTexture GPU cost drops below 60 FPS (R02) | Medium | High | Render at 320×213; profile in first session; fall back to "hold to aim" activation model if FPS target missed |
-| Camera smooth follow conflicts with existing camera setup | Medium | Low | Implement as standalone `CameraController.cs` rather than parenting; gives full positional control |
+| ~~Camera smooth follow conflicts with existing camera setup~~ | — | — | **Resolved 2026-08-28**: kept the existing Cinemachine rig rather than replacing it; FOV pulse added as a `CinemachineExtension` instead of a standalone controller |
 | S4-01 runs long, consuming Must Have budget (R03) | Medium | Medium | S4-06 and S4-07 are explicit cut candidates; drop both before cutting S4-04 or S4-05 |
 
 ---
@@ -92,8 +100,11 @@ None — S3-04 and S3-06 completed 2026-06-17 (committed 2026-08-28 alongside th
 ## Implementation Notes
 - PiP camera: second Camera component with Depth set lower than main camera; culling mask
   can match main camera for now; RenderTexture assigned to RawImage in HUD UIDocument
-- Camera follow: if current camera is parented to truck, extract it and write CameraController.cs
-  with SmoothDamp on position; keep look-at target as truck transform
+- Camera follow: kept the existing Cinemachine rig (`FollowCam` — CinemachineCamera +
+  CinemachineFollow + CinemachineHardLookAt), which has provided damped follow since Sprint 2.
+  FOV pulse added as `DisasterProximityFov.cs`, a `CinemachineExtension` on `FollowCam` that
+  overrides `state.Lens.FieldOfView` in the `Finalize` pipeline stage based on distance to the
+  nearest `DisasterEntity`.
 - Photo feedback flash: full-screen Image (Canvas, Screen Space Overlay) with CanvasGroup alpha
   driven by coroutine; reuse for session end overlay
 - Score popup: instantiate a prefab Label at HUD anchor position; animate Y offset + alpha via
@@ -105,7 +116,7 @@ None — S3-04 and S3-06 completed 2026-06-17 (committed 2026-08-28 alongside th
 - [ ] S4-A1 — ADR written for merged disaster entity architecture
 - [ ] S4-01 — PiP visible in Play mode; no FPS regression below 55
 - [ ] S4-02 — Flash + score popup appears on every photo; silent with no tornado
-- [ ] S4-03 — Horizon visible at game start; smooth follow; FOV pulse on proximity (code written 2026-06-17, needs a fresh Play-mode verification pass before checking off)
+- [x] S4-03 — Smooth follow (pre-existing Cinemachine rig) + FOV pulse on proximity (`DisasterProximityFov.cs`, verified attached to `FollowCam` and compiling clean via Unity MCP, 2026-08-28). Horizon-visibility framing (camera offset/angle) not independently re-checked — worth a quick visual pass in Play mode.
 - [ ] S4-04 — Session end overlay with final score; dismissable
 - [ ] S4-05 — Aim indicator points to tornado when off-screen
 - [ ] Sprint 5 scope drafted
