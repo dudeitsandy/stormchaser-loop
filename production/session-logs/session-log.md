@@ -2240,3 +2240,241 @@ unity/StormChaserLoop3D/Packages/manifest.json
 unity/StormChaserLoop3D/Packages/packages-lock.json
 ---
 
+## Session End: 20260828_223812
+### Commits
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+design/gdd/economy-progression.md
+design/gdd/event-system.md
+design/vision/vision-1.0.md
+---
+
+## Session End: 20260828_224103
+### Commits
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+design/gdd/economy-progression.md
+design/gdd/event-system.md
+design/vision/vision-1.0.md
+production/session-logs/session-log.md
+---
+
+## Session End: 20260828_224502
+### Commits
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+design/gdd/economy-progression.md
+design/gdd/event-system.md
+design/vision/vision-1.0.md
+production/session-logs/session-log.md
+---
+
+## Session End: 20260828_225256
+### Commits
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+design/gdd/economy-progression.md
+design/gdd/event-system.md
+design/gdd/photo-scoring.md
+design/gdd/session-modes.md
+design/vision/vision-1.0.md
+production/session-logs/session-log.md
+---
+
+## Session End: 20260828_225523
+### Commits
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+design/gdd/economy-progression.md
+design/gdd/event-system.md
+design/gdd/photo-scoring.md
+design/gdd/session-modes.md
+design/vision/vision-1.0.md
+production/session-logs/session-log.md
+---
+
+## Archived Session State: 20260828_230304
+# Active Session State
+
+<!-- STATUS -->
+Epic: Doomsday Vision Revision
+Feature: Vehicle Damage GDD
+Task: Section-by-section design via /design-system
+<!-- /STATUS -->
+
+## Current Task
+Designing `design/gdd/vehicle-damage.md` (off-index — systems-index.md doesn't exist yet).
+
+## Progress
+- [x] Skeleton created at `design/gdd/vehicle-damage.md`
+- [ ] Overview
+- [ ] Player Fantasy
+- [ ] Detailed Design (Core Rules, States and Transitions, Interactions with Other Systems)
+- [ ] Formulas
+- [ ] Edge Cases
+- [ ] Dependencies
+- [ ] Tuning Knobs
+- [ ] Acceptance Criteria
+- [ ] Optional: Visual/Audio Requirements, UI Requirements, Open Questions
+
+## Key Constraints From Existing Docs (must respect, not redesign)
+- `VehicleMaxHP` is a small integer hit-counter (default 3, range 1-5), not a % bar
+  — established in `event-system.md`'s Tuning Knobs.
+- Ramming failure = 1 HP + dead stop; success = 0 HP + 70% momentum retained
+  (`event-system.md` Ramming Impact Threshold formula).
+- Repair Kit pickup restores exactly 1 HP (`economy-progression.md`).
+- Survivor perk (500 SD): one free full-repair-and-continue on destruction per run
+  (`economy-progression.md`).
+- Destruction ends session early, banks 80% of score (`session-modes.md` edge case,
+  `economy-progression.md` Storm Dollar formula).
+- Vision doc already commits to staged visual/mechanical damage: bent frame reduces
+  turning radius, broken windshield glitches documentation viewfinder, disabled engine
+  forces momentum-only movement — this GDD must define the actual HP thresholds for
+  each stage.
+- Cataclysm Heat rank 4 ("Brittle Chassis") doubles collision damage.
+- Heavy Bumper (gas station perk) zeroes ramming self-damage; Anchor Harpoon/Anchor
+  Clamps grant 100% wind suction immunity — both are existing damage-negation sources
+  this system must expose a hook for.
+- Vehicle archetypes have Armor star ratings (vision-1.0.md) — implies per-archetype
+  HP or damage-resistance multiplier.
+
+## Other Open Threads This Session (not blocking this GDD)
+- Sprint 4 in progress: S4-A1 (ADR) and S4-01 (PiP camera) still open.
+- Design doc batch from the vision revision + design-review fixes is uncommitted —
+  user wants to commit after this GDD is done.
+- Switch platform question resolved: deferred to post-EA, vision-1.0.md updated to
+  match ADR-0001. No new ADR needed.
+---
+
+## Session End: 20260828_230304
+### Commits
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+design/gdd/economy-progression.md
+design/gdd/event-system.md
+design/gdd/photo-scoring.md
+design/gdd/session-modes.md
+design/vision/vision-1.0.md
+production/session-logs/session-log.md
+---
+
+## Session End: 20260828_230619
+### Commits
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+design/gdd/economy-progression.md
+design/gdd/event-system.md
+design/gdd/photo-scoring.md
+design/gdd/session-modes.md
+design/vision/vision-1.0.md
+production/session-logs/session-log.md
+---
+
+## Session End: 20260828_231146
+### Commits
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+design/gdd/economy-progression.md
+design/gdd/event-system.md
+design/gdd/photo-scoring.md
+design/gdd/session-modes.md
+design/vision/vision-1.0.md
+production/session-logs/session-log.md
+---
+
+## Archived Session State: 20260828_234950
+# Active Session State
+
+<!-- STATUS -->
+Epic: Doomsday Vision Revision
+Feature: Vehicle Damage GDD
+Task: Complete — pending /design-review decision
+<!-- /STATUS -->
+
+## Current Task
+`design/gdd/vehicle-damage.md` is complete (off-index — systems-index.md doesn't exist yet).
+Bidirectional dependency links updated in `event-system.md` and `economy-progression.md`.
+
+## Progress
+- [x] Skeleton created at `design/gdd/vehicle-damage.md`
+- [x] Overview
+- [x] Player Fantasy
+- [x] Detailed Design (Core Rules, States and Transitions, Interactions with Other Systems)
+- [x] Formulas
+- [x] Edge Cases
+- [x] Dependencies
+- [x] Tuning Knobs
+- [x] Acceptance Criteria
+- [x] Optional: Visual/Audio Requirements, UI Requirements, Open Questions
+- [ ] Design review (offered, awaiting user decision)
+- [ ] Commit entire design-doc batch (vision revision + review fixes + this new GDD)
+
+## Key Decisions Made While Designing This GDD
+- Max HP = Armor star count (1-5), ✗ floors to 1.
+- Damaged/Critical are 2 stages, not 3 — "broken windshield" + "disabled engine" from the
+  vision doc combine into the single Critical stage (3-HP default vehicle only has 2
+  non-zero, non-full HP values).
+- Thresholds scale by percentage of Max HP: Damaged at floor(MaxHP*2/3), Critical at
+  floor(MaxHP*1/3) — generalizes cleanly across all archetypes.
+- EMP effects are a timed status effect, not HP damage.
+- Instant damage: 1 HP standard, 2 HP for "severe" named interactions (Ice Vortex).
+  Continuous: 1 HP/sec (Fire Tornado exposure).
+- Cataclysm Heat rank 4 doubles all HP damage (not status effects).
+
+## Other Open Threads This Session (not blocking this GDD)
+- Sprint 4 in progress: S4-A1 (ADR) and S4-01 (PiP camera) still open.
+- Switch platform question resolved: deferred to post-EA, vision-1.0.md updated to match
+  ADR-0001. No new ADR needed.
+- Full design-doc batch uncommitted: original vision revision + design-review fixes +
+  Switch reframing + this new vehicle-damage.md + the bidirectional link updates in
+  event-system.md/economy-progression.md. User wants to commit once this GDD is done.
+---
+
+## Session End: 20260828_234950
+### Commits
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+### Uncommitted Changes
+design/gdd/economy-progression.md
+design/gdd/event-system.md
+design/gdd/photo-scoring.md
+design/gdd/session-modes.md
+design/vision/vision-1.0.md
+production/session-logs/session-log.md
+---
+

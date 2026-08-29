@@ -8,8 +8,8 @@
 
 ## Overview
 
-Stormchaser Loop has two session modes: Sprint (90 seconds, score attack) and Chase
-(4–6 minutes, storm front with escalating events). Sprint is the arcade hook and
+Doomsday has two session modes: Sprint (90 seconds, score attack) and Chase
+(5–7.5 minutes, storm front with escalating events). Sprint is the arcade hook and
 onboarding mode. Chase is the heart of the game — long enough to generate stories,
 short enough to replay immediately.
 
@@ -34,7 +34,7 @@ saved a family in a truck, and got the photo of my life with three seconds left.
 - Unlocked by default
 
 ### Chase Mode
-- Session length: 4–6 minutes (varies by storm front size)
+- Session length: 5–7.5 minutes (varies by storm front size — see formula below)
 - Storm front moves across the map; spawns 3–6 tornados in sequence
 - EF rating escalates: front starts at EF0–EF1, peaks at EF3–EF5 midway, dissipates
 - Event windows generated procedurally in tornado path (see event-system.md)
@@ -51,9 +51,10 @@ saved a family in a truck, and got the photo of my life with three seconds left.
 
 ### Chase Session Length
 `SessionLength = BaseDuration + (TornadoCount × 45s)`
-- Base: 3 minutes
-- Each tornado adds ~45 seconds of meaningful chase window
-- Result: 3–6 minute runs depending on storm front
+- Base: 3 minutes (180s)
+- TornadoCount: 3–6 (integer, per Storm Front EF Escalation below)
+- Each tornado adds 45 seconds of meaningful chase window
+- Result: 180s + (3×45s) to 180s + (6×45s) = **5.25–7.5 minute** runs depending on storm front
 
 ### Storm Front EF Escalation
 ```

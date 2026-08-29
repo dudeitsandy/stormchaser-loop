@@ -58,7 +58,8 @@ Bell curve centered on optimal distance (20 units).
 - Solid EF3 shot (aim 0.8, distance 0.7, EF3): `(0.48 + 0.28) × 2.5 × 100 = 190`
 - Glancing EF0 shot (aim 0.3, distance 0.2, EF0): `(0.18 + 0.08) × 1.0 × 100 = 26`
 
-**Score range:** ~10 (worst possible) to 400 (perfect EF5)
+**Score range:** ~10 (worst possible) to 400 (perfect EF5) — Season 1 baseline, before any
+lens ceiling modifiers land (see "Lens-Modified Scoring" below)
 
 ### DistanceScore Bell Curve
 `DistanceScore = Mathf.Exp(-Mathf.Pow(distance - OptimalDistance, 2) / (2 × Spread²))`
@@ -83,6 +84,10 @@ Bell curve centered on optimal distance (20 units).
 - `ScoreAccumulator.cs` (S3-03) — receives score from PhotoTrigger and accumulates
 - `DisasterEntity.cs` (S3-A1) — provides nearest entity query
 - `TornadoData.cs` — EFStrength value per tornado type
+- `event-system.md` — `DaredevilMultiplier` and `StuntAirMultiplier` chain onto
+  `PhotoScore` from this doc (see that doc's Formulas section)
+- `economy-progression.md` — Camera Lens unlocks override `OptimalDistance`/`DistanceSpread`
+  and introduce `CameraAimMultiplier` (see "Lens-Modified Scoring" below)
 
 ---
 
@@ -140,3 +145,36 @@ single threat.
 ### Implementation Trigger
 Build when: (a) a second disaster type ships, AND (b) the Style scoring axis lands
 (planned Sprint 6–7). Do not build before both conditions are met.
+
+---
+
+## Lens-Modified Scoring (Future Extension — Sprint 6-7)
+
+`economy-progression.md`'s Camera Lens tree (Tree 2) changes what counts as a good shot.
+This doc's Season 1 formula treats `OptimalDistance` (20 units) and `DistanceSpread` (10
+units) as fixed constants — they become per-equipped-lens values instead:
+
+| Lens | OptimalDistance | DistanceSpread | Score Ceiling |
+|------|-----------------|-----------------|---------------|
+| Standard (default) | 20 | 10 | ×1.0 (baseline 400 max) |
+| Wide Angle / Fisheye | ~22 (center of 10–35 range) | ~13 (wider bell) | ×0.9 |
+| Telephoto | ~37 (center of 25–50 range) | ~13 | ×1.3 |
+| Prototype Sensor | n/a — no distance penalty | n/a | DistanceScore fixed at 1.0 |
+
+### Design Intent
+A closer lens rewards aggressive positioning; a longer lens trades score ceiling for safety.
+`CameraAimMultiplier` (from `economy-progression.md`'s Modified Aim Score formula) is
+separate from this table — it defaults to 1.0 for all current lenses since none of them
+change aim difficulty, only distance framing. A future lens could introduce a non-1.0 value.
+
+### Extension Points
+- `DistanceScore` formula's `OptimalDistance`/`Spread` become read from the equipped lens's
+  data (a new `LensData` ScriptableObject, not yet created) instead of hardcoded constants.
+- Final formula becomes:
+  `PhotoScore = (AimScore × 0.6 + DistanceScore × 0.4) × EFStrength × 100 × LensScoreCeiling`
+- Prototype Sensor is a special case: `DistanceScore` is forced to 1.0 regardless of actual
+  distance, rather than using a bell curve with an enormous spread.
+
+### Implementation Trigger
+Build when the Economy system (Sprint 6-7) ships Tree 2. Do not build before then — Season 1
+ships with Standard Lens only, no lens selection UI needed yet.
