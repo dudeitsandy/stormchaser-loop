@@ -1,97 +1,145 @@
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Build outputs
-dist/
-build/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# IDE and editor files
-.vscode/
+# === IDE and Editor ===
+.vs/
+.vscode/settings.json
 .idea/
 *.swp
 *.swo
 *~
-
-# OS generated files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
+Desktop.ini
+*.code-workspace
 
-# Logs
-logs
+# === Claude Code Local ===
+.claude/settings.local.json
+.claude/docs/UPGRADE-PLAN.md
+CLAUDE.local.md
+production/session-logs/
+production/session-state/*.md
+
+# === Internal Planning (not for public) ===
+docs/IMPROVEMENTS-PROPOSAL.md
+docs/MULTI-STAGE-DOCUMENT-WORKFLOW.md
+
+# === Build Output ===
+build/
+builds/
+bin/
+obj/
+out/
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+*.app
+
+# === Engine: Godot ===
+.godot/
+*.translation
+export_presets.cfg
+# Uncomment if using Godot:
+# *.import
+
+# === Engine: Unity ===
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+crashlytics-buildid.txt
+sysinfo.txt
+# Uncomment if using Unity:
+# [Aa]ssets/[Aa]sset[Ss]tore[Tt]ools/
+
+# Unity crash/autosave recovery dumps — not source of truth, just local backups
+**/_Recovery/
+**/_Recovery.meta
+
+# === Engine: Unreal ===
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+*.VC.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+# Uncomment if using Unreal:
+# *.uasset
+# *.umap
+
+# === Compiled Shaders ===
+*.spv
+*.cso
+*.dxbc
+
+# === Temporary and Cache ===
+*.tmp
+*.temp
+*.cache
 *.log
+*.stackdump
+__pycache__/
+*.pyc
+node_modules/
+.npm/
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# Temporary folders
-tmp/
-temp/
-
-# Game specific
+# === Archives ===
 *.zip
 *.tar.gz
+*.rar
+*.7z
 
-# Backup files
-*.bak
-*.backup
+# === Secrets and Environment ===
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# === Large Binary Assets (use Git LFS instead) ===
+# Uncomment and configure with Git LFS for your project:
+# *.png
+# *.jpg
+# *.jpeg
+# *.wav
+# *.mp3
+# *.ogg
+# *.fbx
+# *.blend
+# *.psd
+# *.tga
+# *.exr
+# *.hdr
+
+# === OS Generated ===
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
