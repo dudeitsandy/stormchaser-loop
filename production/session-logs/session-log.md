@@ -2478,3 +2478,13 @@ design/vision/vision-1.0.md
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260829_003409
+### Commits
+73850cd vision: Revise Doomsday concept, resolve design-review findings, add Vehicle Damage GDD
+482ab5e S3-04: Restore terrain wiring, verify S4-03 FOV pulse numerically
+54f9d69 tooling: Add com.unity.ai.assistant package for Unity MCP editor bridge
+4a30b3c S4-03: Replace dead CameraController with Cinemachine FOV extension
+b09b19d repo: Unity-aware .gitignore, restore README, redate Sprint 4 after 8-week gap
+74eddcd S3-04/S3-06 polish + S4-03: Finish terrain/tornado visuals, add camera follow & FOV system
+---
+
