@@ -214,7 +214,7 @@ proportionally — that shortfall is wheelspin / power-oversteer.
 - `load` = this wheel's `F_susp` — unloaded wheels lose grip, so bumps and jumps break traction.
 - `HB` = `HandbrakeGrip` (≈ 0.3) on rear wheels while handbrake held, else 1.
 - `WindGripMul = 1 / (1 + |w| / WindGripLossAt)` (carried over from the 0.4 implementation).
-- `SurfaceGrip` from terrain (provisional, 1.0 until ADR-0004).
+- `SurfaceGrip` from terrain: ADR-0004 SurfaceTag table (Asphalt 1.0 … Mud 0.45); untagged = Grass 0.75.
 
 **F4. Steering angle**
 `δ = δ_max · steer · lerp(1, HighSpeedSteerFactor, v / v_top) · DamageSteerMul`
@@ -315,7 +315,7 @@ off wind and crashes.
 | Vehicle archetype data (`VehicleData`, `vision-1.0.md` stars) | Hard | Speed/Armor/Trick stars → F13 parameters (`VehicleData` gains star fields) |
 | Input (`StormChaserControls`) | Hard | New actions: Handbrake, Jump, Boost, CameraOrbit, StormCam; Shutter rebound (RB / left mouse) |
 | Camera rig (Cinemachine `FollowCam`) | Hard | Orbit offset + Storm Cam target; existing `DisasterProximityFov` (FOV + wind shake) carries over |
-| Terrain (ADR-0004, **undesigned**) | Soft, **provisional** | Surface type per contact → `SurfaceGrip`/drag; destructible piece mass (E13). Works on flat ground without it |
+| Terrain (ADR-0004, Proposed 2026-10-01) | Soft | Surface type per contact → `SurfaceGrip`/drag; destructible piece mass (E13). Works on flat ground without it |
 
 **Depended on by:**
 
