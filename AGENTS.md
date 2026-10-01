@@ -95,7 +95,7 @@ Update your own line when you start/finish a task.
 | C2 Vehicle damage + wreck | Claude | done (tests green) |
 | C3 Tornado behavior + EF roster | Claude | done (tests green) |
 | C4 HUD + scene wiring + bounds | Claude | done (tests green) |
-| C5 Build script + itch push | Claude | script written; butler not installed |
+| C5 Build script + itch push | Claude | done — 0.4.0 pushed to ghostweavelabs/doomsday (html5 + windows) |
 | X1 Photo feedback (flash/popup/tier) | Codex | implemented; compile verified; playtest pending |
 | X2 PiP viewfinder | Codex | implemented; compile verified; playtest/GPU check pending |
 | X3 Off-screen indicator | Codex | implemented; compile verified; EditMode execution pending |

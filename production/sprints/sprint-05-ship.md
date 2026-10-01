@@ -72,3 +72,10 @@ Those are the Early Access roadmap, not the prototype.
 | Wind physics polish (gusts, truck lift/tilt) | Claude | after Vehicle Feel pass |
 | **Vehicle Feel pass — Rocket League target** | Claude | Replace arcade direct-velocity with real rigidbody vehicle: weight transfer on accel/brake, powerslide/handbrake turns, suspension over uneven terrain, air control, tangible crash impacts (camera kick, debris, damage tied to impact force), wind as a real force on the body. Vision-1.0 Pillar 1 (Kinetic Chaos), planned Sprint 6-7 alongside stunt/style scoring. Depends on terrain becoming a large-scale, uneven, destructible space — design both together, not before. Requested 2026-10-01. |
 | Large-scale destructible terrain | Claude + Codex | Prerequisite for the Vehicle Feel pass to matter (bumps, ramps, debris to drive over/through). Needs its own ADR. |
+
+## Release Log
+- **2026-10-01 — 0.4.0 pushed** to https://ghostweavelabs.itch.io/doomsday via butler:
+  `html5` (WebGL, 53 MB) and `windows` (105 MB). WebGL verified locally in Chromium (0 GL errors
+  after the quality-level fix). Windows build smoke-launched but not yet hand-played from itch.
+- Re-push: `butler push builds/<webgl|windows> ghostweavelabs/doomsday:<html5|windows> --userversion X.Y.Z`
+  (butler lives at `~/.local/bin/butler.exe`).
