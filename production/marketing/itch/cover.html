@@ -1,0 +1,82 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;background:#000}
+  #cover{position:relative;width:630px;height:500px;overflow:hidden;
+    background:radial-gradient(120% 80% at 50% 105%, #3a3f2c 0%, #1b1f17 38%, #0b0d0c 70%);}
+  svg{position:absolute;inset:0}
+  .title{position:absolute;left:0;right:0;top:300px;text-align:center;
+    font-family:'Anton',Impact,sans-serif;font-size:118px;letter-spacing:10px;color:#ffb000;
+    line-height:1;text-shadow:0 0 18px rgba(255,140,0,.55),3px 0 0 rgba(255,40,40,.55),-3px 0 0 rgba(0,200,255,.45);}
+  .sub{position:absolute;left:0;right:0;top:432px;text-align:center;font-family:'IBM Plex Mono',monospace;
+    font-weight:700;font-size:17px;letter-spacing:7px;color:#ece6d8;}
+  .tag{position:absolute;left:20px;top:18px;font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;
+    letter-spacing:2px;color:#ff3b2e;}
+  .tag b{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff3b2e;margin-right:7px;
+    box-shadow:0 0 8px #ff3b2e;vertical-align:0}
+  .ef{position:absolute;right:20px;top:18px;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;
+    letter-spacing:2px;color:#ffb000;}
+  .scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+  .vig{position:absolute;inset:0;background:radial-gradient(110% 90% at 50% 50%,transparent 55%,rgba(0,0,0,.75) 100%)}
+  .frame{position:absolute;inset:44px 20px 0 20px;pointer-events:none}
+  .frame i{position:absolute;width:26px;height:26px;border-color:rgba(236,230,216,.7);border-style:solid}
+  .frame i:nth-child(1){left:0;top:0;border-width:2px 0 0 2px}
+  .frame i:nth-child(2){right:0;top:0;border-width:2px 2px 0 0}
+</style></head>
+<body>
+<div id="cover">
+  <svg viewBox="0 0 630 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0d1012"/><stop offset=".55" stop-color="#2a2e25"/><stop offset="1" stop-color="#4b4733"/>
+      </linearGradient>
+      <linearGradient id="funnel" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#15181a"/><stop offset=".45" stop-color="#3b403d"/><stop offset=".6" stop-color="#5a5d55"/><stop offset="1" stop-color="#15181a"/>
+      </linearGradient>
+      <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#ffb000" stop-opacity=".35"/><stop offset="1" stop-color="#ffb000" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="630" height="330" fill="url(#sky)"/>
+    <!-- shelf cloud -->
+    <path d="M0 70 C80 40 160 95 240 62 S400 30 470 66 S590 48 630 60 L630 0 L0 0Z" fill="#0a0c0d"/>
+    <path d="M0 92 C90 70 170 118 260 88 S420 62 500 92 S600 80 630 88 L630 60 C590 48 540 80 470 66 S320 40 240 62 S80 40 0 70Z" fill="#1a1d1d" opacity=".9"/>
+    <!-- funnel -->
+    <path d="M232 86 C262 92 380 92 414 86 C400 130 372 150 358 196 C348 232 350 270 338 300 L322 300 C312 268 304 236 296 204 C284 158 252 128 232 86Z" fill="url(#funnel)"/>
+    <g stroke="#7a7b70" stroke-opacity=".35" stroke-width="1.4" fill="none">
+      <path d="M248 104 C300 116 360 114 404 104"/><path d="M262 130 C306 140 352 138 392 128"/>
+      <path d="M278 160 C312 168 346 166 374 158"/><path d="M292 196 C316 202 340 200 360 194"/>
+      <path d="M304 232 C320 236 336 236 350 230"/><path d="M314 266 C324 268 334 268 344 264"/>
+    </g>
+    <!-- debris cloud at base -->
+    <ellipse cx="330" cy="304" rx="70" ry="16" fill="#3e3a2c" opacity=".85"/>
+    <ellipse cx="330" cy="300" rx="44" ry="10" fill="#5b5440" opacity=".7"/>
+    <g fill="#14161a"><rect x="268" y="270" width="5" height="3" transform="rotate(30 270 271)"/><rect x="392" y="258" width="6" height="3" transform="rotate(-20 395 259)"/><rect x="250" y="240" width="4" height="4"/><rect x="408" y="232" width="5" height="2"/></g>
+    <!-- ground + road -->
+    <rect y="300" width="630" height="200" fill="#151a12"/>
+    <path d="M300 300 L330 300 L630 500 L0 500Z" fill="#202224"/>
+    <path d="M314 300 L316 300 L330 500 L300 500Z" fill="#ffb000" opacity=".85"/>
+    <!-- power poles -->
+    <g stroke="#0b0c0d" stroke-width="3"><line x1="120" y1="300" x2="120" y2="236"/><line x1="104" y1="244" x2="136" y2="244"/>
+      <line x1="520" y1="300" x2="520" y2="226"/><line x1="502" y1="236" x2="538" y2="236"/></g>
+    <path d="M136 244 C260 262 400 258 502 236" stroke="#0b0c0d" stroke-width="1" fill="none"/>
+    <!-- truck silhouette with headlights -->
+    <g transform="translate(286 458)">
+      <rect x="0" y="10" width="58" height="22" rx="3" fill="#0a0b0c"/>
+      <rect x="10" y="0" width="34" height="14" rx="2" fill="#0a0b0c"/>
+      <rect x="22" y="-6" width="12" height="6" fill="#0a0b0c"/>
+      <circle cx="8" cy="22" r="3.5" fill="#fff3c4"/><circle cx="50" cy="22" r="3.5" fill="#fff3c4"/>
+    </g>
+    <ellipse cx="315" cy="480" rx="70" ry="22" fill="url(#glow)"/>
+    <!-- viewfinder crosshair on funnel -->
+    <g stroke="#ffb000" stroke-width="1.5" opacity=".9"><line x1="323" y1="168" x2="323" y2="182"/><line x1="316" y1="175" x2="330" y2="175"/></g>
+  </svg>
+  <div class="frame"><i></i><i></i></div>
+  <div class="tag"><b></b>REC  00:01:30</div>
+  <div class="ef">EF5 · 20M</div>
+  <div class="title">DOOMSDAY</div>
+  <div class="sub">STORM SEASON</div>
+  <div class="scan"></div><div class="vig"></div>
+</div>
+</body></html>
