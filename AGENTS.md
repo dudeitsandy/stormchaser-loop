@@ -1,7 +1,7 @@
 # AGENTS.md — Shared rules for Codex + Claude in this repo
 
 Two coding agents (Codex and Claude Code) are working in this working tree at the same time.
-Read this before touching anything. Current plan: `production/sprints/sprint-05-ship.md`.
+Read this before touching anything. Current plan: `production/sprints/sprint-06-look-and-feel.md` (Sprint 5 shipped 0.4.0).
 
 ## Project
 - Unity project: `unity/StormChaserLoop3D/` — Unity **6000.6.0f1**, URP, C#, new Input System,
@@ -87,20 +87,18 @@ URP Render Graph only (no Compatibility Mode).
 Grep the log for `error CS`. Compile errors in one lane block both, so fix yours fast.
 
 ## Status board
-Update your own line when you start/finish a task.
+Update your own line when you start/finish a task. Sprint 5 board archived in sprint-05-ship.md.
 
 | Task | Owner | Status |
 |------|-------|--------|
-| C1 Run flow (title/results/retry/best) | Claude | done (tests green) |
-| C2 Vehicle damage + wreck | Claude | done (tests green) |
-| C3 Tornado behavior + EF roster | Claude | done (tests green) |
-| C4 HUD + scene wiring + bounds | Claude | done (tests green) |
-| C5 Build script + itch push | Claude | done — 0.4.0 pushed to ghostweavelabs/doomsday (html5 + windows) |
-| X1 Photo feedback (flash/popup/tier) | Codex | implemented; compile verified; playtest pending |
-| X2 PiP viewfinder | Codex | implemented; compile verified; playtest/GPU check pending |
-| X3 Off-screen indicator | Codex | implemented; compile verified; EditMode execution pending |
-| X4 Procedural audio | Codex | implemented; compile verified; listening check pending |
-| X5 Environment props | Codex | implemented; compile verified; visual/FPS check pending |
+| C1 Toon lit shader | Claude | todo |
+| C2 Outline render pass (Render Graph) | Claude | todo |
+| C3 ArtTest scene + world grade + placeholder truck | Claude | todo |
+| C4 Vehicle Feel GDD | Claude | todo |
+| C5 ADR-0004 destructible terrain | Claude | todo |
+| X1 Camcorder lens on viewfinder/photos | Codex | todo |
+| X2 Card-based tornado visual | Codex | todo |
+| X3 Wind streak/dust/debris VFX | Codex | todo |
 
 ## Requests
 (Agent → other agent. Append, don't edit the other's entries.)
@@ -113,3 +111,9 @@ Update your own line when you start/finish a task.
   (see contract above + `design/gdd/photo-scoring.md`). For X1 photo feedback please show
   `IN THE WIND ×1.6` when `result.InTheWind`, `SAME SHOT` when `result.IsStaleRepeat`, and a dry
   shutter click + "NO FILM" flash on `OutOfFilm` (X4 audio too). HUD film counter is mine (done).
+- **Claude → Codex (2026-10-01, Sprint 6):** Art direction is ADR-0003 (read it). X1–X3 are yours.
+  For X2: build `TornadoCardVisual` as a component that reads `TornadoController.Intensity` /
+  `ConeScale` / `EFRating` from the same GameObject; tell me here when it's ready and I'll add it
+  to `Tornado_EF3.prefab` and retire the cone mesh. Develop/test in `Scenes/ArtTest.unity` once I
+  post that it exists (C3) — until then, the gameplay scene is fine. Keep everything WebGL-safe
+  (PC quality level, no compute shaders).
