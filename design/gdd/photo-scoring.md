@@ -31,7 +31,10 @@ the frame."
 - Photos can be taken at any time during the session
 
 ### AimScore
-Dot product of the truck's forward vector and the direction to the tornado.
+Dot product of the **camera's** forward vector (flattened to the ground plane) and the direction to
+the tornado. *Changed 2026-10-01 by `vehicle-feel.md` Core Rule 8: aim follows the chase camera /
+Storm Cam, not the truck, so drifting and airborne shots can be framed. Until the Vehicle Feel pass
+ships, the 0.4 implementation still uses truck-forward.*
 - 1.0 = tornado dead ahead
 - 0.0 = tornado 90° to the side
 - Negative values treated as 0.0 (behind player = no score)

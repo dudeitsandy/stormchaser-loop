@@ -135,6 +135,7 @@ t=2.0s → 2 HP total; the remaining 0.5s doesn't trigger a third tick.
 | System | Direction | Nature of Dependency |
 |--------|-----------|----------------------|
 | `PlayerVehicle.cs` | This depends on it | Needs collision/ramming/hazard-zone-entry events; needs a new health field added (doesn't exist today) |
+| `vehicle-feel.md` | Bidirectional | Supplies impact severity (F10: light → 1 HP, severe → 2 HP, landings ×1.5 threshold, light-destructible mass scaling E13); consumes this doc's stages (Damaged steer ×0.75, Critical momentum-only). Added 2026-10-01 |
 | `VehicleData.cs` (SO) | This depends on it | Needs a Max HP value added per archetype, derived from Armor rating |
 | `event-system.md` | Bidirectional | This doc implements `event-system.md`'s Ramming Impact Threshold (1 HP) and `VehicleMaxHP` knob rather than redefining them; `event-system.md` already lists vehicle damage as a dependency (added during design review) |
 | `economy-progression.md` | Bidirectional | Repair Kit, Survivor perk, Heavy Bumper, Anchor Harpoon/Clamps, and EMP Deflector Shield all hook into this system — that doc's Dependencies section now points back here |

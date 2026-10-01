@@ -129,6 +129,8 @@ At run start, the News Network assigns 1–3 procedural photo bounties:
 
 - `DisasterEntity.cs` / `TornadoController.cs` — path projection for event placement.
 - `VehicleData.cs` / `PlayerVehicle.cs` — collision damage, mass, and payload triggers.
+- `vehicle-feel.md` — supplies Sliding state + slide duration (Drift Framing Zone — this satisfies its
+  "requires the Vehicle Feel pass" trigger) and Airborne flag + airtime (Twister Jump Ramp). Added 2026-10-01.
 - `SessionTimer.cs` — event window timing and expiration.
 - `ScoringSystem.cs` — multiplier chaining and Intervention score tallying (`photo-scoring.md`
   lists this doc's `DaredevilMultiplier`/`StuntAirMultiplier` in its own Dependencies).

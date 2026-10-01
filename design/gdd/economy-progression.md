@@ -182,6 +182,9 @@ At the end of every run, the game generates a mock **retro newspaper or magazine
   saves data across sessions — Storm Dollars, garage unlocks, and the Newspaper Album all
   require this to exist before Sprint 6-7 implementation can start. Not yet scoped anywhere.
 - `vision-1.0.md`'s Vehicle Archetypes table — Tree 1 unlock names must stay in sync with it
+- `vehicle-feel.md` F13 — Speed/Armor/Trick stars are now mechanical (top speed, mass, wind exposure,
+  crash thresholds, air control, handbrake grip, style refill). Tree 1 stat deltas should be expressed
+  as star changes so F13 stays the single source of truth. Added 2026-10-01.
   (see that table's note).
 
 ---

@@ -167,19 +167,179 @@ Sliding / Airborne / Tossed / Upended are mutually exclusive; **Disabled** overl
 
 ## Formulas
 
-[To be designed]
+Units: m, s, kg; g = 9.81. Values are starting defaults exposed as Tuning Knobs; the *shape* of each
+formula is the design. Pickup (Speed 3 / Armor 3 / Trick 2) used for examples.
+
+**F1. Suspension spring-damper** (per wheel)
+`F_susp = max(0, k·x + c·ẋ)` — `x` compression ∈ [0, Travel], `ẋ` compression velocity.
+`k = (M·g/4) / (SagFraction · Travel)` (rest sag = `SagFraction` = 0.35 of travel);
+`c = 2·ζ·√(k·M/4)`, damping ratio `ζ` = 0.45 (slightly bouncy so landings read).
+Pickup: M = 2100, Travel = 0.35 → k ≈ 42,000 N/m, c ≈ 4,300 N·s/m.
+
+**F2. Drive force**
+`F_drive = M · A_engine · throttle · (1 − (v / v_top)^2.5)`, split across drive wheels.
+`A_engine = 1.6 · v_top / AccelTime` → ≈ 90 % of top speed in `AccelTime`.
+
+**F3. Lateral grip** (per wheel)
+`F_lat = −clamp(v_lat · GripStiffness · load, ±μ · load · SurfaceGrip · HB · WindGripMul)`
+- `load` = this wheel's `F_susp` — unloaded wheels lose grip, so bumps and jumps break traction.
+- `HB` = `HandbrakeGrip` (≈ 0.3) on rear wheels while handbrake held, else 1.
+- `WindGripMul = 1 / (1 + |w| / WindGripLossAt)` (carried over from the 0.4 implementation).
+- `SurfaceGrip` from terrain (provisional, 1.0 until ADR-0004).
+
+**F4. Steering angle**
+`δ = δ_max · steer · lerp(1, HighSpeedSteerFactor, v / v_top) · DamageSteerMul`
+`δ_max` = 32°, `HighSpeedSteerFactor` = 0.45, `DamageSteerMul` = 0.75 when Damaged else 1.
+
+**F5. Slip angle** (drives Sliding state)
+`β = atan2(|v_lat|, |v_long|)`; enter Sliding at β > 20°, exit at β < 10°.
+
+**F6. Downforce** (grounded only)
+`F_down = DownforceCoeff · v²`, capped at 0.5 · M · g.
+
+**F7. Air control**
+`τ = M · AirTorque · TrickScale · input`; angular speed capped at `AirMaxRate` ≈ 4.5 rad/s (~260°/s).
+
+**F8. Jump**
+Impulse `J = M · v_jump`; `v_jump` = 5.5 m/s → apex `v²/2g` ≈ **1.5 m** (clears fences/debris, no float).
+
+**F9. Boost**
+`F_boost = M · A_boost` (A_boost = 9 m/s²); drain 33/s (full meter ≈ 3 s).
+Refill: +18/s Sliding, +14/s Airborne, +25 per near-miss (all × `StyleRefillScale`), +4/s passive.
+
+**F10. Impact severity**
+Collision `s = |v_rel · n|`; landing `s = |v_y| / 1.5`.
+`HP_loss = 2 if s ≥ Severe; 1 if s ≥ Light; else 0`. Pickup: Light 12.5 m/s, Severe 22.5 m/s.
+Sanity: an ~8 m drop lands at 12.5 m/s → /1.5 = 8.3 → no damage (clean landings never hurt);
+head-on at ≥ 12.5 m/s (~45 km/h) → 1 HP; full speed ≥ 22.5 m/s → 2 HP.
+
+**F11. Wind force**
+`F_wind = M · WindResponse · Exposure · (w − v_h)`, capped at 1.2 · M · g, applied 0.4 m above CoM.
+`WindResponse` = 1.1 /s → horizontal velocity relaxes toward air velocity with time constant
+≈ 0.9 s / Exposure. Replaces the 0.4 direct velocity offset; heavier archetypes resist naturally.
+
+**F12. Wind lift** (EF3+ only)
+`L = M · g · Exposure · LiftScale · Intensity · (1 − d / (0.5 · R))²` for `d < 0.5 · R`
+(R = tornado wind radius, d = horizontal distance to funnel).
+`LiftScale = max(0, (EFStrength − 2.0) · 0.8)` → EF3 0.4, EF4 0.8, EF5 1.6.
+**Tossed when `L ≥ 0.7 · M · g`.** Pickup sanity: EF3 peaks at 0.4 g (wheels light, grip loss, never
+tossed); EF4 tosses only at dead center (inside damage radius anyway); **EF5 tosses within ≈ 6.4 m —
+just outside its 4.3 m damage radius**: flung right before you'd be hit.
+
+**F13. Archetype star mapping** (stars 1–5; Armor ✗ = 0)
+
+| Stat | Drives | Formula | Pickup (3/3/2) |
+|------|--------|---------|----------------|
+| Speed `s` | Top speed, accel | `v_top = 14 + 2.5s` m/s; `AccelTime = 4.2 − 0.4s` s | 21.5 m/s (77 km/h); 3.0 s |
+| Armor `a` | Mass, wind, crash thresholds | `M = 1200 + 300a`; `Exposure = 1.3 − 0.15a`; `Light = 8 + 1.5a`; `Severe = 1.8 · Light` | 2100 kg; 0.85; 12.5 / 22.5 m/s |
+| Trick `t` | Air, slide, style refill | `TrickScale = 0.6 + 0.2t`; `HandbrakeGrip = 0.45 − 0.04t`; `StyleRefillScale = 0.7 + 0.15t` | 1.0; 0.37; 1.0 |
+
+Extremes: **Motorcycle (5/✗/5)** — 26.5 m/s, 1200 kg, exposure 1.3, Light 8 m/s: fast, wind-blown,
+fragile (fits its 1 HP). **Monster Truck (2/5/3)** — 2700 kg, exposure 0.55, Light 15.5 m/s: shrugs
+off wind and crashes.
 
 ## Edge Cases
 
-[To be designed]
+| # | Situation | Resolution |
+|---|-----------|------------|
+| E1 | **Donut farming** — handbrake spins in place to refill boost | Slide refill only counts at speed > 6 m/s |
+| E2 | **Jump farming** — jump spam on flat ground ≈ continuous airtime → infinite boost | Airtime refill/style only counts while **> 1.8 m above ground** (above the 1.5 m jump apex). Ramps, wreckage, tosses count; bunny-hops don't |
+| E3 | **Near-miss farming** — orbiting just outside a damage radius | Near-miss cooldown 3 s per tornado; requires speed > 8 m/s |
+| E4 | Toss → hard landing → damage | Intended risk; normal landing rules; post-hit invulnerability prevents stacking |
+| E5 | Upended in wind — linear speed never drops below 2 m/s, auto-right never fires | Auto-right condition: upended 1.2 s **and** angular speed < 1.5 rad/s (linear speed ignored) |
+| E6 | Tunneling at boost/toss speeds | Continuous-dynamic collision detection on the vehicle body |
+| E7 | Low framerate (Steam Deck 30 fps, WebGL hitches) | Fixed 50 Hz physics, independent of render rate; max catch-up 0.1 s per frame |
+| E8 | Flung out of the world | Soft boundary push-back + hard clamp; below y = −10, respawn at last grounded position (no HP cost) |
+| E9 | Wall-driving via suspension | Wheel grounded only if contact normal is < 60° from up. No Rocket League wall-riding |
+| E10 | Critical damage stage while airborne | Air control allowed (rotation, not propulsion); throttle/boost/jump stay disabled |
+| E11 | Storm Cam with no disaster in range | Falls back to free orbit while staying toggled; re-locks when one enters range; switching targets requires the new one to be ≥ 25 % closer (no flicker) |
+| E12 | Multiple impacts in one physics step | Apply only the single highest severity |
+| E13 | Hitting light destructibles (fences, signs) | Severity scaled by `min(1, m_other / (0.5 · M))`; static geometry = full mass. Plowing through fences never hurts; silos do. *(Provisional on ADR-0004)* |
+| E14 | Jump input while Upended or Disabled | Ignored (needs ≥ 2 grounded wheels and not Critical) |
+| E15 | Photo with camera looking backward | Allowed — aim is camera-forward and the viewfinder shows what will be scored; shooting over your shoulder while fleeing is valid |
 
 ## Dependencies
 
-[To be designed]
+**This system depends on:**
+
+| Dependency | Type | Interface |
+|------------|------|-----------|
+| Wind field (`DisasterEntity.TotalWindAt`, `WindField`) | Hard | Wind velocity at a position; **new** per-disaster lift query (F12) |
+| `vehicle-damage.md` / `VehicleHealth` | Hard | Current damage stage → steer multiplier, momentum-only mode |
+| Vehicle archetype data (`VehicleData`, `vision-1.0.md` stars) | Hard | Speed/Armor/Trick stars → F13 parameters (`VehicleData` gains star fields) |
+| Input (`StormChaserControls`) | Hard | New actions: Handbrake, Jump, Boost, CameraOrbit, StormCam; Shutter rebound (RB / left mouse) |
+| Camera rig (Cinemachine `FollowCam`) | Hard | Orbit offset + Storm Cam target; existing `DisasterProximityFov` (FOV + wind shake) carries over |
+| Terrain (ADR-0004, **undesigned**) | Soft, **provisional** | Surface type per contact → `SurfaceGrip`/drag; destructible piece mass (E13). Works on flat ground without it |
+
+**Depended on by:**
+
+| Dependent | Type | Needs | Back-link status |
+|-----------|------|-------|------------------|
+| `photo-scoring.md` / `PhotoTrigger` | Hard | Camera-forward aim direction | AimScore redefined camera-forward (2026-10-01) |
+| `vehicle-damage.md` | Hard | Impact events with severity (F10) | Added (2026-10-01) |
+| `event-system.md` | Soft | Slide duration; Airborne flag + airtime | Added — Drift Framing Zone now satisfiable (2026-10-01) |
+| `economy-progression.md` Tree 1 | Soft | Archetype stars → physics (F13) | Added (2026-10-01) |
+| HUD (Claude lane) | Soft | Boost meter value | — |
+| Presentation (Codex lane): viewfinder, VFX, audio | Soft | Camera orientation for PiP; state flags + new events for tire smoke, sparks, landing dust, engine/skid audio | Codex request posted in AGENTS.md: PiP follows camera, not truck |
+| Style scoring (future system) | Soft | `StyleEvent` stream | — |
+
+**Code impact (Sprint 7):** `PlayerVehicle.cs` is rewritten; `RunLoopSmokeTests` must be updated
+(they teleport the truck and rely on 0.4 knockback behavior).
 
 ## Tuning Knobs
 
-[To be designed]
+All live on `VehicleData` (per archetype) or a shared vehicle-feel config. Defaults = Pickup.
+
+| Knob | Default | Safe range | Too high → | Too low → |
+|------|---------|-----------|------------|-----------|
+| **Suspension** | | | | |
+| `SagFraction` | 0.35 | 0.2–0.5 | Wallowy, bottoms out | Stiff, jittery |
+| `DampingRatio` (ζ) | 0.45 | 0.3–0.8 | Dead landings | Pogo-sticking |
+| `Travel` | 0.35 m | 0.2–0.6 | Monster-truck float | Harsh, no visible suspension |
+| **Drive & grip** | | | | |
+| `GripStiffness` | 6 | 3–12 | On rails, no slides | Ice skating |
+| `μ` (grip cap) | 1.1 | 0.8–1.6 | Can't drift without handbrake | Slides every turn |
+| `δ_max` | 32° | 24–40° | Twitchy at low speed | Boat-like turning |
+| `HighSpeedSteerFactor` | 0.45 | 0.3–0.8 | Unstable at top speed | Can't corner fast |
+| `DownforceCoeff` | 2.5 | 0–6 | Glued down, ramps lose air | Floaty, rolls easily |
+| `AntiRoll` / `YawStability` | 0.6 / 0.5 | 0–1 | Feels assisted/scripted | Spin-outs, rollovers |
+| **Handbrake** | | | | |
+| `HandbrakeGrip` (base, Trick-scaled per F13) | 0.45 | 0.2–0.6 | Barely slides | Uncontrollable spin |
+| `GripRecoveryTime` | 0.25 s | 0.1–0.6 | Sluggish exits | Twitchy exits |
+| **Air & jump** | | | | |
+| `AirTorque` | 9 | 4–16 | Spins like a top | Can't correct landings |
+| `AirMaxRate` | 4.5 rad/s | 3–7 | Uncontrolled flips | Sluggish air |
+| `v_jump` | 5.5 m/s | 4–7.5 | Floaty cartoon hops | Useless hop |
+| `JumpCooldown` | 0.8 s | 0.5–1.5 | Unresponsive | Bunny-hop spam |
+| **Boost** | | | | |
+| `A_boost` | 9 m/s² | 5–14 | Breaks top speed; tunneling risk | Unnoticeable |
+| `BoostDrain` / `PassiveRegen` | 33 / 4 per s | 20–50 / 0–10 | Boost scarce / always full | Endless / style-only |
+| Style refills (slide / air / near-miss) | 18/s / 14/s / 25 | ±50 % | Boost always full | Style doesn't feed speed |
+| **Impacts** | | | | |
+| `Light` / `Severe` (F13 coefficients) | `8 + 1.5a` / ×1.8 | ±30 % | Invincible bumper car | Every bump costs HP |
+| `LandingThresholdMul` | 1.5 | 1.2–2.5 | Landings never hurt | Jumps punishing |
+| **Wind** | | | | |
+| `WindResponse` | 1.1 /s | 0.5–2 | Tumbleweed | Wind cosmetic again |
+| `WindForceCap` | 1.2 g | 0.6–2 | EF0s ragdoll you | EF5 ≈ EF0 |
+| `LiftScale` coefficient | 0.8 | 0.4–1.2 | EF3 tosses | EF5 can't toss |
+| `TossThreshold` | 0.7 g | 0.5–1.0 | Toss rare / only inside damage radius | Constant tossing near EF4+ |
+| **Camera** | | | | |
+| `OrbitRecenterTime` | 0.6 s | 0.2–1.5 | Camera lags | Fights player orbit |
+| `StormCamSwitchRatio` | 0.75 | 0.6–0.9 | Sticky lock on far target | Target flicker |
+| **Exploit gates (E1–E3)** | | | | |
+| `MinSlideRefillSpeed` | 6 m/s | 4–10 | Boost hard to earn | Donut farming |
+| `MinAirtimeHeight` | 1.8 m | 1.6–3 | Only big ramps count | Bunny-hop farming |
+| `NearMissCooldown` | 3 s | 2–6 | Near-misses rare | Orbit farming |
+
+**Ownership:** F13's star coefficients are knobs owned by F13. Change an archetype's feel through its
+stars, not per-vehicle overrides, so archetypes stay comparable (and `economy-progression.md` Tree 1
+deltas stay expressible as stars).
+
+**Interacting knobs:**
+- `GripStiffness`/`μ` vs `HandbrakeGrip` — a high grip cap makes the handbrake the only way to slide
+  (intended for the Pickup).
+- `WindResponse` × `Exposure` multiply — tune `WindResponse` once; vary only `Exposure` per archetype.
+- `LiftScale` vs `TossThreshold` set the toss distance — keep EF5's just outside its damage radius.
 
 ## Visual/Audio Requirements
 
