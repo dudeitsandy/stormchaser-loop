@@ -49,4 +49,4 @@
 <!-- Quick reference linking to full ADRs in docs/architecture/ -->
 - [ADR-0001](../../docs/architecture/adr-0001-phaser-to-unity-3d-pivot.md) — Phaser 2D → Unity 6.3 URP 3D pivot; PiP photography system; Steam target
 - [ADR-0003](../../docs/architecture/adr-0003-art-direction-stylized-world-retro-lens.md) — Art direction: stylized cel-shaded world, retro camcorder lens on viewfinder/photos
-- [ADR-0004](../../docs/architecture/adr-0004-destructible-tiled-world.md) — 2 km seeded world of streamed 128 m low-poly tiles; tiered pre-fractured destruction; debris budget (Proposed)
+- [ADR-0004](../../docs/architecture/adr-0004-destructible-tiled-world.md) — 2 km seeded world of streamed 128 m low-poly tiles; tiered pre-fractured destruction; debris budget

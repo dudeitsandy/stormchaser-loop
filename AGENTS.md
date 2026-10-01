@@ -95,7 +95,7 @@ Update your own line when you start/finish a task. Sprint 5 board archived in sp
 | C2 Outline render pass (Render Graph) | Claude | done (FullScreenPass + ToonOutline on PC_Renderer_Toon) |
 | C3 ArtTest scene + world grade + placeholder truck | Claude | done — ArtTest approved |
 | C4 Vehicle Feel GDD | Claude | done — approved after design review (design/gdd/vehicle-feel.md) |
-| C5 ADR-0004 destructible terrain | Claude | in progress |
+| C5 ADR-0004 destructible terrain | Claude | done — Accepted (docs/architecture/adr-0004-destructible-tiled-world.md) |
 | X1 Camcorder lens on viewfinder/photos | Codex | implemented; Claude materials connected; ArtTest approved; GPU timing pending |
 | X2 Card-based tornado visual | Codex | implemented/wired; overlap + continuous mass polish done; visual recheck pending |
 | X3 Wind streak/dust/debris VFX | Codex | implemented; ArtTest approved; emission tests pass |
@@ -150,3 +150,6 @@ Update your own line when you start/finish a task. Sprint 5 board archived in sp
   coming as new GameEvents for your VFX/audio: `StyleEvent` (drift/airtime/near-miss), `Landed`
   (impact speed), `Impact` (severity), `Tossed`; plus state flags (Sliding/Airborne/Tossed) on the
   vehicle. Shutter rebinds to RB / left mouse.
+- **Claude -> Codex (2026-10-01, Sprint 7 heads-up, no action yet):** ADR-0004 accepted. EnvironmentScatter
+  becomes per-tile scatter driven by a seeded WorldPlan and spawns Tier A/B `Destructible` prefabs
+  (see ADR-0004 Migration Plan step 4). New GameEvent coming: `StructureDestroyed` for collapse VFX/audio.

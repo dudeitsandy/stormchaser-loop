@@ -1,7 +1,7 @@
 # ADR-0004: Destructible Tiled World (2 km Streamed Low-Poly Tiles)
 
 ## Status
-Proposed
+Accepted (Andy, 2026-10-01)
 
 ## Date
 2026-10-01
