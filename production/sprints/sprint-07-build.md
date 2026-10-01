@@ -38,6 +38,7 @@ the start so players see the new look while the feel work happens.
 | X7-02 | **Vehicle VFX** from new events/state flags: tire smoke cards (Sliding), landing dust (Landed), sparks (Impact), boost flame/streaks, style pops ("DRIFT 2.4s", "AIR 1.8s", "NEAR MISS") | 3 h | S7-06 | Each fires on its trigger in ArtTest |
 | X7-03 | **Vehicle audio** (procedural): engine pitch by speed/load, skid by slip, suspension thump/crunch, boost roar, metal crunch by severity | 2 h | S7-06 | Listening check by Andy |
 | X7-04 | **Tornado bands → single funnel mass** (Sprint 6 gate note) | 1 h | — | Funnel reads as one mass in captures |
+| X7-06 | **Presentation perf budget (WebGL)**: ms/frame for PiP, CamcorderLens, card VFX, audio; cuts if > 3 ms total — feeds G1 | 1 h | — | Numbers posted in AGENTS.md |
 
 ### Should Have
 | ID | Owner | Task | Est. |
