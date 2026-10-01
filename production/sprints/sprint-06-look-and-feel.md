@@ -33,3 +33,18 @@ Decide after the art test approves the direction.
 ## Gate
 Andy reviews `production/marketing/art-test/` side-by-sides + plays ArtTest. Approve → Sprint 7
 builds Vehicle Feel + terrain + art in that style. Adjust → one more iteration on C1–C3/X1–X3.
+
+## Gate Result — Art Direction (2026-10-01)
+**Approved by Andy** after two ArtTest passes. Captures: `production/marketing/art-test/`
+(13:16 = first pass with default-profile chroma bleeding through; 13:19+ = tuned).
+
+Confirmed: stylized world + retro-lens split reads as intended; HUD/photo feedback legible over it;
+Codex's card tornado, wind streaks, debris and camcorder viewfinder all working in-scene.
+
+Polish notes (non-blocking, feed Sprint 7):
+| Note | Owner |
+|------|-------|
+| Outline busy on kitbash truck (many small parts) — raise normal threshold; real model fixes most | Claude |
+| Tornado bands read as stacked ribbons — more overlap / softer edges for a single funnel mass | Codex |
+| Flat grass — color patches / texture variation | Claude |
+| Viewfinder aims truck-forward, not camera-forward; revisit aim in Vehicle Feel GDD | Claude (C4) |
