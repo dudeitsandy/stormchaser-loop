@@ -49,7 +49,7 @@ the start so players see the new look while the feel work happens.
 ### Added mid-sprint
 | ID | Owner | Task | Status |
 |----|-------|------|--------|
-| S7-12 | Claude | **CI**: GitHub Actions + GameCI 6000.6.0f1 — tests on push, WebGL/Windows builds + butler release on demand. Added 2026-10-01 after Windows Smart App Control blocked local WebGL builds (`WebGLPlayerBuildProgram.Data.dll`, unsigned, policy {0283ac0f…}) | Workflow written; needs secrets + first run |
+| S7-12 | Claude | **CI** (first run failed: GameCI test-runner v4.3.2 has no Personal-license path — Unity removed .ulf for free seats; GameCI CLI v0.1.70 `personal` mode is the candidate, needs a CI-only Unity account w/o 2FA): GitHub Actions + GameCI 6000.6.0f1 — tests on push, WebGL/Windows builds + butler release on demand. Added 2026-10-01 after Windows Smart App Control blocked local WebGL builds (`WebGLPlayerBuildProgram.Data.dll`, unsigned, policy {0283ac0f…}) | Workflow written; needs secrets + first run |
 
 ### Nice to Have (cut first)
 | ID | Owner | Task | Est. |
@@ -89,7 +89,8 @@ the start so players see the new look while the feel work happens.
 - [ ] G3 feel playtest run; findings logged for Sprint 8
 
 ## Release Log
-- 2026-10-01 — **0.5.0 Windows** pushed (ArtTest look). html5 channel stays 0.4.0 until WebGL builds via CI.
+- 2026-10-01 — **0.5.0 Windows** pushed (ArtTest look).
+- 2026-10-01 — **0.5.0 html5** pushed after Andy unblocked local WebGL builds (Smart App Control). Verified in headless Chromium: 0 errors; title 0.5.0, toon/outlines, card tornado, camcorder PiP all render. **S7-00 done.**
 - 2026-10-01 — Repo hygiene: 21 `(2)` duplicate files inside `.git` (Mar 31 copy-over artifact) moved to
   `../stormchaser-git-dupes-backup/`; the bad ref `refs/heads/main (2)` was breaking fetch. Rebased 25
   local commits onto origin (1 remote session-log commit) and pushed.

@@ -98,7 +98,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 
 | Task | Owner | Status |
 |------|-------|--------|
-| S7-00 0.5 Art Preview release | Claude | Windows 0.5.0 live; WebGL blocked locally by Smart App Control -> CI |
+| S7-00 0.5 Art Preview release | Claude | done — 0.5.0 live (html5 + windows) |
 | S7-01 WebGL streaming spike (G1) | Claude | todo |
 | S7-02 ADR-0005 raycast vehicle | Claude | todo |
 | S7-03 Vehicle core | Claude | todo |
