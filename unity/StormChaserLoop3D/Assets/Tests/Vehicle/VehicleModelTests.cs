@@ -301,6 +301,59 @@ public class VehicleModelTests
         Assert.Less(VehicleModel.LiftFraction(0.85f, 4f, 1f, 6f, 38f), 0.7f);
     }
 
+    [Test]
+    public void TunedLift_Ef3NeverTosses_Ef4TossesAtDamageEdge_Ef5From8m()
+    {
+        // Arrange: shipped coefficient (playtest 2026-10-01).
+        float k = V.LiftCoefficient;
+        // Act / Assert: EF3 (strength 2.5, R 29) never reaches the threshold.
+        for (float d = 0f; d < 15f; d += 0.25f)
+            Assert.Less(VehicleModel.LiftFraction(0.85f, 2.5f, 1f, d, 29f, k), V.TossThreshold, $"EF3 d={d}");
+        // EF4 (strength 3, R 32, damage radius ≈ 3.5 m) tosses at 3.4 m, not at 4.5 m.
+        Assert.GreaterOrEqual(VehicleModel.LiftFraction(0.85f, 3f, 1f, 3.4f, 32f, k), V.TossThreshold);
+        Assert.Less(VehicleModel.LiftFraction(0.85f, 3f, 1f, 4.5f, 32f, k), V.TossThreshold);
+        // EF5 (strength 4, R 38) tosses from 8 m.
+        Assert.GreaterOrEqual(VehicleModel.LiftFraction(0.85f, 4f, 1f, 8f, 38f, k), V.TossThreshold);
+    }
+
+    [Test]
+    public void LiftAboveThreshold_TossesOnce_UntilLanded()
+    {
+        // Arrange
+        var model = NewPickup(out _);
+        var output = new VehicleStepOutput();
+        WheelContact[] contacts = Contacts(V.RestLength - 0.12f, Vector3.zero);
+        var input = Input(Vector3.zero);
+        input.LiftFraction = 1f;
+        input.LiftEFStrength = 4f;
+        input.Wind = new Vector3(10f, 0f, 0f);
+        // Act
+        model.Step(input, contacts, output);
+        bool first = output.Toss;
+        Vector3 v = output.TossVelocity;
+        model.Step(input, contacts, output);
+        // Assert
+        Assert.IsTrue(first);
+        Assert.Greater(v.y, 5f);
+        Assert.IsFalse(output.Toss, "Toss must not repeat before landing");
+        Assert.AreEqual(VehicleState.Tossed, model.State);
+    }
+
+    [Test]
+    public void CrosswindFromLeft_BiasesSteeringTowardWind()
+    {
+        // Arrange: parked, wind blowing toward -x (to the truck's left), no steer input.
+        var model = NewPickup(out _);
+        var output = new VehicleStepOutput();
+        var input = Input(Vector3.zero);
+        input.Wind = new Vector3(-6f, 0f, 0f);
+        // Act
+        model.Step(input, Contacts(V.RestLength - 0.12f, Vector3.zero), output);
+        // Assert: negative steer = left, capped at WindSteerMax.
+        Assert.Less(model.WindSteerBias, 0f);
+        Assert.GreaterOrEqual(model.WindSteerBias, -V.WindSteerMax);
+    }
+
     // ---------- vehicle-damage.md stages ----------
 
     [TestCase(3, 3, DamageStage.Healthy)]

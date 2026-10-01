@@ -58,6 +58,13 @@ public class TornadoController : DisasterEntity
     /// <summary>Radius of the wind field at current intensity.</summary>
     public float WindRadius => (_windRadiusBase + _windRadiusPerConeScale * ConeScale) * Intensity;
 
+    public override float GetLiftFractionAt(Vector3 position, float exposure, float liftCoefficient)
+    {
+        Vector3 d = position - transform.position;
+        d.y = 0f;
+        return VehicleModel.LiftFraction(exposure, ThreatMultiplier, Intensity, d.magnitude, WindRadius, liftCoefficient);
+    }
+
     public override Vector3 GetWindAt(Vector3 position)
     {
         float strength = (_windScaleBase + _windScalePerSqrtEF * Mathf.Sqrt(ThreatMultiplier)) * Intensity;

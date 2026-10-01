@@ -30,6 +30,28 @@ public abstract class DisasterEntity : MonoBehaviour
         return wind;
     }
 
+    /// <summary>
+    /// Lift as a fraction of a vehicle's weight at <paramref name="position"/> (vehicle-feel.md F12). Zero by default.
+    /// </summary>
+    public virtual float GetLiftFractionAt(Vector3 position, float exposure, float liftCoefficient) => 0f;
+
+    /// <summary>Strongest lift from any active disaster at a position (fraction of weight), with its EF strength.</summary>
+    public static float MaxLiftFractionAt(Vector3 position, float exposure, float liftCoefficient, out float efStrength)
+    {
+        float best = 0f;
+        efStrength = 0f;
+        foreach (DisasterEntity e in _active)
+        {
+            float lift = e.GetLiftFractionAt(position, exposure, liftCoefficient);
+            if (lift > best)
+            {
+                best = lift;
+                efStrength = e.ThreatMultiplier;
+            }
+        }
+        return best;
+    }
+
     protected virtual void OnEnable() => _active.Add(this);
     protected virtual void OnDisable() => _active.Remove(this);
 

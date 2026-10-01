@@ -41,6 +41,11 @@ public struct VehicleFeelValues
 
     [Header("Wind (F11)")]
     public float WindResponse, WindForceCapG, WindLeverHeight, WindGripLossAt;
+    [Tooltip("Steering bias toward the wind per (exposed wind / WindGripLossAt). Small tornadoes tug the wheel.")]
+    public float WindSteer, WindSteerMax;
+
+    [Header("Lift & toss (F12, F12b)")]
+    public float LiftCoefficient, TossThreshold, TossUpSpeed, TossSwirlFraction;
 
     [Header("Impacts (F10)")]
     public float LandingThresholdMul;
@@ -63,17 +68,17 @@ public struct VehicleFeelValues
         HandbrakeGripBase = 0.45f, HandbrakeGripPerStar = 0.04f,
         StyleRefillBase = 0.7f, StyleRefillPerStar = 0.15f,
 
-        // Playtest 2026-10-01: stiffer + more damped than the GDD's 0.35 / 0.45 ("less extreme suspension").
+        // Playtest 2026-10-01 pass 2: pass 1 (0.28 / 0.6) was "too stiff" — midpoint toward the GDD's 0.35 / 0.45.
         // RestLength keeps the body origin ≈ 0.5 m above ground: 0.5 + Sag·Travel.
-        SagFraction = 0.28f, DampingRatio = 0.6f, Travel = 0.35f, RestLength = 0.6f,
+        SagFraction = 0.32f, DampingRatio = 0.52f, Travel = 0.35f, RestLength = 0.61f,
 
         EngineCoefficient = 1.28f, TorqueFalloffExponent = 2.5f,
         BrakeDecel = 14f, CoastDecel = 2.5f, ReverseSpeedFraction = 0.35f,
-        // Playtest 2026-10-01: "a little too loose" (GDD defaults 1.5 / 1.1 / yaw 0.5).
-        GripStiffness = 2.0f, GripMu = 1.25f,
+        // Playtest 2026-10-01: GDD 1.5 / 1.1 / yaw 0.5 "a little too loose"; pass 1 2.0 / 1.25 / 0.7 "too stiff".
+        GripStiffness = 1.7f, GripMu = 1.15f,
         MaxSteerDeg = 32f, HighSpeedSteerFactor = 0.45f,
         DownforceCoeff = 0.25f,
-        AntiRoll = 0.6f, YawStability = 0.7f,
+        AntiRoll = 0.6f, YawStability = 0.6f,
         GripRecoveryTime = 0.25f,
         RollStabilization = 0.6f, RollStabilizeAngleDeg = 25f,
 
@@ -83,6 +88,10 @@ public struct VehicleFeelValues
         MaxGroundSlopeDeg = 60f,
 
         WindResponse = 1.1f, WindForceCapG = 1.2f, WindLeverHeight = 0.2f, WindGripLossAt = 10f,
+        WindSteer = 0.35f, WindSteerMax = 0.5f,
+        // Playtest 2026-10-01: "more powerful tornadoes should throw". GDD coefficient 0.8 only let EF5 toss;
+        // 1.35 → EF3 lifts (never tosses), EF4 tosses at ≈ its damage-radius edge, EF5 from ≈ 8.5 m.
+        LiftCoefficient = 1.35f, TossThreshold = 0.7f, TossUpSpeed = 8f, TossSwirlFraction = 0.5f,
 
         LandingThresholdMul = 1.5f,
 

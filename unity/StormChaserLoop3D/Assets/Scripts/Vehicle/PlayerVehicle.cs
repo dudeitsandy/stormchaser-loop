@@ -151,6 +151,8 @@ public class PlayerVehicle : MonoBehaviour
             Input = InputEnabled ? _input.Read() : default,
             GripScale = _knockbackTimer > 0f ? _values.KnockbackGripScale : 1f,
         };
+        input.LiftFraction = DisasterEntity.MaxLiftFractionAt(_rb.position, _model.Params.Exposure,
+                                                              _values.LiftCoefficient, out input.LiftEFStrength);
         _model.Step(input, _contacts, _output);
         Apply();
         ApplyKnockbackStep(dt);
@@ -244,6 +246,11 @@ public class PlayerVehicle : MonoBehaviour
             _rb.AddForceAtPosition(_output.WindAcceleration * _rb.mass, _output.WindPoint, ForceMode.Force);
         if (_output.AngularAcceleration != Vector3.zero) _rb.AddTorque(_output.AngularAcceleration, ForceMode.Acceleration);
 
+        if (_output.Toss)
+        {
+            _rb.AddForce(_output.TossVelocity, ForceMode.VelocityChange);
+            GameEvents.RaiseTossed();
+        }
         if (_output.Landed) GameEvents.RaiseLanded(_output.LandedSpeed);
         if (_output.AutoRight) AutoRight();
 

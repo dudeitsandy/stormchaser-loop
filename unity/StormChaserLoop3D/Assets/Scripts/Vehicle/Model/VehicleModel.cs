@@ -14,6 +14,10 @@ public struct VehicleStepInput
     public VehicleInputFrame Input;
     /// <summary>Tire grip multiplier for this step (knockback window lowers it so the truck slides, not trips). 0 = default 1.</summary>
     public float GripScale;
+    /// <summary>Strongest disaster lift at the body as a fraction of weight (F12).</summary>
+    public float LiftFraction;
+    /// <summary>EF strength of the disaster producing LiftFraction (scales the toss).</summary>
+    public float LiftEFStrength;
 }
 
 /// <summary>Forces the adapter applies after a step. Preallocated and reused (no per-step allocation).</summary>
@@ -30,6 +34,9 @@ public sealed class VehicleStepOutput
     /// <summary>Angular acceleration (rad/s²): yaw stability.</summary>
     public Vector3 AngularAcceleration;
     public bool AutoRight;
+    /// <summary>F12b: apply TossVelocity once as a velocity change.</summary>
+    public bool Toss;
+    public Vector3 TossVelocity;
     public bool Landed;
     /// <summary>Vertical touchdown speed when Landed (m/s, positive).</summary>
     public float LandedSpeed;
@@ -42,7 +49,8 @@ public sealed class VehicleStepOutput
             WheelPoint[i] = Vector3.zero;
         }
         CenterAcceleration = WindAcceleration = WindPoint = AngularAcceleration = Vector3.zero;
-        AutoRight = Landed = false;
+        AutoRight = Landed = Toss = false;
+        TossVelocity = Vector3.zero;
         LandedSpeed = 0f;
     }
 }
@@ -69,6 +77,9 @@ public sealed class VehicleModel
     private float _upendedTimer;
     private float _rearGripMul = 1f;
     private float _airMaxFallSpeed;
+    private bool _tossLatched;
+    private bool _tossLeftGround;
+    private float _tossGroundTimer;
 
     public VehicleModel(ArchetypeParams parameters, VehicleFeelValues values, WheelLayout layout)
     {
@@ -90,6 +101,8 @@ public sealed class VehicleModel
     /// <summary>Current rear-grip multiplier (handbrake + recovery ramp).</summary>
     public float RearGripMultiplier => _rearGripMul;
     public float SteerAngleDeg { get; private set; }
+    /// <summary>Steering added by wind this step (−1..1 units of steer).</summary>
+    public float WindSteerBias { get; private set; }
 
     /// <summary>Advances one fixed step. <paramref name="contacts"/> holds 4 wheel queries; output is overwritten.</summary>
     public void Step(in VehicleStepInput input, WheelContact[] contacts, VehicleStepOutput output)
@@ -138,9 +151,22 @@ public sealed class VehicleModel
         }
         bool coasting = Mathf.Abs(inp.Throttle) < 0.01f && Mathf.Abs(inp.Brake) < 0.01f;
 
+        // ---- Wind steer: the wind tugs the wheel toward its direction (playtest: small tornadoes pull) ----
+        Vector3 windExposed = input.Wind * _p.Exposure;
+        float steerInput = Mathf.Clamp(inp.Steer, -1f, 1f);
+        Vector3 windFlat = new Vector3(windExposed.x, 0f, windExposed.z);
+        if (groundedCount >= 2 && windFlat.sqrMagnitude > 0.01f && _v.WindSteer > 0f)
+        {
+            float toward = Vector3.SignedAngle(new Vector3(fwd.x, 0f, fwd.z), windFlat, Vector3.up);
+            float bias = Mathf.Sin(Mathf.Clamp(toward, -90f, 90f) * Mathf.Deg2Rad)
+                         * _v.WindSteer * windFlat.magnitude / Mathf.Max(0.01f, _v.WindGripLossAt);
+            steerInput = Mathf.Clamp(steerInput + Mathf.Clamp(bias, -_v.WindSteerMax, _v.WindSteerMax), -1f, 1f);
+        }
+        WindSteerBias = steerInput - Mathf.Clamp(inp.Steer, -1f, 1f);
+
         // ---- Steering (F4) ----
         float damageSteer = input.Damage == DamageStage.Damaged ? 0.75f : 1f;
-        float steerDeg = _v.MaxSteerDeg * Mathf.Clamp(inp.Steer, -1f, 1f)
+        float steerDeg = _v.MaxSteerDeg * steerInput
                          * Mathf.Lerp(1f, _v.HighSpeedSteerFactor, Mathf.Clamp01(Mathf.Abs(ForwardSpeed) / _p.TopSpeed))
                          * damageSteer;
         SteerAngleDeg = steerDeg;
@@ -151,7 +177,6 @@ public sealed class VehicleModel
         else _rearGripMul = Mathf.MoveTowards(_rearGripMul, 1f, (1f - _p.HandbrakeGrip) / Mathf.Max(0.01f, _v.GripRecoveryTime) * dt);
 
         // Wind magnitude seen by the tires (exposure-scaled), for F3's WindGripMul.
-        Vector3 windExposed = input.Wind * _p.Exposure;
         float windGripMul = 1f / (1f + windExposed.magnitude / Mathf.Max(0.01f, _v.WindGripLossAt));
 
         // ---- Per-wheel forces ----
@@ -247,6 +272,26 @@ public sealed class VehicleModel
             }
         }
 
+        // ---- Lift (F12) and toss (F12b) ----
+        if (input.LiftFraction > 0f && groundedCount >= 1)
+        {
+            // Ground effect only: unloads the suspension (grip loss). Never > 1 g, and never once airborne —
+            // the throw comes solely from the one-shot toss impulse below.
+            output.CenterAcceleration += Vector3.up * G * Mathf.Min(input.LiftFraction, 0.9f);
+            if (input.LiftFraction >= _v.TossThreshold && !_tossLatched && State != VehicleState.Upended)
+            {
+                // Throw height scales with EF: EF4 ≈ 3 m, EF5 ≈ 4 m apex for the Pickup. No added spin.
+                float efScale = 0.7f + 0.15f * input.LiftEFStrength;
+                Vector3 swirl = windFlat.sqrMagnitude > 0.01f ? windFlat.normalized * windFlat.magnitude * _v.TossSwirlFraction : Vector3.zero;
+                output.Toss = true;
+                output.TossVelocity = Vector3.up * _v.TossUpSpeed * _p.Exposure * efScale + swirl;
+                _tossLatched = true;
+                _tossLeftGround = false;
+                _tossGroundTimer = 0f;
+                State = VehicleState.Tossed;
+            }
+        }
+
         // ---- Wind (F11, as implemented): push along the wind until the body matches its speed ----
         output.WindAcceleration = WindAcceleration(input.Wind, input.Velocity, _p.Exposure, _v.WindResponse, _v.WindForceCapG);
         output.WindPoint = input.CenterOfMassWorld + up * _v.WindLeverHeight;
@@ -272,6 +317,7 @@ public sealed class VehicleModel
 
         if (groundedCount == 0)
         {
+            if (previous == VehicleState.Tossed) _tossLeftGround = true;
             _airTimer += dt;
             _airMaxFallSpeed = Mathf.Max(_airMaxFallSpeed, -input.Velocity.y);
             if (_airTimer > _v.AirborneGrace && previous != VehicleState.Tossed) State = VehicleState.Airborne;
@@ -281,8 +327,21 @@ public sealed class VehicleModel
 
         // ≥ 2 wheels grounded.
         _airTimer = 0f;
+        if (previous == VehicleState.Tossed && !_tossLeftGround)
+        {
+            // Toss impulse applied but the wheels haven't left the ground yet; give up after 1 s (pinned).
+            _tossGroundTimer += dt;
+            if (_tossGroundTimer < 1f) return;
+            _tossLatched = false;
+            _tossGroundTimer = 0f;
+            State = VehicleState.Grounded;
+            return;
+        }
         if (previous == VehicleState.Airborne || previous == VehicleState.Tossed)
         {
+            _tossLatched = false;
+            _tossLeftGround = false;
+            _tossGroundTimer = 0f;
             output.Landed = true;
             output.LandedSpeed = Mathf.Max(_airMaxFallSpeed, -input.Velocity.y);
             _airMaxFallSpeed = 0f;

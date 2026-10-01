@@ -106,3 +106,11 @@ the truck and flipping with it) + yaw damping 1.6; knockback spread over 0.15 s 
 during the window, roll stabilizer beyond 25°, wind lever 0.4→0.2 m; 2 m GroundSlab under the
 zero-thickness Plane ground + stuck-recovery hop (2 s trying, <2 wheels, not moving).
 GDD follow-up: record tuned defaults + F11 directional-wind correction in vehicle-feel.md after the next feel check.
+
+**Pass 2 (Andy, 2026-10-01):** pass 1 "too stiff"; likes not getting stuck; "the more powerful tornadoes
+should throw and the smaller should have a pull effect to steering."
+Fixes: grip 1.15 / stiffness 1.7 / yaw 0.6; sag 0.32 / damping 0.52 (midpoints). Pulled S7-06 lift/toss
+forward: lift coefficient 0.8→1.35 (EF3 lifts only, EF4 tosses at ≈ its 3.5 m damage edge, EF5 from ≈ 8.5 m);
+toss impulse scales with EF (≈ 3 m / 4 m apex), no added spin; lift acts only while grounded (≤ 0.9 g);
+toss latch requires leaving the ground (1 s pinned timeout). New wind steer: wind biases steering toward its
+direction, ≤ 0.5 steer, so weak tornadoes tug the wheel. GDD vehicle-feel F12 coefficient to be updated.
