@@ -214,7 +214,7 @@ proportionally — that shortfall is wheelspin / power-oversteer.
 - `load` = this wheel's `F_susp` — unloaded wheels lose grip, so bumps and jumps break traction.
 - `HB` = `HandbrakeGrip` (≈ 0.3) on rear wheels while handbrake held, else 1.
 - `WindGripMul = 1 / (1 + |w| / WindGripLossAt)` (carried over from the 0.4 implementation).
-- `SurfaceGrip` from terrain: ADR-0004 SurfaceTag table (Asphalt 1.0 … Mud 0.45); untagged = Grass 0.75.
+- `SurfaceGrip` from `surfaces-terrain-modifiers.md` F4 (base table Asphalt 1.0 … Mud 0.45, untagged = Grass 0.75, then condition zones and vehicle affinity; clamped 0.25–1.2).
 
 **F4. Steering angle**
 `δ = δ_max · steer · lerp(1, HighSpeedSteerFactor, v / v_top) · DamageSteerMul`
@@ -348,7 +348,8 @@ Driving noise, response, and slide polish are deferred to the polish pass (Andy,
 | Vehicle archetype data (`VehicleData`, `vision-1.0.md` stars) | Hard | Speed/Armor/Trick stars → F13 parameters (`VehicleData` gains star fields) |
 | Input (`StormChaserControls`) | Hard | New actions: Handbrake, Jump, Boost, CameraOrbit, StormCam; Shutter rebound (RB / left mouse) |
 | Camera rig (Cinemachine `FollowCam`) | Hard | Orbit offset + Storm Cam target; existing `DisasterProximityFov` (FOV + wind shake) carries over |
-| Terrain (ADR-0004, Proposed 2026-10-01) | Soft | Surface type per contact → `SurfaceGrip`/drag; destructible piece mass (E13). Works on flat ground without it |
+| Surfaces & Terrain Modifiers (`surfaces-terrain-modifiers.md`) | Soft | Per-wheel `SurfaceSample` → `SurfaceGrip` (bounded 0.25–1.2 by its F4) and drag (≤ 4.0 m/s²), including condition zones and vehicle affinity. Works on flat untagged ground (Grass) without it |
+| Terrain (ADR-0004) | Soft | Destructible piece mass (E13) |
 
 **Depended on by:**
 
@@ -504,6 +505,6 @@ HUD = Claude lane; style pops = Codex lane.
 | ADR-0005: raycast-vehicle architecture (required by coding standards before implementation) | Claude | Before Sprint 7 code |
 | Keyboard comfort: Left Shift boost next to Left Ctrl handbrake, or move handbrake/jump? | Andy | Playtest |
 | Motorcycle: two wheels break the 4-wheel model — suspension and fall-over rules? | Claude | Before the Motorcycle unlock is built |
-| Monster Truck "terrain immunity": surface-grip exemption, or much larger wheel radius/travel? | Claude | With ADR-0004 |
+| ~~Monster Truck "terrain immunity": surface-grip exemption, or much larger wheel radius/travel?~~ **Resolved 2026-10-01:** surface affinity (`surfaces-terrain-modifiers.md` F3, e.g. `GripSens`/`DragSens` 0.2); wheel radius/travel stay an archetype choice | Claude | — |
 | Should Tossed grant a style bonus? Landing a toss is the best stunt in the game | Andy | With the style-scoring GDD |
 | WebGL physics budget: is 50 Hz affordable alongside destructible terrain? | Claude | ADR-0004 performance section |

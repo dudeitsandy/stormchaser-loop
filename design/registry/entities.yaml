@@ -1,0 +1,129 @@
+# Entity Registry — cross-system facts owned by one GDD and referenced by others.
+# The `source:` GDD is authoritative. Change a value there first, then here
+# (set `revised:` and leave `# was: <old> before <date>`), then fix referenced_by docs.
+# Created 2026-10-01 by /design-system surfaces-terrain-modifiers.
+
+entities:
+  - name: Surface_Asphalt
+    source: design/gdd/surfaces-terrain-modifiers.md
+    attributes: { base_grip: 1.00, base_drag_mps2: 0.0, off_road: false }
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: Surface_DirtRoad
+    source: design/gdd/surfaces-terrain-modifiers.md
+    attributes: { base_grip: 0.85, base_drag_mps2: 0.3, off_road: false }
+    referenced_by: []
+    written: 2026-10-01
+  - name: Surface_Grass
+    source: design/gdd/surfaces-terrain-modifiers.md
+    attributes: { base_grip: 0.75, base_drag_mps2: 0.6, off_road: true, untagged_default: true }
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: Surface_Gravel
+    source: design/gdd/surfaces-terrain-modifiers.md
+    attributes: { base_grip: 0.70, base_drag_mps2: 0.8, off_road: true }
+    referenced_by: []
+    written: 2026-10-01
+  - name: Surface_Debris
+    source: design/gdd/surfaces-terrain-modifiers.md
+    attributes: { base_grip: 0.60, base_drag_mps2: 1.0, off_road: true }
+    referenced_by: []
+    written: 2026-10-01
+  - name: Surface_Mud
+    source: design/gdd/surfaces-terrain-modifiers.md
+    attributes: { base_grip: 0.45, base_drag_mps2: 2.5, off_road: true }
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: Condition_Wet
+    source: design/gdd/surfaces-terrain-modifiers.md
+    attributes: { grip_mul: 0.80, drag_mul: 1.15, override_DirtRoad: "0.65/1.6", override_Mud: "0.90/1.2", ramp_in_s: 6, decay_s: 20 }
+    referenced_by: []
+    written: 2026-10-01
+  - name: Condition_HailSlick
+    source: design/gdd/surfaces-terrain-modifiers.md
+    attributes: { grip_mul: 0.55, drag_mul: 1.0, override_Mud: "0.90/1.0", ramp_in_s: 2, decay_s: 12 }
+    referenced_by: []
+    written: 2026-10-01
+  - name: Condition_Scorched
+    source: design/gdd/surfaces-terrain-modifiers.md
+    attributes: { grip_mul: 0.85, drag_mul: 1.3, override_Asphalt: "0.90/1.0", ramp_in_s: 3, decay_s: 45 }
+    referenced_by: []
+    written: 2026-10-01
+
+items: []
+
+formulas:
+  - name: condition_effective_multiplier   # F1
+    source: design/gdd/surfaces-terrain-modifiers.md
+    variables: [Strength, R, d, EdgeFeather, GripMul, DragMul]
+    output_range: "GripMul_eff 0.2–1.0; DragMul_eff 1.0–3.0"
+    referenced_by: []
+    written: 2026-10-01
+  - name: condition_strongest_wins          # F2
+    source: design/gdd/surfaces-terrain-modifiers.md
+    variables: [GripMul_eff, DragMul_eff]
+    output_range: "Grip_c 0.2–1.0; Drag_c 1.0–3.0"
+    referenced_by: []
+    written: 2026-10-01
+  - name: surface_vehicle_affinity          # F3
+    source: design/gdd/surfaces-terrain-modifiers.md
+    variables: [Grip_in, Drag_in, GripSens, DragSens, TireGrip, NoBonus]
+    output_range: "GripSens/DragSens 0–2; TireGrip 0.6–1.2"
+    referenced_by: []
+    written: 2026-10-01
+  - name: surface_sample_final              # F4
+    source: design/gdd/surfaces-terrain-modifiers.md
+    variables: [BaseGrip, BaseDrag, Grip_c, Drag_c, GripFloor, GripCeil, MaxDrag]
+    output_range: "Grip 0.25–1.2; Drag 0–4.0 m/s²"
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: condition_zone_strength           # F5
+    source: design/gdd/surfaces-terrain-modifiers.md
+    variables: [Strength, dt, RampIn, DecayTime, RefreshHold]
+    output_range: "0–1"
+    referenced_by: []
+    written: 2026-10-01
+
+constants:
+  - name: GripFloor
+    source: design/gdd/surfaces-terrain-modifiers.md
+    value: 0.25
+    unit: grip multiplier
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: GripCeil
+    source: design/gdd/surfaces-terrain-modifiers.md
+    value: 1.2
+    unit: grip multiplier
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: MaxDrag
+    source: design/gdd/surfaces-terrain-modifiers.md
+    value: 4.0
+    unit: m/s²
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: MaxZones
+    source: design/gdd/surfaces-terrain-modifiers.md
+    value: 32
+    unit: zones
+    referenced_by: []
+    written: 2026-10-01
+  - name: RefreshHold
+    source: design/gdd/surfaces-terrain-modifiers.md
+    value: 0.5
+    unit: s
+    referenced_by: []
+    written: 2026-10-01
+  - name: ConditionReportThreshold
+    source: design/gdd/surfaces-terrain-modifiers.md
+    value: 0.1
+    unit: S_eff
+    referenced_by: []
+    written: 2026-10-01
+  - name: EdgeFeather
+    source: design/gdd/surfaces-terrain-modifiers.md
+    value: 3
+    unit: m
+    referenced_by: []
+    written: 2026-10-01

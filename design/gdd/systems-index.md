@@ -40,15 +40,15 @@ biomes, and vehicles enter the index when their season is planned.
 | 4 | Run Manager & Session Modes | Core | MVP | In Design | design/gdd/session-modes.md | Game Events Bus, Save & Profile |
 | 5 | Game Events Bus (inferred) | Core | MVP | Implemented | AGENTS.md (GameEvents contract) | — |
 | 6 | Tiled World Streaming | World | MVP | Implemented | docs/architecture/adr-0004-destructible-tiled-world.md | — |
-| 7 | Surfaces & Terrain Modifiers (inferred) | World | MVP | Not Started | — | — |
+| 7 | Surfaces & Terrain Modifiers (inferred) | World | MVP | Designed | design/gdd/surfaces-terrain-modifiers.md | — |
 | 8 | Destructibles & Debris | World | Vertical Slice | Not Started | docs/architecture/adr-0004-destructible-tiled-world.md | Tiled World Streaming, Surfaces & Terrain Modifiers |
 | 9 | Roads & POI Chunks (Heartland) | World | Vertical Slice | Not Started | — | Tiled World Streaming, Surfaces & Terrain Modifiers |
 | 10 | Wind Field | Gameplay | MVP | Implemented | design/gdd/vehicle-feel.md (F11/F12) | Disaster Entity Framework, Vehicle Feel |
 | 11 | Disaster Entity Framework | Gameplay | MVP | Implemented | — | Game Events Bus, Tiled World Streaming |
 | 12 | Tornado (EF0–EF5) | Gameplay | MVP | Implemented | — | Disaster Entity Framework |
 | 13 | Disaster Alchemy (Merge / Modify) | Gameplay | Alpha | Not Started | — | Tornado, Wildfire, Hailstorm |
-| 14 | Wildfire | Gameplay | Vertical Slice | Not Started | — | Disaster Entity Framework, Wind Field |
-| 15 | Hailstorm | Gameplay | Alpha | Not Started | — | Disaster Entity Framework, Wind Field |
+| 14 | Wildfire | Gameplay | Vertical Slice | Not Started | — | Disaster Entity Framework, Wind Field, Surfaces & Terrain Modifiers |
+| 15 | Hailstorm | Gameplay | Alpha | Not Started | — | Disaster Entity Framework, Wind Field, Surfaces & Terrain Modifiers |
 | 16 | Photo Documentation | Gameplay | MVP | Implemented | design/gdd/photo-scoring.md | Camera & Aim, Disaster Entity Framework |
 | 17 | Four-Axis Scoring & Style Multiplier | Gameplay | MVP | In Design | design/gdd/photo-scoring.md (Documentation axis only) | Photo Documentation, Stunt & Style Detection, Game Events Bus |
 | 18 | Stunt & Style Detection | Gameplay | Vertical Slice | Not Started | — | Vehicle Feel, Game Events Bus |
@@ -270,10 +270,10 @@ None remain. Three near-cycles were broken by direction:
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 37 |
-| Design docs started | 15 systems, covered by 6 GDDs + 2 ADRs + the AGENTS.md events contract |
+| Design docs started | 16 systems, covered by 7 GDDs + 2 ADRs + the AGENTS.md events contract |
 | Design docs reviewed | 1 (vehicle-feel.md) |
 | Design docs approved | 1 (vehicle-feel.md) |
-| MVP systems designed | 10/17 |
+| MVP systems designed | 11/17 |
 | Vertical Slice systems designed | 4/12 (3 unreviewed GDDs + ADR-0004 for Destructibles) |
 
 ---
@@ -282,6 +282,7 @@ None remain. Three near-cycles were broken by direction:
 
 - [x] Review and approve this systems enumeration (2026-10-01)
 - [ ] Reverse-document MVP systems that shipped without a GDD (Disaster Framework, Tornado, HUD)
-- [ ] Design remaining MVP systems (`/design-system surfaces-terrain-modifiers`, then Save & Profile)
+- [x] Surfaces & Terrain Modifiers designed 2026-10-01 (pending `/design-review`)
+- [ ] Design remaining MVP systems (next: `/design-system save-profile`)
 - [ ] Run `/design-review` on the five unreviewed GDDs (session-modes, photo-scoring, event-system, vehicle-damage, economy-progression)
 - [ ] Run `/gate-check technical-setup` when MVP systems are designed
