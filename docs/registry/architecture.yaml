@@ -1,0 +1,148 @@
+# Architecture registry — binding stances, checked by /architecture-decision Step 3a before any new ADR.
+# Append-only: never edit or delete an entry; mark it `status: superseded_by: ADR-NNNN` and add the new one.
+# Created 2026-10-01 with ADR-0005 (backfilled from ADR-0003/0004 and the AGENTS.md GameEvents contract).
+
+state_ownership:
+  - id: vehicle_physics_state
+    owner: PlayerVehicle / VehicleModel
+    adr: ADR-0005
+    covers: [body velocity, VehicleState, slip angle, boost meter, wheel contacts]
+    access: read-only via PlayerVehicle facade; no other system writes vehicle velocity
+    status: active
+  - id: vehicle_hp
+    owner: VehicleHealth (VehicleDamageModel)
+    adr: ADR-0005
+    covers: [current/max HP, invulnerability window, damage stage]
+    access: damaged only via GameEvents.VehicleImpact (crash) and disaster funnel contact
+    status: active
+  - id: live_disasters
+    owner: DisasterEntity (static registry)
+    adr: ADR-0004
+    covers: [set of active disasters, per-disaster wind field]
+    access: DisasterEntity.Active (read-only list); DisasterEntity.TotalWindAt(position)
+    status: active
+  - id: world_tiles
+    owner: TileStreamer / WorldPlan
+    adr: ADR-0004
+    covers: [active tile ring, tile pools, seeded heightfield]
+    access: IWorldStreamer events; HeightField.Height(seed, x, z) is pure
+    status: active
+  - id: structure_destruction_state
+    owner: WorldState
+    adr: ADR-0004
+    covers: [Intact/Broken per StructureId, debris snapshots across tile streaming]
+    access: WorldState.IsBroken / MarkBroken
+    status: active
+  - id: run_flow
+    owner: RunManager
+    adr: ADR-0005  # recorded here; predates ADRs (Sprint 5)
+    covers: [Title/Running/Ending/Results, Time.timeScale during results]
+    access: RunManager.Current (read-only); GameEvents.RunStarted/RunEnded
+    status: active
+
+interfaces:
+  - id: gameevents_hub
+    adr: ADR-0005
+    description: Only coupling between gameplay (Claude lane) and presentation (Codex lane). Gameplay raises, presentation listens; presentation never raises.
+    members: [RunStarted, PhotoTaken(PhotoResult), PhotoMissed, OutOfFilm, FilmChanged(int,int), PlayerDamaged(int,int), RunEnded(RunSummary)]
+    status: active
+  - id: gameevents_vehicle
+    adr: ADR-0005
+    members: ["StyleEvent(StyleKind, float)", "Landed(float impactSpeed)", "VehicleImpact(ImpactInfo)", "Tossed()"]
+    note: renamed from vehicle-feel.md's draft name `Impact`
+    status: active
+  - id: vehicle_input
+    adr: ADR-0005
+    signature: "IVehicleInput.Read() -> VehicleInputFrame {Throttle, Brake, Steer, Air, Handbrake, JumpPressed, Boost}"
+    status: active
+  - id: player_vehicle_facade
+    adr: ADR-0005
+    members: [CurrentSpeed, MaxSpeed, CurrentWind, InputEnabled, Data, State, SlipAngle, BoostMeter]
+    note: 0.4 names kept for Codex presentation + builders; ApplyKnockback removed at end of ADR-0005 migration
+    status: active
+  - id: surface_query
+    adr: ADR-0004
+    signature: "SurfaceTag.Type on hit collider -> SurfaceTable.Get(SurfaceType) -> SurfaceProperties {Grip, Drag}; untagged = Grass"
+    status: active
+  - id: destructible
+    adr: ADR-0004
+    signature: "Destructible {Id, Tier, Mass, Integrity, IsEventObstacle, ApplyImpact(speed, otherMass, point, normal), ApplyWindDamage(dps, dt), event Broken}"
+    status: active
+  - id: presentation_resources
+    adr: ADR-0003
+    description: Codex presentation loads Resources/Presentation/CamcorderLens.mat (property contract _MainTex,_SourceSize,_TimeSeconds,_ScanlineStrength,_GrainStrength,_ChromaPixels,_BarrelStrength) and VfxCardMaterial.mat (_BaseMap,_BaseMap_ST,_BaseColor)
+    status: active
+
+performance_budgets:
+  - id: vehicle_physics_step
+    adr: ADR-0005
+    budget: "<= 0.3 ms per 50 Hz step (PC), <= 0.8 ms (WebGL); zero per-step allocations"
+    status: active
+  - id: physics_step_total
+    adr: ADR-0004
+    budget: "<= 2.5 ms PC, <= 4 ms Steam Deck, <= 4 ms WebGL (G1 passed w/ condition 2026-10-01)"
+    status: active
+  - id: tile_streaming
+    adr: ADR-0004
+    budget: "<= 2 ms of build work per frame (time-sliced); no per-tile GC allocations"
+    status: active
+  - id: dynamic_debris_cap
+    adr: ADR-0004
+    budget: "WebGL 60 / Steam Deck 80 / PC 150 dynamic pieces; <= 30 swept per tornado"
+    status: active
+
+api_decisions:
+  - id: vehicle_force_integration
+    adr: ADR-0005
+    decision: "Forces via AddForceAtPosition/AddForce/AddTorque (Force for suspension/tires, Acceleration for wind/downforce/air control, VelocityChange for jump/toss); no Rigidbody.linearVelocity writes except respawn/test teleports"
+    status: active
+  - id: wheel_queries
+    adr: ADR-0005
+    decision: "4x single-hit Physics.SphereCast with a mask excluding the vehicle layer, QueryTriggerInteraction.Ignore"
+    status: active
+  - id: fixed_timestep
+    adr: ADR-0005
+    decision: "Fixed 50 Hz physics (fixedDeltaTime 0.02, maximumDeltaTime 0.1; WebGL may lower to 0.06 via platform profile)"
+    status: active
+  - id: input_system
+    adr: ADR-0005
+    decision: "New Input System only (StormChaserControls); gameplay reads input through IVehicleInput"
+    status: active
+  - id: render_pipeline
+    adr: ADR-0003
+    decision: "URP Render Graph; outlines via URP FullScreenPassRendererFeature on PC_Renderer_Toon; WebGL uses the PC quality level"
+    status: active
+  - id: tiled_world
+    adr: ADR-0004
+    decision: "2 km seeded world, 16x16 x 128 m code-generated tiles, 5x5 render ring / 3x3 collider ring, no scene streaming"
+    status: active
+
+forbidden_patterns:
+  - id: model_touches_engine_objects
+    adr: ADR-0005
+    rule: VehicleModel must never reference MonoBehaviour, Rigidbody, Time, Physics, or any UnityEngine.Object
+    status: active
+  - id: platform_branching_in_gameplay
+    adr: ADR-0005
+    rule: Gameplay physics must never branch on platform; only fidelity (VFX, cosmetic debris, draw distance) scales via PlatformProfile
+    status: active
+  - id: per_step_allocations
+    adr: ADR-0005
+    rule: No allocations in vehicle step or tile streaming hot paths (no LINQ, lambdas/closures, new reference types, string formatting)
+    status: active
+  - id: get_instance_id_keys
+    adr: ADR-0005
+    rule: Never key caches on GetInstanceID() (obsolete-as-error in Unity 6.6); key by object reference or EntityId
+    status: active
+  - id: presentation_raises_events
+    adr: ADR-0005
+    rule: Presentation (Codex lane) must never call GameEvents.Raise*
+    status: active
+  - id: find_in_update
+    adr: ADR-0005
+    rule: No FindObjectOfType/FindObjectsByType in Update/FixedUpdate; cache in Awake/Start or use registries (DisasterEntity.Active)
+    status: active
+  - id: allocating_physics_queries
+    adr: ADR-0005
+    rule: Never RaycastAll/SphereCastAll in gameplay code
+    status: active

@@ -176,7 +176,7 @@ Sliding / Airborne / Tossed / Upended are mutually exclusive; **Disabled** overl
 | `vehicle-damage.md` | Current damage stage (steer × 0.75 Damaged; momentum-only Critical) | Impact events with severity (1 or 2 HP) |
 | Wind field (`DisasterEntity`) | Wind velocity at body position; **new lift query** per disaster | — |
 | Terrain (ADR-0004) | Surface type per wheel contact → grip/drag multipliers (2D's mud 0.4× / highway 1.5× return as surface properties) | Impact force against destructibles (decides breakage) |
-| `GameEvents` | — | **New:** `StyleEvent` (drift / airtime / near-miss + amount), `Landed` (impact speed), `Impact` (severity), `Tossed` |
+| `GameEvents` | — | **New:** `StyleEvent` (drift / airtime / near-miss + amount), `Landed` (impact speed), `VehicleImpact` (ImpactInfo: speed, HP loss, ImpactKind — ADR-0005), `Tossed` |
 | HUD (Claude lane) | — | Boost meter value |
 | Presentation (Codex lane) | — | `CurrentWind`, state flags, and the new events → wind/landing/drift VFX, tire smoke, sparks |
 | Style scoring (future system) | — | Consumes `StyleEvent`. This system **emits** style moments; it does not score them. |
