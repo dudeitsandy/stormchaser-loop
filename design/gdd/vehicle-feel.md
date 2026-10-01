@@ -1,6 +1,6 @@
 # Vehicle Feel
 
-> **Status**: Approved (design-review 2026-10-01: NEEDS REVISION → all 15 findings revised; AimScore + ram decisions by Andy)
+> **Status**: Approved — implemented S7-03 (core) + lift/toss/wind-steer; see Playtest Tuning Log
 > **Author**: Andy Styx + Claude
 > **Last Updated**: 2026-10-01
 > **Implements Pillar**: 1 — Kinetic Chaos (vision-1.0.md)
@@ -245,22 +245,35 @@ Collision `s = |v_rel · n|`; landing `s = |v_y| / 1.5`.
 Sanity: an ~8 m drop lands at 12.5 m/s → /1.5 = 8.3 → no damage (clean landings never hurt);
 head-on at ≥ 12.5 m/s (~45 km/h) → 1 HP; full speed ≥ 22.5 m/s → 2 HP.
 
-**F11. Wind force**
-`F_wind = M · WindResponse · Exposure · (w − v_h)`, capped at 1.2 · M · g, applied 0.4 m above CoM.
-`WindResponse` = 1.1 /s → horizontal velocity relaxes toward air velocity with time constant
-≈ 0.9 s / Exposure. Replaces the 0.4 direct velocity offset; heavier archetypes resist naturally.
+**F11. Wind force** *(corrected 2026-10-01, S7-03)*
+`a_wind = ŵ · min(WindResponse · Exposure · max(0, |w| − v_h·ŵ), WindForceCapG · g)`, applied
+`WindLeverHeight` above CoM (as `M · a_wind`).
+The force acts **only along the wind direction ŵ**, until the body's velocity along it matches the wind.
+*The original form `M · WindResponse · Exposure · (w − v_h)` braked the truck in still air (w = 0 →
+≈ 18 m/s² of drag at 20 m/s); caught during implementation.* Heavier archetypes still resist via Exposure.
+
+**F11b. Wind steer** *(added 2026-10-01, playtest: "smaller tornadoes should pull the steering")*
+`steerBias = clamp(sin(θ) · WindSteer · |w_exposed| / WindGripLossAt, ±WindSteerMax)`, θ = signed angle
+from heading to wind direction (clamped ±90°). Added to player steer, grounded only. Weak storms tug the
+wheel; the player can always counter-steer (WindSteerMax < 1).
 
 **F12. Wind lift** (EF3+ only)
 `L = M · g · Exposure · LiftScale · Intensity · (1 − d / (0.5 · R))²` for `d < 0.5 · R`
 (R = tornado wind radius, d = horizontal distance to funnel).
-`LiftScale = max(0, (EFStrength − 2.0) · 0.8)` → EF3 0.4, EF4 0.8, EF5 1.6.
+`LiftScale = max(0, (EFStrength − 2.0) · LiftCoefficient)`. GDD value 0.8 (EF3 0.4, EF4 0.8, EF5 1.6);
+**shipped 1.35** after playtest ("more powerful tornadoes should throw") → EF3 0.68, EF4 1.35, EF5 2.7.
+Lift acts only while ≥ 1 wheel is grounded and is capped at 0.9 g (it unloads the suspension); the throw
+itself is solely the F12b impulse.
 **Tossed when `L ≥ 0.7 · M · g`.** Pickup sanity (Exposure 0.85): EF3 peaks at 0.34 g (wheels light,
 grip loss, never tossed); EF4 peaks at 0.68 g (never quite tossed — wheels nearly off the ground);
 **EF5 (R = 38 m → lift zone 19 m) tosses within ≈ 5.4 m — just outside its 4.3 m damage radius**:
 flung right before you'd be hit.
 
-**F12b. Toss impulse** (once on crossing the toss threshold; blocked until landed)
-`Δv = up · TossUpSpeed · Exposure + tangent · 0.5 · |w_swirl|`, TossUpSpeed = 8 m/s.
+**F12b. Toss impulse** (once on crossing the toss threshold; blocked until the truck has left the
+ground and landed, or 1 s if pinned)
+`Δv = up · TossUpSpeed · Exposure · (0.7 + 0.15 · EFStrength) + ŵ · TossSwirlFraction · |w|`,
+TossUpSpeed = 8 m/s, no added spin (spin + heading-follow camera was jarring). Shipped: Pickup EF4 apex
+≈ 3 m, EF5 ≈ 4 m. *(GDD original, before EF scaling: `up · 8 · Exposure + tangent · 0.5 · |w_swirl|`.)*
 Pickup rises at ≈ 6.8 m/s → apex ≈ 2.4 m, spinning with the funnel. Landing from that (≈ 6.8 m/s
 vertical) is far under the landing damage threshold: the toss itself is free; what you land on is not. Higher-Exposure archetypes (Motorcycle 1.3) get tossed by EF4s too.
 
@@ -283,6 +296,26 @@ leaves AimScore at 0.47, so an uncorrected Storm Cam shot lands GOOD, and center
 Extremes: **Motorcycle (5/✗/5)** — 26.5 m/s, 1200 kg, exposure 1.3, Light 8 m/s: fast, wind-blown,
 fragile (fits its 1 HP). **Monster Truck (2/5/3)** — 2700 kg, exposure 0.55, Light 15.5 m/s: shrugs
 off wind and crashes.
+
+## Playtest Tuning Log
+
+Shipped defaults differ from the formula sections where Andy's playtests moved them. Source of truth for
+values is `VehicleFeelConfig` (`VehicleFeelValues.Defaults`); this table records why.
+
+| Knob | GDD | Pass 1 | **Shipped (pass 2)** | Note |
+|------|-----|--------|----------------------|------|
+| `GripMu` / `GripStiffness` | 1.1 / 1.5 | 1.25 / 2.0 | **1.15 / 1.7** | GDD "a little too loose"; pass 1 "too stiff" |
+| `YawStability` | 0.5 | 0.7 | **0.6** | |
+| `SagFraction` / `DampingRatio` | 0.35 / 0.45 | 0.28 / 0.6 | **0.32 / 0.52** | "less extreme suspension"; RestLength 0.61 keeps ride height ≈ 0.5 m |
+| `WindLeverHeight` | 0.4 m | 0.2 m | **0.2 m** | less roll from gusts |
+| `LiftCoefficient` | 0.8 | — | **1.35** | big tornadoes throw |
+| New: `RollStabilization` | — | 0.6 beyond 25° | **0.6 beyond 25°** | knockback was rolling the truck |
+| New: knockback spread / grip | instant | 0.15 s, 0.35× grip, 0.7× strength | **same** | funnel contact slides instead of trips |
+| New: `StuckSeconds` | — | 2 s | **2 s** | hop free when wedged with < 2 wheels down |
+| New: `WindSteer` / `WindSteerMax` | — | — | **0.35 / 0.5** | F11b |
+| Camera binding | LockToTarget | **LockToTargetWithWorldUp**, yaw damping 1.6 | same | camera was pitching/rolling/flipping with the truck |
+
+Driving noise, response, and slide polish are deferred to the polish pass (Andy, 2026-10-01).
 
 ## Edge Cases
 
