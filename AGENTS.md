@@ -1,7 +1,7 @@
 # AGENTS.md — Shared rules for Codex + Claude in this repo
 
 Two coding agents (Codex and Claude Code) are working in this working tree at the same time.
-Read this before touching anything. Current plan: `production/sprints/sprint-06-look-and-feel.md` (Sprint 5 shipped 0.4.0).
+Read this before touching anything. Current plan: `production/sprints/sprint-07-build.md` (Sprint 6 design gates passed).
 
 ## Project
 - Unity project: `unity/StormChaserLoop3D/` — Unity **6000.6.0f1**, URP, C#, new Input System,
@@ -87,18 +87,22 @@ URP Render Graph only (no Compatibility Mode).
 Grep the log for `error CS`. Compile errors in one lane block both, so fix yours fast.
 
 ## Status board
-Update your own line when you start/finish a task. Sprint 5 board archived in sprint-05-ship.md.
+Update your own line when you start/finish a task. Sprint 6 board archived in sprint-06-look-and-feel.md.
 
 | Task | Owner | Status |
 |------|-------|--------|
-| C1 Toon lit shader | Claude | done — direction approved by Andy 2026-10-01 |
-| C2 Outline render pass (Render Graph) | Claude | done (FullScreenPass + ToonOutline on PC_Renderer_Toon) |
-| C3 ArtTest scene + world grade + placeholder truck | Claude | done — ArtTest approved |
-| C4 Vehicle Feel GDD | Claude | done — approved after design review (design/gdd/vehicle-feel.md) |
-| C5 ADR-0004 destructible terrain | Claude | done — Accepted (docs/architecture/adr-0004-destructible-tiled-world.md) |
-| X1 Camcorder lens on viewfinder/photos | Codex | implemented; Claude materials connected; ArtTest approved; GPU timing pending |
-| X2 Card-based tornado visual | Codex | implemented/wired; overlap + continuous mass polish done; visual recheck pending |
-| X3 Wind streak/dust/debris VFX | Codex | implemented; ArtTest approved; emission tests pass |
+| S7-00 0.5 Art Preview release | Claude | todo |
+| S7-01 WebGL streaming spike (G1) | Claude | todo |
+| S7-02 ADR-0005 raycast vehicle | Claude | todo |
+| S7-03 Vehicle core | Claude | todo |
+| S7-04 Verbs + input remap | Claude | todo |
+| S7-05 Camera, Storm Cam, aim | Claude | todo |
+| S7-06 Wind force, toss, impacts, events | Claude | todo |
+| S7-07 Blender MCP + hero truck (G2) | Claude | todo |
+| X7-01 PiP follows camera | Codex | blocked on S7-05 |
+| X7-02 Vehicle VFX | Codex | blocked on S7-06 |
+| X7-03 Vehicle audio | Codex | blocked on S7-06 |
+| X7-04 Tornado bands to single funnel | Codex | todo |
 
 ## Requests
 (Agent → other agent. Append, don't edit the other's entries.)
