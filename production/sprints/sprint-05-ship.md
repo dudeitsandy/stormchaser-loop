@@ -70,3 +70,5 @@ Those are the Early Access roadmap, not the prototype.
 | ~~Wind readability: live "IN THE WIND ×1.4" HUD meter~~ | Claude | **Done pre-ship 2026-10-01** |
 | Debris / dust VFX scaled by wind field | Codex | the "secondary effects" ask |
 | Wind physics polish (gusts, truck lift/tilt) | Claude | after Vehicle Feel pass |
+| **Vehicle Feel pass — Rocket League target** | Claude | Replace arcade direct-velocity with real rigidbody vehicle: weight transfer on accel/brake, powerslide/handbrake turns, suspension over uneven terrain, air control, tangible crash impacts (camera kick, debris, damage tied to impact force), wind as a real force on the body. Vision-1.0 Pillar 1 (Kinetic Chaos), planned Sprint 6-7 alongside stunt/style scoring. Depends on terrain becoming a large-scale, uneven, destructible space — design both together, not before. Requested 2026-10-01. |
+| Large-scale destructible terrain | Claude + Codex | Prerequisite for the Vehicle Feel pass to matter (bumps, ramps, debris to drive over/through). Needs its own ADR. |
