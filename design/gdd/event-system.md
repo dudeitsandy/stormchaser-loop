@@ -105,6 +105,9 @@ At run start, the News Network assigns 1–3 procedural photo bounties:
 `ClearSuccess = (VehicleMass × VehicleSpeed) >= ObstacleMassThreshold`
 - If successful: Obstacle fractures into debris; player retains 70% momentum.
 - If failed: Vehicle takes 1 HP damage; comes to an immediate dead stop.
+- Ram obstacles are exempt from `vehicle-feel.md` F10 impact damage: this rule is the only damage source
+  for them (no 2 HP severe-crash stacking on a successful ram). Default Pickup needs boost to reach
+  50 MPH (vehicle-feel F9). Added 2026-10-01.
 
 ### Daredevil Multiplier Stacking
 `FinalPhotoScore = BasePhotoScore × DaredevilMultiplier × StuntAirMultiplier`
