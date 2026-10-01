@@ -27,4 +27,35 @@ public class ScoringSystemTests
         float score = ScoringSystem.CalculatePhotoScore(0.7f, 0.5f, 4f);
         Assert.AreEqual(248f, score, 0.01f);
     }
+
+    [Test]
+    public void PerfectShot_EF5_Returns400()
+    {
+        Assert.AreEqual(400f, ScoringSystem.CalculatePhotoScore(1f, 1f, 4f), 0.01f);
+    }
+
+    [Test]
+    public void Quality_ClampsOutOfRangeInputs()
+    {
+        Assert.AreEqual(1f, ScoringSystem.CalculateQuality(2f, 5f), 0.0001f);
+        Assert.AreEqual(0f, ScoringSystem.CalculateQuality(-1f, -1f), 0.0001f);
+    }
+
+    [TestCase(1.0f, ShotTier.Perfect)]
+    [TestCase(0.85f, ShotTier.Perfect)]
+    [TestCase(0.84f, ShotTier.Good)]
+    [TestCase(0.5f, ShotTier.Good)]
+    [TestCase(0.49f, ShotTier.Glancing)]
+    [TestCase(0f, ShotTier.Glancing)]
+    public void GetTier_UsesQualityThresholds(float quality, ShotTier expected)
+    {
+        Assert.AreEqual(expected, ScoringSystem.GetTier(quality));
+    }
+
+    [Test]
+    public void PerfectlyFramedEF0_IsPerfectTier()
+    {
+        float quality = ScoringSystem.CalculateQuality(1f, 1f);
+        Assert.AreEqual(ShotTier.Perfect, ScoringSystem.GetTier(quality));
+    }
 }

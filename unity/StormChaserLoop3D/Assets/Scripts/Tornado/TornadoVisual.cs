@@ -13,7 +13,7 @@ public class TornadoVisual : MonoBehaviour
     [SerializeField] private float _baseTopRadius = 2f;
     [SerializeField] private float _baseHeight = 6f;
 
-    private void Awake()
+    private void Start()
     {
         var controller = GetComponent<TornadoController>();
         float scale = controller != null ? controller.ConeScale : 1f;

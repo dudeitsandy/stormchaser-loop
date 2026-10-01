@@ -315,7 +315,7 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
   m_Enabled: 1
-  serializedVersion: 12
+  serializedVersion: 13
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 2
@@ -367,7 +367,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0
+  m_ShapeRadius: 0
   m_ShadowAngle: 0
   m_LightUnit: 1
   m_LuxAtDistance: 1
@@ -498,6 +498,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HudController
   _sessionTimer: {fileID: 1705244359}
   _scoreAccumulator: {fileID: 1705244361}
+  _vehicleHealth: {fileID: 2137005999}
+  _lowTimeWarning: 10
 --- !u!114 &640469158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -596,6 +598,8 @@ GameObject:
   - component: {fileID: 1705244360}
   - component: {fileID: 1705244359}
   - component: {fileID: 1705244361}
+  - component: {fileID: 1705244363}
+  - component: {fileID: 1705244362}
   m_Layer: 0
   m_Name: SessionManager
   m_TagString: Untagged
@@ -646,7 +650,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d56ffae45bde2fc4684e4d02f88ca190, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ScoreAccumulator
-  _sessionTimer: {fileID: 1705244359}
+--- !u!114 &1705244362
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1705244358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e0d1c88609628843ab63a25b80b9cb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: StormChaser::RunScreens
+  _title: DOOMSDAY
+  _subtitle: "STORM SEASON  \xB7  PROTOTYPE 0.4"
+  _tagline: Chase the storm. Get the shot. Don't get caught.
+--- !u!114 &1705244363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1705244358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86ef4a35e3e2bf846963b486a03c9fc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: StormChaser::RunManager
+  _timer: {fileID: 1705244359}
+  _score: {fileID: 1705244361}
+  _spawner: {fileID: 2061329028}
+  _vehicle: {fileID: 2137005996}
+  _health: {fileID: 2137005999}
+  _photo: {fileID: 2137005998}
+  _resultsInputDelay: 1
+  _wreckSlowMoSeconds: 1.2
+  _wreckTimeScale: 0.25
 --- !u!1 &1794890103
 GameObject:
   m_ObjectHideFlags: 0
@@ -772,7 +811,6 @@ MonoBehaviour:
   _maxFovBoost: 5
   _triggerDistance: 40
   _lerpSpeed: 3
-  _refreshInterval: 0.5
 --- !u!1 &2061329027
 GameObject:
   m_ObjectHideFlags: 0
@@ -802,12 +840,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 323441d5e60e5cf4eb5be7c0f4622b1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DisasterSpawner
-  _disasterPrefabs:
-  - {fileID: 4960362096034032398, guid: 0f94780329ca6974bb4bb32e40d2ae08, type: 3}
-  _spawnInterval: 10
-  _spawnRangeZ: 30
-  _spawnEdgeX: -55
+  _tornadoPrefab: {fileID: 1087730608536960218, guid: 0f94780329ca6974bb4bb32e40d2ae08, type: 3}
+  _roster:
+  - Data: {fileID: 11400000, guid: 9c46f62faf655684fa498adc755910c5, type: 2}
+    EarlyWeight: 30
+    LateWeight: 5
+  - Data: {fileID: 11400000, guid: 1da5da336e5e7d24ab63d167bc1e3e5c, type: 2}
+    EarlyWeight: 30
+    LateWeight: 10
+  - Data: {fileID: 11400000, guid: f1ec55cdc47bccd41b10fbd8852ee5ac, type: 2}
+    EarlyWeight: 25
+    LateWeight: 20
+  - Data: {fileID: 11400000, guid: d0015e0b477023f42b33127105524055, type: 2}
+    EarlyWeight: 12
+    LateWeight: 25
+  - Data: {fileID: 11400000, guid: ed80fa0e4960717459b88eb9916f3a4a, type: 2}
+    EarlyWeight: 3
+    LateWeight: 25
+  - Data: {fileID: 11400000, guid: e145987426e91a145997d63f57eb582f, type: 2}
+    EarlyWeight: 0
+    LateWeight: 15
   _sessionTimer: {fileID: 1705244359}
+  _player: {fileID: 2137005995}
+  _firstSpawnDelay: 1.5
+  _spawnInterval: 10
+  _emptySkyRetry: 2
+  _maxConcurrent: 3
+  _minSpawnDistance: 45
+  _maxSpawnDistance: 70
+  _spawnArcDegrees: 70
+  _worldHalfExtent: 85
 --- !u!4 &2061329029
 Transform:
   m_ObjectHideFlags: 0
@@ -838,6 +900,7 @@ GameObject:
   - component: {fileID: 2137005997}
   - component: {fileID: 2137005996}
   - component: {fileID: 2137005998}
+  - component: {fileID: 2137005999}
   m_Layer: 0
   m_Name: PlayerTruck
   m_TagString: Untagged
@@ -951,6 +1014,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVehicle
   _data: {fileID: 11400000, guid: 3818a23d3d518c344be60d4c06f38537, type: 2}
+  _worldHalfExtent: 95
+  _knockbackDecay: 30
 --- !u!54 &2137005997
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -991,6 +1056,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhotoTrigger
   _scoreAccumulator: {fileID: 1705244361}
+  _maxRange: 60
+  _cooldown: 0.35
+--- !u!114 &2137005999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2137005991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32ad313379f2d4948b1eaee7afa10438, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: StormChaser::VehicleHealth
+  _contactDamage: 1
+  OnWrecked:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

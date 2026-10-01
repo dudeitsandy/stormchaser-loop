@@ -5,7 +5,7 @@
 
 ## Engine & Language
 
-- **Engine**: Unity 6.3 LTS (6000.3.x)
+- **Engine**: Unity 6.6 (6000.6.0f1) — upgraded from 6.3 LTS 2026-10-01
 - **Language**: C#
 - **Rendering**: Universal Render Pipeline (URP) with Render Graph (mandatory in 6.3+)
 - **Physics**: Unity Physics (Rigidbody / CharacterController)

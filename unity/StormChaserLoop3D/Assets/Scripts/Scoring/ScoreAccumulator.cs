@@ -1,29 +1,17 @@
 using UnityEngine;
 
+/// <summary>Running tally for the current run.</summary>
 public class ScoreAccumulator : MonoBehaviour
 {
-    [SerializeField] private SessionTimer _sessionTimer;
-
     public float TotalScore { get; private set; }
+    public int PhotoCount { get; private set; }
+    public float BestShot { get; private set; }
 
-    private void Start()
-    {
-        _sessionTimer.OnSessionEnd.AddListener(OnSessionEnd);
-    }
-
-    private void OnDestroy()
-    {
-        _sessionTimer.OnSessionEnd.RemoveListener(OnSessionEnd);
-    }
-
+    /// <summary>Adds one photo's score to the run.</summary>
     public void AddScore(float amount)
     {
         TotalScore += amount;
-        Debug.Log($"[Score] +{amount:F0} | Total: {TotalScore:F0}");
-    }
-
-    private void OnSessionEnd()
-    {
-        Debug.Log($"[Session Over] Final Score: {TotalScore:F0}");
+        PhotoCount++;
+        if (amount > BestShot) BestShot = amount;
     }
 }
