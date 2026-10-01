@@ -55,15 +55,25 @@ public sealed class PipViewfinder : MonoBehaviour
         _frame.style.backgroundColor = new Color(0.02f, 0.03f, 0.04f, 0.9f);
         _frame.Add(PresentationOverlay.Label("VIEWFINDER · FORWARD", 12, Color.white));
         var preview = new Image { image = _texture, scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
-        preview.style.height = 192;
-        preview.style.maxHeight = Length.Percent(100);
+        var footage = new VisualElement { pickingMode = PickingMode.Ignore };
+        footage.style.position = Position.Relative;
+        footage.style.height = 192;
+        footage.style.overflow = Overflow.Hidden;
+        // Keep footage and overlays at the texture's aspect ratio on smaller panels as well.
+        footage.RegisterCallback<GeometryChangedEvent>(evt =>
+            footage.style.height = evt.newRect.width * _texture.height / _texture.width);
+        preview.style.position = Position.Absolute;
+        preview.style.left = preview.style.right = preview.style.top = preview.style.bottom = 0;
         preview.style.width = Length.Percent(100);
-        _frame.Add(preview);
+        preview.style.height = Length.Percent(100);
+        footage.Add(preview);
+        _frame.Add(footage);
+        gameObject.AddComponent<CamcorderLens>().Initialize(_camera, _texture, footage, preview);
         var crosshair = PresentationOverlay.Label("+", 26, new Color(1f, 0.75f, 0.15f));
         crosshair.style.position = Position.Absolute;
         crosshair.style.left = crosshair.style.right = 0;
-        crosshair.style.top = 90;
-        _frame.Add(crosshair);
+        crosshair.style.top = Length.Percent(40);
+        footage.Add(crosshair);
         root.Add(_frame);
     }
     private void LateUpdate()
