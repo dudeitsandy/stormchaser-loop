@@ -175,7 +175,7 @@ Sliding / Airborne / Tossed / Upended are mutually exclusive; **Disabled** overl
 | `event-system.md` | — | Slide duration (Drift Framing Zone); Airborne flag + airtime (Twister Jump Ramp ×2.0) |
 | `vehicle-damage.md` | Current damage stage (steer × 0.75 Damaged; momentum-only Critical) | Impact events with severity (1 or 2 HP) |
 | Wind field (`DisasterEntity`) | Wind velocity at body position; **new lift query** per disaster | — |
-| Terrain (ADR-0004, **provisional**) | Surface type per wheel contact → grip/drag multipliers (2D's mud 0.4× / highway 1.5× return as surface properties) | Impact force against destructibles (decides breakage) |
+| Terrain (ADR-0004) | Surface type per wheel contact → grip/drag multipliers (2D's mud 0.4× / highway 1.5× return as surface properties) | Impact force against destructibles (decides breakage) |
 | `GameEvents` | — | **New:** `StyleEvent` (drift / airtime / near-miss + amount), `Landed` (impact speed), `Impact` (severity), `Tossed` |
 | HUD (Claude lane) | — | Boost meter value |
 | Presentation (Codex lane) | — | `CurrentWind`, state flags, and the new events → wind/landing/drift VFX, tire smoke, sparks |
@@ -300,7 +300,7 @@ off wind and crashes.
 | E10 | Critical damage stage while airborne | Air control allowed (rotation, not propulsion); throttle/boost/jump stay disabled |
 | E11 | Storm Cam with no disaster in range | Falls back to free orbit while staying toggled; re-locks when one enters range; switching targets requires the new one to be ≥ 25 % closer (no flicker) |
 | E12 | Multiple impacts in one physics step | Apply only the single highest severity |
-| E13 | Hitting light destructibles (fences, signs) | Severity scaled by `min(1, m_other / (0.5 · M))`; static geometry = full mass. Plowing through fences never hurts; silos do. *(Provisional on ADR-0004)* |
+| E13 | Hitting light destructibles (fences, signs) | Severity scaled by `min(1, m_other / (0.5 · M))`; static geometry = full mass. Plowing through fences never hurts; silos do. *(Masses per ADR-0004 §5)* |
 | E14 | Jump input while Upended or Disabled | Ignored (needs ≥ 2 grounded wheels and not Critical) |
 | E15 | Photo with camera looking backward | Allowed — aim is camera-forward and the viewfinder shows what will be scored; shooting over your shoulder while fleeing is valid |
 
