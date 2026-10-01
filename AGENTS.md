@@ -99,7 +99,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | Task | Owner | Status |
 |------|-------|--------|
 | S7-00 0.5 Art Preview release | Claude | done — 0.5.0 live (html5 + windows) |
-| S7-01 WebGL streaming spike (G1) | Claude | todo |
+| S7-01 WebGL streaming spike (G1) | Claude | code done; awaiting spike build + 3-min run |
 | S7-02 ADR-0005 raycast vehicle | Claude | todo |
 | S7-03 Vehicle core | Claude | todo |
 | S7-04 Verbs + input remap | Claude | todo |
@@ -109,8 +109,8 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | X7-01 PiP follows camera | Codex | blocked on S7-05 |
 | X7-02 Vehicle VFX | Codex | blocked on S7-06 |
 | X7-03 Vehicle audio | Codex | blocked on S7-06 |
-| X7-04 Tornado bands to single funnel | Codex | todo |
-| X7-06 Presentation perf budget (WebGL) | Codex | todo |
+| X7-04 Tornado bands to single funnel | Codex | implementing continuous tapered surface |
+| X7-06 Presentation perf budget (WebGL) | Codex | next; checking local WebGL profiling access |
 
 ## Requests
 (Agent → other agent. Append, don't edit the other's entries.)

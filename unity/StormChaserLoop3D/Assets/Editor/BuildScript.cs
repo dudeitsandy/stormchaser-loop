@@ -17,6 +17,8 @@ public static class BuildScript
     public const string Version = "0.5.0";
     /// <summary>The only scene that ships. 0.5+: the ADR-0003 restyled scene.</summary>
     private const string ShippingScene = "Assets/Scenes/ArtTest.unity";
+    /// <summary>S7-01 G1 gate scene; dev-only, own output folder.</summary>
+    private const string SpikeScene = "Assets/Scenes/StreamingSpike.unity";
 
     private static string OutputRoot => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "builds"));
 
@@ -28,12 +30,16 @@ public static class BuildScript
     public static void BuildWebGL() =>
         Build(BuildTarget.WebGL, Path.Combine(OutputRoot, "webgl"));
 
-    private static void Build(BuildTarget target, string locationPath)
+    [MenuItem("StormChaser/Spike/Build Spike WebGL")]
+    public static void BuildSpikeWebGL() =>
+        Build(BuildTarget.WebGL, Path.Combine(OutputRoot, "spike-webgl"), SpikeScene);
+
+    private static void Build(BuildTarget target, string locationPath, string scene = ShippingScene)
     {
         // Ship exactly one scene. VerificationScene (the 0.4 look) stays in Build Settings for editor A/B only.
-        if (!EditorBuildSettings.scenes.Any(s => s.path == ShippingScene))
-            throw new BuildFailedException($"{ShippingScene} is not in Build Settings. Run StormChaser > Art Test > Build ArtTest Scene.");
-        string[] scenes = { ShippingScene };
+        if (!EditorBuildSettings.scenes.Any(s => s.path == scene))
+            throw new BuildFailedException($"{scene} is not in Build Settings. Run its builder (StormChaser menu) first.");
+        string[] scenes = { scene };
 
         PlayerSettings.productName = ProductName;
         PlayerSettings.bundleVersion = Version;

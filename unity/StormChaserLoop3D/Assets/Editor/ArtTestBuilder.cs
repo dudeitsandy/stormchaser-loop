@@ -56,12 +56,12 @@ public static class ArtTestBuilder
 
     // ---------- Materials ----------
 
-    private struct Mats
+    internal struct Mats
     {
         public Material Template, TruckBody, TruckTrim, Glass, Tire, LightBar, Outline, Sky;
     }
 
-    private static Mats CreateMaterials()
+    internal static Mats CreateMaterials()
     {
         if (!AssetDatabase.IsValidFolder("Assets/Materials")) AssetDatabase.CreateFolder("Assets", "Materials");
         if (!AssetDatabase.IsValidFolder(MatDir)) AssetDatabase.CreateFolder("Assets/Materials", "Toon");
@@ -90,7 +90,7 @@ public static class ArtTestBuilder
         return m;
     }
 
-    private static Material ToonMat(string name, Shader shader, Color color)
+    internal static Material ToonMat(string name, Shader shader, Color color)
     {
         Material m = Mat(name, shader);
         m.SetColor("_BaseColor", color);
@@ -177,7 +177,7 @@ public static class ArtTestBuilder
 
     // ---------- Renderer: copy of PC_Renderer, CRT + SSAO off, outline on ----------
 
-    private static int EnsureToonRenderer(Material outlineMat)
+    internal static int EnsureToonRenderer(Material outlineMat)
     {
         if (AssetDatabase.LoadAssetAtPath<UniversalRendererData>(ToonRenderer) == null)
             AssetDatabase.CopyAsset(PcRenderer, ToonRenderer);
@@ -291,7 +291,7 @@ public static class ArtTestBuilder
         EditorUtility.SetDirty(volume);
     }
 
-    private static void ConfigureSkyAndLight(Material skyMat)
+    internal static void ConfigureSkyAndLight(Material skyMat)
     {
         Color top = new Color(0.22f, 0.45f, 0.82f);
         Color horizon = new Color(0.98f, 0.8f, 0.62f);
