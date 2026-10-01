@@ -32,7 +32,7 @@ Working project name is `StormChaserLoop3D` (Unity project folder). Brand name i
 ### 1. Kinetic Chaos
 Movement has Rocket League / Burnout energy: momentum-based, physics-forward, trick-capable. Drifting through debris, ramping off wreckage, threading through collapsing structures, and skimming past disaster funnels — motion is expressive, tactile, and scorable. This is a draw, not a gimmick.
 
-**Implementation note:** The Season 1 build uses arcade direct-velocity as a placeholder. A Vehicle Feel pass (physics overhaul + stunt detection) is planned for late Season 1 Sprint 6-7, shipping alongside the style scoring system. These two systems are tightly coupled and should land together.
+**Implementation note:** The Season 1 build uses arcade direct-velocity as a placeholder. A Vehicle Feel pass (physics overhaul + stunt detection) is planned for late Season 1 Sprint 6-7, shipping alongside the style scoring system. These two systems are tightly coupled and should land together. **Designed 2026-10-01:** `design/gdd/vehicle-feel.md` (raycast suspension, handbrake/jump/boost/air control, wind as force with EF3+ lift, camera-forward aim + Storm Cam).
 
 ### 2. Disaster Stacking & "Disaster Alchemy"
 Multiple disaster types coexist in a single run. They interact systemically: a wildfire drawn into an EF5 becomes a roaring Fire Tornado; an earthquake cracks roads into natural stunt ramps; flash floods destroy tire traction; an EMP disrupts vehicle systems. Disaster combinations are emergent content, not scripted sequences.
