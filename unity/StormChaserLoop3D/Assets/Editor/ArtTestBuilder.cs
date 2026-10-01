@@ -46,6 +46,7 @@ public static class ArtTestBuilder
         ConfigureSkyAndLight(mats.Sky);
         BuildPlaceholderTruck(mats);
         AddStyleApplier(mats.Template);
+        GameplaySceneFixups.Apply();
         UseToonTornado(toonTornado);
 
         EditorSceneManager.MarkSceneDirty(scene);

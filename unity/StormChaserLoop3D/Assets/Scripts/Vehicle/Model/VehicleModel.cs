@@ -12,6 +12,8 @@ public struct VehicleStepInput
     public Vector3 Wind;
     public DamageStage Damage;
     public VehicleInputFrame Input;
+    /// <summary>Tire grip multiplier for this step (knockback window lowers it so the truck slides, not trips). 0 = default 1.</summary>
+    public float GripScale;
 }
 
 /// <summary>Forces the adapter applies after a step. Preallocated and reused (no per-step allocation).</summary>
@@ -199,7 +201,8 @@ public sealed class VehicleModel
             fLat = Mathf.Clamp(fLat, -latCap, latCap);
 
             // Combined friction circle.
-            float budget = _v.GripMu * load * Mathf.Max(0f, c.SurfaceGrip) * (rear ? _rearGripMul : 1f) * windGripMul;
+            float gripScale = input.GripScale > 0f ? input.GripScale : 1f;
+            float budget = _v.GripMu * load * Mathf.Max(0f, c.SurfaceGrip) * (rear ? _rearGripMul : 1f) * windGripMul * gripScale;
             float mag = Mathf.Sqrt(fLong * fLong + fLat * fLat);
             if (mag > budget && mag > 1e-4f)
             {
@@ -227,7 +230,21 @@ public sealed class VehicleModel
             float excess = yawRate - intended;
             bool steeringIntoIt = Mathf.Abs(inp.Steer) > 0.5f && Mathf.Sign(inp.Steer) == Mathf.Sign(yawRate);
             if (Mathf.Abs(yawRate) > Mathf.Abs(intended) && !steeringIntoIt)
-                output.AngularAcceleration = -up * excess * _v.YawStability * 8f;
+                output.AngularAcceleration += -up * excess * _v.YawStability * 8f;
+        }
+
+        // ---- Roll stabilization (playtest 2026-10-01: tornado knockbacks rolled the truck) ----
+        if (groundedCount >= 1 && State != VehicleState.Upended && _v.RollStabilization > 0f)
+        {
+            float rollDeg = Vector3.SignedAngle(Vector3.ProjectOnPlane(Vector3.up, fwd), up, fwd);
+            float excessDeg = Mathf.Abs(rollDeg) - _v.RollStabilizeAngleDeg;
+            if (excessDeg > 0f)
+            {
+                float rollRate = Vector3.Dot(input.AngularVelocity, fwd);
+                float correction = -Mathf.Sign(rollDeg) * excessDeg * Mathf.Deg2Rad * _v.RollStabilization * 40f
+                                   - rollRate * _v.RollStabilization * 4f;
+                output.AngularAcceleration += fwd * correction;
+            }
         }
 
         // ---- Wind (F11, as implemented): push along the wind until the body matches its speed ----

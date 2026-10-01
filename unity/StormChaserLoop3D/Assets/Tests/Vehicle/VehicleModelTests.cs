@@ -45,9 +45,10 @@ public class VehicleModelTests
     [Test]
     public void PickupSpringConstants_MatchGddWorkedExample()
     {
-        ArchetypeParams p = ArchetypeParams.Derive(Stars.Pickup, V);
-        Assert.AreEqual(42000f, p.SpringK, 200f);  // GDD: k ≈ 42,000 N/m
-        Assert.AreEqual(4300f, p.DamperC, 150f);   // GDD: c ≈ 4,300 N·s/m
+        // GDD F1 worked example uses Sag 0.35, ζ 0.45 (shipped defaults are tuned stiffer; see config).
+        ArchetypeParams.SpringConstants(2100f, 0.35f, 0.35f, 0.45f, out float k, out float c);
+        Assert.AreEqual(42000f, k, 200f);  // GDD: k ≈ 42,000 N/m
+        Assert.AreEqual(4300f, c, 150f);   // GDD: c ≈ 4,300 N·s/m
     }
 
     [TestCase(1, 0, 1)]

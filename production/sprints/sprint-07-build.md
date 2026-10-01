@@ -95,3 +95,14 @@ the start so players see the new look while the feel work happens.
 - 2026-10-01 — Repo hygiene: 21 `(2)` duplicate files inside `.git` (Mar 31 copy-over artifact) moved to
   `../stormchaser-git-dupes-backup/`; the bad ref `refs/heads/main (2)` was breaking fetch. Rebased 25
   local commits onto origin (1 remote session-log commit) and pushed.
+
+## Playtest Notes — S7-03 vehicle core (Andy, 2026-10-01)
+"A little too loose but very close." Tornado pick-up/flip "very jarring." Truck got stuck in the ground
+once or twice. Wants slightly less extreme suspension and camera turns.
+
+Fixes (commit after e2f590f): grip μ 1.1→1.25, stiffness 1.5→2.0, yaw stability 0.5→0.7; sag 0.35→0.28,
+damping 0.45→0.6; follow camera LockToTarget→LockToTargetWithWorldUp (camera was rolling/pitching with
+the truck and flipping with it) + yaw damping 1.6; knockback spread over 0.15 s at 0.7× with grip 0.35×
+during the window, roll stabilizer beyond 25°, wind lever 0.4→0.2 m; 2 m GroundSlab under the
+zero-thickness Plane ground + stuck-recovery hop (2 s trying, <2 wheels, not moving).
+GDD follow-up: record tuned defaults + F11 directional-wind correction in vehicle-feel.md after the next feel check.

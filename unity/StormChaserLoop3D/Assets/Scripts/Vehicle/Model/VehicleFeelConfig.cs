@@ -30,6 +30,8 @@ public struct VehicleFeelValues
     public float DownforceCoeff;
     public float AntiRoll, YawStability;
     public float GripRecoveryTime;
+    [Tooltip("Corrective roll acceleration beyond RollStabilizeAngle (grounded). 0 = off.")]
+    public float RollStabilization, RollStabilizeAngleDeg;
 
     [Header("States (F5, E5, E9)")]
     public float SlideEnterDeg, SlideExitDeg, SlideMinSpeed, SlideExitSpeed;
@@ -42,6 +44,10 @@ public struct VehicleFeelValues
 
     [Header("Impacts (F10)")]
     public float LandingThresholdMul;
+
+    [Header("Knockback & recovery")]
+    public float KnockbackSpreadSeconds, KnockbackGripScale;
+    public float StuckSeconds;
 
     [Header("Limits")]
     public float MaxAngularSpeed;
@@ -57,24 +63,31 @@ public struct VehicleFeelValues
         HandbrakeGripBase = 0.45f, HandbrakeGripPerStar = 0.04f,
         StyleRefillBase = 0.7f, StyleRefillPerStar = 0.15f,
 
-        SagFraction = 0.35f, DampingRatio = 0.45f, Travel = 0.35f, RestLength = 0.62f,
+        // Playtest 2026-10-01: stiffer + more damped than the GDD's 0.35 / 0.45 ("less extreme suspension").
+        // RestLength keeps the body origin ≈ 0.5 m above ground: 0.5 + Sag·Travel.
+        SagFraction = 0.28f, DampingRatio = 0.6f, Travel = 0.35f, RestLength = 0.6f,
 
         EngineCoefficient = 1.28f, TorqueFalloffExponent = 2.5f,
         BrakeDecel = 14f, CoastDecel = 2.5f, ReverseSpeedFraction = 0.35f,
-        GripStiffness = 1.5f, GripMu = 1.1f,
+        // Playtest 2026-10-01: "a little too loose" (GDD defaults 1.5 / 1.1 / yaw 0.5).
+        GripStiffness = 2.0f, GripMu = 1.25f,
         MaxSteerDeg = 32f, HighSpeedSteerFactor = 0.45f,
         DownforceCoeff = 0.25f,
-        AntiRoll = 0.6f, YawStability = 0.5f,
+        AntiRoll = 0.6f, YawStability = 0.7f,
         GripRecoveryTime = 0.25f,
+        RollStabilization = 0.6f, RollStabilizeAngleDeg = 25f,
 
         SlideEnterDeg = 20f, SlideExitDeg = 10f, SlideMinSpeed = 3f, SlideExitSpeed = 2f,
         AirborneGrace = 0.1f,
         UpendedDot = 0.3f, UpendedAngularSpeed = 1.5f, AutoRightDelay = 1.2f,
         MaxGroundSlopeDeg = 60f,
 
-        WindResponse = 1.1f, WindForceCapG = 1.2f, WindLeverHeight = 0.4f, WindGripLossAt = 10f,
+        WindResponse = 1.1f, WindForceCapG = 1.2f, WindLeverHeight = 0.2f, WindGripLossAt = 10f,
 
         LandingThresholdMul = 1.5f,
+
+        KnockbackSpreadSeconds = 0.15f, KnockbackGripScale = 0.35f,
+        StuckSeconds = 2f,
 
         MaxAngularSpeed = 12f,
     };

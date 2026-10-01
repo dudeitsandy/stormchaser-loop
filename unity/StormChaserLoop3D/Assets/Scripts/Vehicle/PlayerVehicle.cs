@@ -33,6 +33,9 @@ public class PlayerVehicle : MonoBehaviour
     private readonly VehicleStepOutput _output = new VehicleStepOutput();
     private readonly Dictionary<Collider, SurfaceProperties> _surfaceCache = new Dictionary<Collider, SurfaceProperties>();
     private Vector3 _rawWind;
+    private Vector3 _pendingKnockback;
+    private float _knockbackTimer;
+    private float _stuckTimer;
     private Vector3 _lastGroundedPosition;
     private Quaternion _lastGroundedRotation = Quaternion.identity;
 
@@ -146,10 +149,35 @@ public class PlayerVehicle : MonoBehaviour
             Wind = _rawWind,
             Damage = _health != null ? _health.Stage : DamageStage.Healthy,
             Input = InputEnabled ? _input.Read() : default,
+            GripScale = _knockbackTimer > 0f ? _values.KnockbackGripScale : 1f,
         };
         _model.Step(input, _contacts, _output);
         Apply();
+        ApplyKnockbackStep(dt);
+        HandleStuck(input.Input, dt);
         HandleBoundary();
+    }
+
+    // Funnel knockback is spread over a short window with reduced tire grip, so the truck is shoved and
+    // slides instead of tripping over its own tires (playtest 2026-10-01: flips were jarring).
+    private void ApplyKnockbackStep(float dt)
+    {
+        if (_knockbackTimer <= 0f) return;
+        float spread = Mathf.Max(dt, _values.KnockbackSpreadSeconds);
+        _rb.AddForce(_pendingKnockback * (dt / spread), ForceMode.VelocityChange);
+        _knockbackTimer -= dt;
+    }
+
+    // High-centered or wedged with no wheels down while the player is trying to drive → hop free.
+    private void HandleStuck(VehicleInputFrame inp, float dt)
+    {
+        bool trying = inp.Throttle > 0.5f || inp.Brake > 0.5f;
+        bool stuck = trying && _model.GroundedWheels < 2 && _rb.linearVelocity.magnitude < 0.5f
+                     && _model.State != VehicleState.Upended;
+        _stuckTimer = stuck ? _stuckTimer + dt : 0f;
+        if (_stuckTimer < _values.StuckSeconds) return;
+        _stuckTimer = 0f;
+        AutoRight();
     }
 
     private void QueryWheels()
@@ -259,11 +287,15 @@ public class PlayerVehicle : MonoBehaviour
         transform.SetPositionAndRotation(position, rotation);
     }
 
-    /// <summary>Flings the truck along <paramref name="direction"/> (flattened). Kept from 0.4 for funnel contact.</summary>
+    /// <summary>
+    /// Shoves the truck along <paramref name="direction"/> (flattened), spread over KnockbackSpreadSeconds
+    /// with reduced grip. Kept from 0.4 for funnel contact.
+    /// </summary>
     public void ApplyKnockback(Vector3 direction, float speed)
     {
         direction.y = 0f;
         if (direction.sqrMagnitude < 1e-4f) return;
-        _rb.AddForce(direction.normalized * speed + Vector3.up * 2f, ForceMode.VelocityChange);
+        _pendingKnockback = direction.normalized * speed * 0.7f + Vector3.up * 1.5f;
+        _knockbackTimer = Mathf.Max(Time.fixedDeltaTime, _values.KnockbackSpreadSeconds);
     }
 }

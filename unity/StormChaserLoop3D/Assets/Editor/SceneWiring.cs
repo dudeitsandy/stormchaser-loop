@@ -53,6 +53,7 @@ public static class SceneWiring
         Set(hud, "_vehicleHealth", health);
 
         WireSpawner(spawner, timer, truck.transform);
+        GameplaySceneFixups.Apply();
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
