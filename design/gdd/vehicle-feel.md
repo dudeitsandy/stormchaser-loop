@@ -4,7 +4,7 @@
 > **Author**: Andy Styx + Claude
 > **Last Updated**: 2026-10-01
 > **Implements Pillar**: 1 — Kinetic Chaos (vision-1.0.md)
-> **Index**: Off-index (no systems-index.md yet; vision-1.0.md serves as concept)
+> **Index**: systems-index.md #2 (Vehicle Feel), #3 (Camera & Aim), #10 (Wind Field)
 
 ## Overview
 
