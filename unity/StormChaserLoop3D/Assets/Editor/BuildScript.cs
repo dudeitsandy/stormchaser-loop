@@ -26,7 +26,10 @@ public static class BuildScript
 
     private static void Build(BuildTarget target, string locationPath)
     {
-        string[] scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
+        // Art/dev test scenes stay in Build Settings for editor reloads but never ship.
+        string[] scenes = EditorBuildSettings.scenes
+            .Where(s => s.enabled && !s.path.EndsWith("ArtTest.unity"))
+            .Select(s => s.path).ToArray();
         if (scenes.Length == 0)
             throw new BuildFailedException("No enabled scenes in Build Settings.");
 
