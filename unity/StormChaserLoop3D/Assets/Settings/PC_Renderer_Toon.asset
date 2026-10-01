@@ -22,7 +22,7 @@ MonoBehaviour:
   m_Version: 1
 --- !u!114 &-67557885979533382
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}

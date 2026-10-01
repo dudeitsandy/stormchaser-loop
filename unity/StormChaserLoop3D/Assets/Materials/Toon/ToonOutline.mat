@@ -26,8 +26,8 @@ Material:
     m_Ints: []
     m_Floats:
     - _DepthThreshold: 0.06
-    - _FadeEnd: 140
-    - _FadeStart: 60
+    - _FadeEnd: 75
+    - _FadeStart: 30
     - _NormalThreshold: 0.4
     - _Thickness: 1.5
     m_Colors:
