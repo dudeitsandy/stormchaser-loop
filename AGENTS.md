@@ -100,8 +100,8 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 |------|-------|--------|
 | S7-00 0.5 Art Preview release | Claude | done — 0.5.0 live (html5 + windows) |
 | S7-01 WebGL streaming spike (G1) | Claude | done — G1 PASS w/ condition, 2 km kept |
-| S7-02 ADR-0005 raycast vehicle | Claude | written (Proposed) — awaiting Andy acceptance |
-| S7-03 Vehicle core | Claude | todo |
+| S7-02 ADR-0005 raycast vehicle | Claude | done — Accepted |
+| S7-03 Vehicle core | Claude | in progress |
 | S7-04 Verbs + input remap | Claude | todo |
 | S7-05 Camera, Storm Cam, aim | Claude | todo |
 | S7-06 Wind force, toss, impacts, events | Claude | todo |

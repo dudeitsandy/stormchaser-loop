@@ -1,7 +1,7 @@
 # ADR-0005: Raycast Vehicle Architecture
 
 ## Status
-Proposed
+Accepted (Andy, 2026-10-01)
 
 ## Date
 2026-10-01
