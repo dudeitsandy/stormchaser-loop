@@ -11,7 +11,7 @@ internal sealed class CardVfxAssets : IDisposable
     private readonly List<UnityEngine.Object> _owned = new List<UnityEngine.Object>();
     private Mesh _quad;
 
-    internal Transform Create(Transform parent, Shape shape, string name)
+    internal Transform Create(Transform parent, Shape shape, string name, Mesh geometry = null)
     {
         Material material = GetMaterial(shape);
         if (material == null) return null;
@@ -29,12 +29,30 @@ internal sealed class CardVfxAssets : IDisposable
         }
         var host = new GameObject(name);
         host.transform.SetParent(parent, false);
-        host.AddComponent<MeshFilter>().sharedMesh = _quad;
+        host.AddComponent<MeshFilter>().sharedMesh = geometry != null ? geometry : _quad;
         var renderer = host.AddComponent<MeshRenderer>();
         renderer.sharedMaterial = material;
         renderer.shadowCastingMode = ShadowCastingMode.Off;
         renderer.receiveShadows = false;
         return host.transform;
+    }
+
+    internal Transform CreateFunnel(Transform parent, int segments)
+    {
+        var vertices = FunnelSurfaceGeometry.Vertices(segments);
+        var uvs = new Vector2[vertices.Length];
+        var colors = new Color[vertices.Length];
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            uvs[i] = new Vector2(i % 2, vertices[i].y);
+            colors[i] = Color.white;
+        }
+        var mesh = new Mesh { name = "ContinuousFunnelSurface", vertices = vertices,
+            uv = uvs, colors = colors, triangles = FunnelSurfaceGeometry.Triangles(segments) };
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        _owned.Add(mesh);
+        return Create(parent, Shape.Funnel, "ContinuousFunnelMass", mesh);
     }
 
     internal void SetColor(Shape shape, Color color)
@@ -81,6 +99,7 @@ internal sealed class CardVfxAssets : IDisposable
         var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
             { name = "HandDrawn" + shape, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
         if (shape == Shape.Band) texture.wrapModeU = TextureWrapMode.Repeat;
+        if (shape == Shape.Funnel) texture.wrapModeV = TextureWrapMode.Repeat;
         var pixels = new Color[width * height];
         for (int y = 0; y < height; y++)
         for (int x = 0; x < width; x++)
@@ -101,12 +120,11 @@ internal sealed class CardVfxAssets : IDisposable
                     tone += 0.035f * Mathf.Sin(u * 8f + stroke * 5f);
                     break;
                 case Shape.Funnel:
-                    float t = (v + 1f) * 0.5f;
-                    float halfWidth = Mathf.Lerp(0.04f, 1f, Mathf.Pow(t, 0.8f));
-                    float bend = 0.035f * Mathf.Sin(t * 7f) * t;
-                    alpha = Mathf.SmoothStep(0, 1, Mathf.Clamp01((halfWidth - Mathf.Abs(u - bend)) / 0.08f));
-                    alpha *= Mathf.Clamp01(t * 40f) * Mathf.Clamp01((1f - t) * 25f);
-                    tone = 0.67f + t * 0.1f + 0.045f * Mathf.Sin(t * 20f + u * 5f);
+                    // Taper comes from geometry; alpha never varies vertically, so scrolling
+                    // cannot open ribbon gaps. Shading repeats smoothly around soft swirls.
+                    alpha = Mathf.SmoothStep(0, 1, Mathf.Clamp01((1f - Mathf.Abs(u)) / 0.08f));
+                    float swirl = v * Mathf.PI * 3f + u * 4f + 0.25f * Mathf.Sin(u * 6f);
+                    tone = 0.7f + 0.07f * Mathf.Sin(swirl) + 0.025f * Mathf.Sin(swirl * 2f);
                     break;
                 case Shape.Dust:
                     float radius = Mathf.Sqrt(u * u + v * v);

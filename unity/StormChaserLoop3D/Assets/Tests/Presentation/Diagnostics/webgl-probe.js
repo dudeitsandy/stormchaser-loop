@@ -1,0 +1,241 @@
+// Browser-only diagnostic injection. Never imported by Unity or shipped in the game.
+(() => {
+  const probe = window.__presentationProbe = {
+    frames: [], programs: [], contexts: [], errors: [], enabled: false,
+    frame: null, audioSources: 0, maxAudioSources: 0, skippedQueries: 0,
+  };
+  addEventListener('error', e => probe.errors.push(e.message));
+  const nativeRaf = window.requestAnimationFrame.bind(window);
+  let frameStamp = -1;
+  window.requestAnimationFrame = callback => nativeRaf(timestamp => {
+    const collecting = probe.enabled;
+    if (collecting && timestamp !== frameStamp) {
+      frameStamp = timestamp;
+      probe.frame = { timestamp, callbackMs: 0, audioSubmitMs: 0, drawCalls: {}, submitMs: {}, gpuMs: {} };
+      probe.frames.push(probe.frame);
+    }
+    const start = performance.now();
+    try { callback(timestamp); }
+    finally {
+      if (collecting) {
+        for (const ctx of probe.contexts) ctx.end();
+        probe.frame.callbackMs += performance.now() - start;
+      }
+    }
+  });
+
+  const originalGetContext = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+    const gl = originalGetContext.call(this, type, ...args);
+    if (gl && type === 'webgl2' && !gl.__presentationInstrumented) instrument(gl);
+    return gl;
+  };
+  function instrument(gl) {
+    gl.__presentationInstrumented = true;
+    const originals = {};
+    for (let proto = Object.getPrototypeOf(gl); proto; proto = Object.getPrototypeOf(proto)) {
+      for (const name of Object.getOwnPropertyNames(proto)) {
+        const descriptor = Object.getOwnPropertyDescriptor(proto, name);
+        if (name !== 'constructor' && typeof descriptor?.value === 'function' && !originals[name])
+          originals[name] = descriptor.value.bind(gl);
+      }
+    }
+    const timer = originals.getExtension('EXT_disjoint_timer_query_webgl2');
+    const debug = originals.getExtension('WEBGL_debug_renderer_info');
+    const info = {
+      timerQueries: !!timer,
+      renderer: debug ? originals.getParameter(debug.UNMASKED_RENDERER_WEBGL) : originals.getParameter(gl.RENDERER),
+      vendor: debug ? originals.getParameter(debug.UNMASKED_VENDOR_WEBGL) : originals.getParameter(gl.VENDOR),
+      version: originals.getParameter(gl.VERSION),
+    };
+    probe.gpu = info;
+    const textures = new WeakMap(), fbos = new WeakMap(), programs = new WeakMap();
+    const shaders = new WeakMap(), attached = new WeakMap();
+    const buffers = new WeakMap(), uniformSlots = new Map(), boundBuffers = new Map();
+    let uniformBuffer = null;
+    let framebuffer = null, texture = null, program = null, active = null;
+    const pending = [];
+    function end() {
+      if (!active) return;
+      originals.endQuery(timer.TIME_ELAPSED_EXT);
+      pending.push(active);
+      active = null;
+    }
+    function poll() {
+      if (!timer || !pending.length) return;
+      const disjoint = originals.getParameter(timer.GPU_DISJOINT_EXT);
+      for (let i = pending.length - 1; i >= 0; i--) {
+        const item = pending[i];
+        if (!originals.getQueryParameter(item.query, gl.QUERY_RESULT_AVAILABLE)) continue;
+        if (disjoint) probe.skippedQueries++;
+        else {
+          const ms = originals.getQueryParameter(item.query, gl.QUERY_RESULT) / 1e6;
+          item.frame.gpuMs[item.category] = (item.frame.gpuMs[item.category] || 0) + ms;
+        }
+        originals.deleteQuery(item.query);
+        pending.splice(i, 1);
+      }
+    }
+    function classify() {
+      let shader = program && programs.get(program);
+      if (program && !shader) {
+        const uniformCount = originals.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+        const uniforms = [];
+        for (let i = 0; i < uniformCount; i++) uniforms.push(originals.getActiveUniform(program, i).name);
+        const sources = (attached.get(program) || []).map(s => shaders.get(s) || '').join('\n');
+        const names = uniforms.join(' ');
+        let kind = names.includes('_ChromaPixels') && names.includes('_BarrelStrength') ? 'camcorder' : 'other';
+        if (names.includes('_BaseColor') && names.includes('_BaseMap') && names.includes('unity_FogColor')
+          && !/_ShadowTint|_RimColor|_MainLightColor|_WorldSpaceCameraPos|_Cutoff/.test(names)) kind = 'cards';
+        shader = { id: probe.programs.length, uniforms, sources, kind };
+        if (kind === 'cards') {
+          const indices = originals.getUniformIndices(program, ['_BaseColor']);
+          shader.colorOffset = originals.getActiveUniforms(program, indices, gl.UNIFORM_OFFSET)[0];
+          shader.colorBlock = originals.getActiveUniforms(program, indices, gl.UNIFORM_BLOCK_INDEX)[0];
+          shader.colorSlot = originals.getActiveUniformBlockParameter(program, shader.colorBlock, gl.UNIFORM_BLOCK_BINDING);
+        }
+        programs.set(program, shader);
+        probe.programs.push(shader);
+      }
+      if (shader?.kind === 'camcorder') return 'camcorder';
+      if (shader?.kind === 'cards') {
+        const slot = uniformSlots.get(shader.colorSlot);
+        const bytes = slot && buffers.get(slot.buffer);
+        const offset = (slot?.offset || 0) + shader.colorOffset;
+        if (bytes && offset >= 0 && offset + 12 <= bytes.length) {
+          const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+          // Unity uploads material colors in linear space in this URP build.
+          const toSrgb = value => value <= 0.0031308 ? value * 12.92 : 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
+          const r = toSrgb(view.getFloat32(offset, true)), g = toSrgb(view.getFloat32(offset + 4, true));
+          if ((Math.abs(r - 0.62) < 0.005 && Math.abs(g - 0.72) < 0.005)
+            || (Math.abs(r - 0.72) < 0.005 && Math.abs(g - 0.57) < 0.005)
+            || (Math.abs(r - 0.56) < 0.005 && Math.abs(g - 0.34) < 0.005)) return 'tornadoCards';
+          if ((Math.abs(r - 0.86) < 0.005 && Math.abs(g - 0.95) < 0.005)
+            || (Math.abs(r - 0.74) < 0.005 && Math.abs(g - 0.6) < 0.005)
+            || (Math.abs(r - 0.5) < 0.005 && Math.abs(g - 0.32) < 0.005)) return 'windCards';
+          probe.materialColors ||= {};
+          probe.materialColors[`${r.toFixed(4)},${g.toFixed(4)}`] = true;
+          return 'cardsUnclassified';
+        }
+        probe.missingMaterialBuffer ||= { slot: shader.colorSlot, offset, hasSlot: !!slot,
+          bytes: bytes?.length, slots: [...uniformSlots.keys()], targets: [...boundBuffers.keys()] };
+        return 'cardsUnclassified';
+      }
+      const target = framebuffer && fbos.get(framebuffer);
+      const size = target?.texture && textures.get(target.texture);
+      if (size?.width === 320 && size?.height === 240) return 'pipCamera';
+      return 'worldAndUI';
+    }
+    function begin(category) {
+      if (!timer || !probe.frame || probe.frames.length % 5 !== 0) return;
+      if (active?.category === category && active.frame === probe.frame) return;
+      end();
+      const query = originals.createQuery();
+      originals.beginQuery(timer.TIME_ELAPSED_EXT, query);
+      active = { query, category, frame: probe.frame };
+    }
+    for (const [name, native] of Object.entries(originals)) {
+      if (/^(get|is|create|delete|check)/.test(name)) continue;
+      gl[name] = function(...args) {
+        if (name === 'shaderSource') shaders.set(args[0], args[1]);
+        if (name === 'attachShader') {
+          const list = attached.get(args[0]) || [];
+          list.push(args[1]); attached.set(args[0], list);
+        }
+        if (name === 'useProgram') program = args[0];
+        if (name === 'uniformBlockBinding') {
+          const info = programs.get(args[0]);
+          if (info?.kind === 'cards' && info.colorBlock === args[1]) info.colorSlot = args[2];
+        }
+        if (name === 'bindBuffer') {
+          boundBuffers.set(args[0], args[1]);
+          if (args[0] === gl.UNIFORM_BUFFER) uniformBuffer = args[1];
+        }
+        if (name === 'bindBufferBase' && args[0] === gl.UNIFORM_BUFFER) {
+          uniformBuffer = args[2];
+          boundBuffers.set(gl.UNIFORM_BUFFER, uniformBuffer);
+          uniformSlots.set(args[1], { buffer: args[2], offset: 0 });
+        }
+        if (name === 'bindBufferRange' && args[0] === gl.UNIFORM_BUFFER) {
+          uniformBuffer = args[2];
+          boundBuffers.set(gl.UNIFORM_BUFFER, uniformBuffer);
+          uniformSlots.set(args[1], { buffer: args[2], offset: args[3] });
+        }
+        if (name === 'bufferData' && boundBuffers.get(args[0])) {
+          const source = args[1];
+          // Emscripten passes the entire WASM heap plus srcOffset/length in WebGL 2.
+          // Track the uploaded slice, rather than mistaking the heap size for this UBO.
+          const offset = typeof source === 'number' ? 0 : (args[3] || 0) * source.BYTES_PER_ELEMENT;
+          const length = typeof source === 'number' ? source : args[4]
+            ? args[4] * source.BYTES_PER_ELEMENT : source.byteLength - offset;
+          if (length <= 1048576) {
+            const bytes = new Uint8Array(length);
+            if (typeof source !== 'number') bytes.set(new Uint8Array(source.buffer, source.byteOffset + offset, length));
+            buffers.set(boundBuffers.get(args[0]), bytes);
+          }
+        }
+        if (name === 'bufferSubData' && boundBuffers.get(args[0])) {
+          const bytes = buffers.get(boundBuffers.get(args[0])), source = args[2];
+          if (bytes && source?.buffer) {
+            const offset = (args[3] || 0) * source.BYTES_PER_ELEMENT;
+            const length = args[4] ? args[4] * source.BYTES_PER_ELEMENT : source.byteLength - offset;
+            bytes.set(new Uint8Array(source.buffer, source.byteOffset + offset, length), args[1]);
+          }
+        }
+        if (name === 'bindFramebuffer' && args[0] !== gl.READ_FRAMEBUFFER) {
+          end(); framebuffer = args[1];
+        }
+        if (name === 'bindTexture' && args[0] === gl.TEXTURE_2D) texture = args[1];
+        if (name === 'texStorage2D' && texture) textures.set(texture, { width: args[3], height: args[4] });
+        if (name === 'texImage2D' && texture && args.length >= 9) textures.set(texture, { width: args[3], height: args[4] });
+        if (name === 'framebufferTexture2D' && framebuffer && args[1] === gl.COLOR_ATTACHMENT0)
+          fbos.set(framebuffer, { texture: args[3] });
+        const frame = probe.enabled ? probe.frame : null;
+        const draw = /^draw(Arrays|Elements)/.test(name);
+        const category = frame ? classify() : null;
+        if (frame && draw) {
+          begin(category);
+          frame.drawCalls[category] = (frame.drawCalls[category] || 0) + 1;
+        }
+        const start = frame ? performance.now() : 0;
+        const result = native(...args);
+        if (frame) frame.submitMs[category] = (frame.submitMs[category] || 0) + performance.now() - start;
+        if (name === 'flush') { end(); poll(); }
+        return result;
+      };
+    }
+    probe.contexts.push({ end, poll });
+  }
+
+  // AudioParam control submission is measurable on the main thread. This is not DSP time.
+  const descriptor = Object.getOwnPropertyDescriptor(AudioParam.prototype, 'value');
+  if (descriptor?.set) Object.defineProperty(AudioParam.prototype, 'value', {
+    ...descriptor,
+    set(value) {
+      const start = performance.now();
+      descriptor.set.call(this, value);
+      if (probe.enabled && probe.frame) probe.frame.audioSubmitMs += performance.now() - start;
+    },
+  });
+  for (const name of ['setValueAtTime', 'setTargetAtTime', 'linearRampToValueAtTime']) {
+    const original = AudioParam.prototype[name];
+    AudioParam.prototype[name] = function(...args) {
+      const start = performance.now();
+      const result = original.apply(this, args);
+      if (probe.enabled && probe.frame) probe.frame.audioSubmitMs += performance.now() - start;
+      return result;
+    };
+  }
+  const sourceStart = AudioBufferSourceNode.prototype.start;
+  AudioBufferSourceNode.prototype.start = function(...args) {
+    probe.audioSources++;
+    probe.maxAudioSources = Math.max(probe.maxAudioSources, probe.audioSources);
+    this.addEventListener('ended', () => probe.audioSources--, { once: true });
+    return sourceStart.apply(this, args);
+  };
+  probe.start = () => { probe.frames.length = 0; frameStamp = -1; probe.enabled = true; };
+  probe.stop = () => {
+    probe.enabled = false;
+    for (const ctx of probe.contexts) { ctx.end(); ctx.poll(); }
+  };
+})();
