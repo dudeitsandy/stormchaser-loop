@@ -52,7 +52,8 @@ public class RunScreens : MonoBehaviour
         _overlay.Add(MakeLabel("DRIVE   WASD / LEFT STICK", 18, Bone, letterSpacing: 2));
         _overlay.Add(MakeLabel("SHOOT   SPACE / L2", 18, Bone, letterSpacing: 2));
         _overlay.Add(Spacer(12));
-        _overlay.Add(MakeLabel("Closer and centered scores more. Touch the funnel and it scores you.", 16, Dim));
+        _overlay.Add(MakeLabel("24 frames of film. Centered at ~20m scores best. Shoot from inside the wind for a bonus.", 16, Dim));
+        _overlay.Add(MakeLabel("Same storm twice in a row is worth less. Touch the funnel and it scores you.", 16, Dim));
         if (bestScore > 0f)
         {
             _overlay.Add(Spacer(24));

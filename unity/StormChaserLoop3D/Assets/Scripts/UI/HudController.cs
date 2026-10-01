@@ -18,6 +18,7 @@ public class HudController : MonoBehaviour
 
     private Label _timeLabel;
     private Label _scoreLabel;
+    private Label _filmLabel;
     private readonly List<VisualElement> _hpPips = new List<VisualElement>();
     private int _lastSeconds = -1;
     private float _lastScore = -1f;
@@ -27,8 +28,19 @@ public class HudController : MonoBehaviour
         if (_vehicleHealth == null) _vehicleHealth = FindAnyObjectByType<VehicleHealth>();
     }
 
-    private void OnEnable() => GameEvents.PlayerDamaged += OnPlayerDamaged;
-    private void OnDisable() => GameEvents.PlayerDamaged -= OnPlayerDamaged;
+    private void OnEnable()
+    {
+        GameEvents.PlayerDamaged += OnPlayerDamaged;
+        GameEvents.FilmChanged += OnFilmChanged;
+        GameEvents.OutOfFilm += OnOutOfFilm;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.PlayerDamaged -= OnPlayerDamaged;
+        GameEvents.FilmChanged -= OnFilmChanged;
+        GameEvents.OutOfFilm -= OnOutOfFilm;
+    }
 
     private void Start()
     {
@@ -43,8 +55,12 @@ public class HudController : MonoBehaviour
         _timeLabel = MakePanelLabel("1:30", 24);
         _timeLabel.style.marginBottom = 4;
         _scoreLabel = MakePanelLabel("0", 32);
+        _scoreLabel.style.marginBottom = 4;
+        var photo = FindAnyObjectByType<PhotoTrigger>();
+        _filmLabel = MakePanelLabel(photo != null ? FilmText(photo.FilmRemaining) : "", 20);
         right.Add(_timeLabel);
         right.Add(_scoreLabel);
+        right.Add(_filmLabel);
         root.Add(right);
 
         var left = new VisualElement();
@@ -110,6 +126,24 @@ public class HudController : MonoBehaviour
             lost.schedule.Execute(() => lost.style.backgroundColor = HpEmpty).StartingIn(350);
         }
     }
+
+    // Start() builds the labels, but FilmChanged can fire before that (PhotoTrigger.Start); the label reads the count itself then.
+    private void OnFilmChanged(int remaining, int capacity)
+    {
+        if (_filmLabel == null) return;
+        _filmLabel.text = FilmText(remaining);
+        _filmLabel.style.color = remaining <= 3 ? HpHit : Color.white;
+    }
+
+    private void OnOutOfFilm()
+    {
+        if (_filmLabel == null) return;
+        _filmLabel.text = "NO FILM";
+        _filmLabel.style.color = HpHit;
+        _filmLabel.schedule.Execute(() => _filmLabel.text = FilmText(0)).StartingIn(600);
+    }
+
+    private static string FilmText(int remaining) => $"FILM {remaining:D2}";
 
     private static Label MakePanelLabel(string text, int size)
     {

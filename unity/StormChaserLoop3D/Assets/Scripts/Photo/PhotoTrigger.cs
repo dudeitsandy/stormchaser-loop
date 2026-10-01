@@ -1,7 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>Scores the nearest disaster when the shutter is pressed and broadcasts the result via <see cref="GameEvents"/>.</summary>
+/// <summary>
+/// Shutter. Each press uses one frame of film and scores the nearest in-range disaster:
+/// base score × repeat-shot decay × "IN THE WIND" bonus. Broadcasts results via <see cref="GameEvents"/>.
+/// See design/gdd/photo-scoring.md.
+/// </summary>
 public class PhotoTrigger : MonoBehaviour
 {
     private const float OptimalDistance = 20f;
@@ -13,36 +17,78 @@ public class PhotoTrigger : MonoBehaviour
     [Tooltip("Minimum seconds between shots.")]
     [SerializeField] private float _cooldown = 0.35f;
 
+    [Header("Film")]
+    [Tooltip("Frames per run. Misses use a frame too.")]
+    [SerializeField] private int _filmPerRun = 24;
+
+    [Header("Repeat Shots")]
+    [Tooltip("Each rapid repeat of the same subject is worth this fraction of the previous one.")]
+    [Range(0f, 1f)] [SerializeField] private float _repeatDecay = 0.5f;
+    [Tooltip("Seconds for one repeat's penalty to wear off.")]
+    [SerializeField] private float _repeatRecoverySeconds = 4f;
+
+    [Header("In The Wind")]
+    [Tooltip("Wind speed at the camera (units/sec) that earns the full bonus.")]
+    [SerializeField] private float _windBonusFullAt = 15f;
+    [Tooltip("Extra multiplier at full wind (1 = up to 2× score).")]
+    [SerializeField] private float _windBonusMax = 1f;
+
     private StormChaserControls _controls;
+    private RepeatPenalty _repeatPenalty;
     private float _nextShotTime;
 
     /// <summary>When false, shutter presses are ignored (title / results screens).</summary>
     public bool Armed { get; set; } = true;
+    public int FilmRemaining { get; private set; }
+    public int FilmCapacity => _filmPerRun;
 
     private void Awake()
     {
         _controls = new StormChaserControls();
+        _repeatPenalty = new RepeatPenalty(_repeatDecay, _repeatRecoverySeconds);
+        FilmRemaining = _filmPerRun;
     }
 
     private void OnEnable()
     {
         _controls.Driving.Enable();
         _controls.Driving.Photograph.performed += OnPhotograph;
+        GameEvents.RunStarted += OnRunStarted;
     }
 
     private void OnDisable()
     {
         _controls.Driving.Photograph.performed -= OnPhotograph;
         _controls.Driving.Disable();
+        GameEvents.RunStarted -= OnRunStarted;
+    }
+
+    private void OnDestroy() => _controls.Dispose();
+
+    private void Start() => GameEvents.RaiseFilmChanged(FilmRemaining, _filmPerRun);
+
+    private void OnRunStarted()
+    {
+        FilmRemaining = _filmPerRun;
+        _repeatPenalty = new RepeatPenalty(_repeatDecay, _repeatRecoverySeconds);
+        GameEvents.RaiseFilmChanged(FilmRemaining, _filmPerRun);
     }
 
     private void OnPhotograph(InputAction.CallbackContext ctx) => Shoot();
 
-    /// <summary>Takes a photo of the nearest in-range disaster, honoring <see cref="Armed"/> and the cooldown.</summary>
+    /// <summary>Takes a photo of the nearest in-range disaster, honoring <see cref="Armed"/>, cooldown, and film.</summary>
     public void Shoot()
     {
         if (!Armed || Time.time < _nextShotTime) return;
         _nextShotTime = Time.time + _cooldown;
+
+        if (FilmRemaining <= 0)
+        {
+            GameEvents.RaiseOutOfFilm();
+            return;
+        }
+        FilmRemaining--;
+        GameEvents.RaiseFilmChanged(FilmRemaining, _filmPerRun);
 
         DisasterEntity nearest = FindNearest();
         if (nearest == null)
@@ -54,11 +100,19 @@ public class PhotoTrigger : MonoBehaviour
         float aimScore = CalcAimScore(nearest.transform);
         float distanceScore = CalcDistanceScore(nearest.transform);
         float quality = ScoringSystem.CalculateQuality(aimScore, distanceScore);
-        float score = ScoringSystem.CalculatePhotoScore(aimScore, distanceScore, nearest.ThreatMultiplier);
+        float baseScore = ScoringSystem.CalculatePhotoScore(aimScore, distanceScore, nearest.ThreatMultiplier);
 
+        object subjectId = nearest;
+        float repeat = _repeatPenalty.GetMultiplier(subjectId, Time.time);
+        _repeatPenalty.Record(subjectId, Time.time);
+
+        float windSpeed = DisasterEntity.TotalWindAt(transform.position).magnitude;
+        float wind = ScoringSystem.WindMultiplier(windSpeed, _windBonusFullAt, _windBonusMax);
+
+        float score = baseScore * repeat * wind;
         _scoreAccumulator.AddScore(score);
         GameEvents.RaisePhotoTaken(new PhotoResult(score, aimScore, distanceScore, quality,
-            ScoringSystem.GetTier(quality), nearest, nearest.transform.position));
+            ScoringSystem.GetTier(quality), nearest, nearest.transform.position, repeat, wind));
     }
 
     private DisasterEntity FindNearest()

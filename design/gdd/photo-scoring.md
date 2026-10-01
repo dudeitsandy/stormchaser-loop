@@ -114,6 +114,48 @@ lens ceiling modifiers land (see "Lens-Modified Scoring" below)
 
 ---
 
+## Film, Repeat Shots, and Wind Bonus (Sprint 5, 2026-10-01)
+**Status:** Implemented in `PhotoTrigger.cs`, `RepeatPenalty.cs`, `ScoringSystem.WindMultiplier`.
+
+**Why:** with a 0.35s cooldown and full value per shot, parking at 20 units from an EF5 and
+mashing the shutter scored ~100,000 in a 90s run. Every shot needs to be a decision.
+
+### Rules
+- **Film:** 24 frames per run. Every shutter press uses a frame, including misses (no subject in
+  range). At 0 film the shutter does nothing except raise `OutOfFilm`.
+- **Repeat decay:** each subject accumulates "heat" +1 per shot; heat drains at 1 per
+  `RepeatRecoverySeconds`. Multiplier = `RepeatDecay ^ heat`. Different tornadoes are independent.
+- **In The Wind:** shooting from inside a disaster's wind field multiplies the shot, scaling with
+  wind speed at the camera. This is the risk/reward link to the vortex wind field.
+- **Tier** (PERFECT / GOOD / GLANCING) still comes from framing quality alone.
+
+### Formulas
+`FinalPhotoScore = PhotoScore × RepeatMultiplier × WindMultiplier`
+- `RepeatMultiplier = RepeatDecay ^ max(0, heat − Δt / RepeatRecoverySeconds)`
+- `WindMultiplier = 1 + WindBonusMax × clamp01(WindSpeed / WindBonusFullAt)`
+- Event-system multipliers (`DaredevilMultiplier`, `StuntAirMultiplier`) chain on top when events ship.
+  "In The Wind" is deliberately a different name from event-system.md's Daredevil (structure gap).
+
+**Examples:** mashing one EF5 24 times at 0.35s intervals totals ≈2.2 full shots instead of 24.
+A PERFECT EF5 shot (400) taken in full wind is 800; a PERFECT EF0 in full wind is 200.
+
+### Tuning Knobs
+| Knob | Default | Safe Range | Affects |
+|------|---------|-----------|---------|
+| `FilmPerRun` | 24 | 12–36 | Shots per run; lower = each shot weightier |
+| `RepeatDecay` | 0.5 | 0.3–0.8 | Penalty per rapid repeat of same subject |
+| `RepeatRecoverySeconds` | 4s | 2–8s | How fast a subject becomes "fresh" again |
+| `WindBonusFullAt` | 15 u/s | 8–25 | Wind speed for full bonus |
+| `WindBonusMax` | 1.0 | 0.5–2.0 | Max extra multiplier (1.0 = up to 2×) |
+
+### Acceptance Criteria
+- [x] Film counter starts at 24 each run; every press decrements; 0 film = no score (unit + PlayMode tests)
+- [x] Immediate repeat of the same tornado scores < 75% of the first (PlayMode smoke test)
+- [x] 24 mashed shots of one subject total < 3 full shots (`RepeatPenaltyTests`)
+- [x] Wind multiplier is 1.0 outside wind, 2.0 at/above `WindBonusFullAt` (`WindMultiplierTests`)
+
+---
+
 ## Multi-Entity Composition (Future Extension — Season 2+)
 
 The single-entity scoring model is correct for Season 1. When multiple DisasterEntities

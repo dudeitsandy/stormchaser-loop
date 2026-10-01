@@ -37,6 +37,18 @@ public static class ScoringSystem
     /// Tier is based on framing quality, not raw score, so a perfectly framed EF0 still reads PERFECT.
     /// Deviates from S4-07's absolute thresholds (&gt;300 / 150–299), which made PERFECT unreachable below EF3.
     /// </summary>
+    /// <summary>
+    /// "IN THE WIND" bonus for shooting from inside a disaster's wind field.
+    /// Formula: 1 + MaxBonus × clamp01(WindSpeed / FullAt). Distinct from event-system.md's DaredevilMultiplier
+    /// (structure-gap event), which will chain on top when events land.
+    /// </summary>
+    public static float WindMultiplier(float windSpeed, float fullAt, float maxBonus)
+    {
+        if (fullAt <= 0f) return 1f;
+        float t = Mathf.Clamp01(windSpeed / fullAt);
+        return 1f + Mathf.Max(0f, maxBonus) * t;
+    }
+
     public static ShotTier GetTier(float quality)
     {
         if (quality >= PerfectQuality) return ShotTier.Perfect;

@@ -136,3 +136,75 @@ public class WindFieldTests
         Assert.Greater(near, far);
     }
 }
+
+public class RepeatPenaltyTests
+{
+    [Test]
+    public void test_repeatPenalty_firstShot_isFullValue()
+    {
+        var p = new RepeatPenalty(0.5f, 4f);
+        Assert.AreEqual(1f, p.GetMultiplier(1, 0f), 0.0001f);
+    }
+
+    [Test]
+    public void test_repeatPenalty_rapidRepeats_halveEachTime()
+    {
+        var p = new RepeatPenalty(0.5f, 4f);
+        p.Record(1, 0f);
+        Assert.AreEqual(0.5f, p.GetMultiplier(1, 0f), 0.0001f);
+        p.Record(1, 0f);
+        Assert.AreEqual(0.25f, p.GetMultiplier(1, 0f), 0.0001f);
+    }
+
+    [Test]
+    public void test_repeatPenalty_heatDrains_overRecoveryTime()
+    {
+        var p = new RepeatPenalty(0.5f, 4f);
+        p.Record(1, 0f);
+        Assert.AreEqual(1f, p.GetMultiplier(1, 4f), 0.0001f);
+        Assert.AreEqual(0.7071f, p.GetMultiplier(1, 2f), 0.001f); // half a unit of heat left
+    }
+
+    [Test]
+    public void test_repeatPenalty_differentSubjects_areIndependent()
+    {
+        var p = new RepeatPenalty(0.5f, 4f);
+        p.Record(1, 0f);
+        Assert.AreEqual(1f, p.GetMultiplier(2, 0f), 0.0001f);
+    }
+
+    [Test]
+    public void test_repeatPenalty_mashing24Shots_capsTotalNearTwoShots()
+    {
+        // Arrange: the exploit — 24 shots of one subject, 0.35s apart.
+        var p = new RepeatPenalty(0.5f, 4f);
+        float total = 0f;
+        // Act
+        for (int i = 0; i < 24; i++)
+        {
+            float t = i * 0.35f;
+            total += p.GetMultiplier(1, t);
+            p.Record(1, t);
+        }
+        // Assert: geometric-ish series stays bounded (~2.2 full shots), not 24.
+        Assert.Less(total, 3f);
+    }
+}
+
+public class WindMultiplierTests
+{
+    [TestCase(0f, 1f)]
+    [TestCase(7.5f, 1.5f)]
+    [TestCase(15f, 2f)]
+    [TestCase(40f, 2f)]
+    public void test_windMultiplier_scalesToCap(float wind, float expected)
+    {
+        Assert.AreEqual(expected, ScoringSystem.WindMultiplier(wind, 15f, 1f), 0.0001f);
+    }
+
+    [Test]
+    public void test_windMultiplier_zeroFullAt_isNeutral()
+    {
+        Assert.AreEqual(1f, ScoringSystem.WindMultiplier(10f, 0f, 1f), 0.0001f);
+    }
+}

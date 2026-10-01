@@ -52,8 +52,18 @@ public class RunLoopSmokeTests
             photo.Shoot();
             Assert.AreEqual(1, photosSeen, "Photo event should fire");
             Assert.AreEqual(1, score.PhotoCount);
+            Assert.AreEqual(photo.FilmCapacity - 1, photo.FilmRemaining);
             Assert.Greater(score.TotalScore, 0f);
             Assert.AreEqual(ShotTier.Perfect, lastTier, "Centered at optimal distance should be PERFECT");
+
+            // Immediate repeat of the same tornado is discounted.
+            float firstShot = score.TotalScore;
+            yield return new WaitForSeconds(0.4f);
+            photo.Shoot();
+            float secondShot = score.TotalScore - firstShot;
+            Debug.Log($"[Smoke] first={firstShot:F0} repeat={secondShot:F0} film={photo.FilmRemaining}");
+            Assert.Less(secondShot, firstShot * 0.75f, "Repeat shot should be discounted");
+            Assert.AreEqual(photo.FilmCapacity - 2, photo.FilmRemaining, "Each shot uses a frame");
 
             for (int hit = 0; hit < health.MaxHealth; hit++)
             {
@@ -68,7 +78,7 @@ public class RunLoopSmokeTests
             Assert.IsTrue(health.IsWrecked);
             Assert.IsTrue(summary.HasValue, "RunEnded should fire on wreck");
             Assert.IsTrue(summary.Value.Wrecked);
-            Assert.AreEqual(1, summary.Value.PhotosTaken);
+            Assert.AreEqual(2, summary.Value.PhotosTaken);
 
             yield return new WaitForSecondsRealtime(1.5f); // slow-mo, then results
             Assert.AreEqual(RunManager.State.Results, run.Current);
