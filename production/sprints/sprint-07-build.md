@@ -90,6 +90,12 @@ the start so players see the new look while the feel work happens.
 - [ ] G3 feel playtest run; findings logged for Sprint 8
 
 ## Release Log
+- 2026-10-01 — **0.6.0 pushed** (html5 + windows): new raycast vehicle (S7-03 + feel passes 1–2), tornado
+  lift/toss, wind steer, heading-only camera, handbrake slide on title. Evidence: EditMode 96/96 pass;
+  WebGL headless run 0 console errors, title 0.6.0, drive + handbrake slide verified
+  (`production/qa/evidence/v060_*.png`). PlayMode run-loop tests not run before release — follow-up.
+  Incident: script recompile during Play mode (two agents editing) produced ~65 NRE/frame; fix = Editor
+  Preference "Recompile After Finished Playing".
 - 2026-10-01 — **0.5.0 Windows** pushed (ArtTest look).
 - 2026-10-01 — **0.5.0 html5** pushed after Andy unblocked local WebGL builds (Smart App Control). Verified in headless Chromium: 0 errors; title 0.5.0, toon/outlines, card tornado, camcorder PiP all render. **S7-00 done.**
 - 2026-10-01 — Repo hygiene: 21 `(2)` duplicate files inside `.git` (Mar 31 copy-over artifact) moved to
