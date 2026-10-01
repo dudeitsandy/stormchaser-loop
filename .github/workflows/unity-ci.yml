@@ -8,21 +8,13 @@
 #   UNITY_PASSWORD  Unity account password
 #   BUTLER_API_KEY  itch.io API key (only needed for releases)
 #
-# Release: Actions → "Unity CI" → Run workflow → release = true, version = 0.5.0
-#          or push a tag like v0.5.1.
+# Release: Actions → "Unity CI" → Run workflow → release = true, version = 0.5.0.
 
 name: Unity CI
 
+# Manual-only until Unity Personal activation in CI is solved (sprint-07-build.md S7-12):
+# GameCI actions require a .ulf, which Unity no longer issues for free seats.
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
-    paths:
-      - "unity/**"
-      - ".github/workflows/unity-ci.yml"
-  pull_request:
-    paths:
-      - "unity/**"
   workflow_dispatch:
     inputs:
       build:
@@ -78,9 +70,7 @@ jobs:
   build:
     name: Build ${{ matrix.targetPlatform }}
     needs: test
-    if: >
-      startsWith(github.ref, 'refs/tags/v') ||
-      (github.event_name == 'workflow_dispatch' && (inputs.build || inputs.release))
+    if: inputs.build || inputs.release
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -124,9 +114,7 @@ jobs:
   release:
     name: Release to itch.io
     needs: build
-    if: >
-      startsWith(github.ref, 'refs/tags/v') ||
-      (github.event_name == 'workflow_dispatch' && inputs.release)
+    if: inputs.release
     runs-on: ubuntu-latest
     env:
       BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
@@ -144,7 +132,6 @@ jobs:
       - name: Push to itch
         run: |
           VERSION="${{ inputs.version }}"
-          if [ -z "$VERSION" ] && [[ "$GITHUB_REF" == refs/tags/v* ]]; then VERSION="${GITHUB_REF#refs/tags/v}"; fi
           ARGS=""; if [ -n "$VERSION" ]; then ARGS="--userversion $VERSION"; fi
           ./butler/butler push dist/build-html5 ghostweavelabs/doomsday:html5 $ARGS
           ./butler/butler push dist/build-windows ghostweavelabs/doomsday:windows $ARGS

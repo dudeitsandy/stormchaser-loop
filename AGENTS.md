@@ -76,8 +76,8 @@ private static void Install()
 - Values that designers would tune go in `[SerializeField]` fields with sane defaults.
 
 ## CI (GitHub Actions, `.github/workflows/unity-ci.yml`)
-- Pushes to `main` touching `unity/**` run EditMode + PlayMode tests on GitHub's runners. Builds and
-  itch releases run only on manual dispatch or a `v*` tag — committing never ships anything.
+- **Manual-only for now** (Actions → Unity CI → Run workflow): Personal-license activation in CI is
+  unsolved (S7-12). Nothing runs on push; committing or pushing never ships anything.
 - Agents commit locally as before; **pushing is done only when Andy asks**. CI is the place to run
   Unity headless when Andy's editor holds the project lock.
 - Never edit the workflow or repo secrets without asking.
