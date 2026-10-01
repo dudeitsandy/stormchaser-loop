@@ -25,5 +25,18 @@ the 5 s warm-up (models PhysX warm-up during the loading screen — an explicit 
   CPU-side streaming work never exceeded 3.8 ms in a frame. Headless is not authoritative for
   frame time; Run 3 (real GPU) decides. Screenshot: `s7-01-spike-run2.png`.
 
-## Run 3 — Andy, real Chrome (authoritative for frame/GC criteria)
-_pending_
+## Run 3 — Andy, real Chrome (real GPU), 2026-10-01
+`{"verdict":"FAIL","frames":7524,"medianMs":17.00,"p99Ms":33.00,"maxMs":27944.00,"framesOver50":2,"gcFrames":0,"gcSpikeMs":0.00,"physMaxMs":1.20,"physAvgMs":0.251,"sliceMaxMs":2.00,"colliderBakeMaxMs":2.10,"tilesBuilt":200,"initialLoadMs":19}`
+
+- maxMs 27,944 = the tab was hidden/minimized (Chrome stops rAF for background tabs) — not game time.
+- An earlier, separate real-Chrome attempt showed `phys≤7.30` at t=102 (overlay snapshot); not
+  reproduced in this run (1.2 ms) or in headless run 2 (1.5 ms).
+
+## Gate decision — G1: **PASS with condition** (Andy, 2026-10-01)
+**Keep the 2 km world.** Streaming is clearly viable in WebGL: 0 GC across all post-fix runs, ≤ 2–3 ms
+streaming work per frame, 19–40 ms initial load, steady 60 fps median.
+**Condition:** the one-off 7.3 ms physics step (> 4 ms budget, < 16.6 ms frame) is carried into
+**S7-06** as an explicit physics-budget check under real debris + vehicle load; if it recurs there,
+add a PhysX warm-up at load and/or reduce the WebGL debris cap.
+**Metric follow-up:** SpikeMetrics should ignore hidden-tab time and record when maxima occur
+(do before the next perf gate).

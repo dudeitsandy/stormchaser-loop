@@ -273,6 +273,9 @@ public static class DebrisBudget { public static bool TryAcquire(int count); pub
 7. ArtTestBuilder targets the streamed world once it exists.
 
 ## Validation Criteria
+> **#1 result (2026-10-01): PASS with condition** — 2 km kept. Evidence and runs:
+> `production/qa/evidence/s7-01-spike-results.md`. Physics one-off (7.3 ms) tracked in S7-06.
+
 1. **WebGL spike:** walking the truck across tile boundaries at boost speed produces no frame > 50 ms
    and no GC spike > 5 ms over a 3-minute drive; physics step ≤ 4 ms. (Fail → 1 km fallback.)
 2. Same seed produces byte-identical WorldPlan and tile heights (EditMode test).

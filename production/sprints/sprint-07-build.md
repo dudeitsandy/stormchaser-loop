@@ -13,7 +13,7 @@ the start so players see the new look while the feel work happens.
 ## Gates (Andy)
 | Gate | When | Pass = |
 |------|------|--------|
-| **G1 — WebGL streaming spike** | After S7-01 | ADR-0004 Validation #1: no frame > 50 ms, no GC spike > 5 ms over a 3-min boosted drive across tiles, physics step ≤ 4 ms. **Fail → 1 km fallback** (same tile code) |
+| **G1 — WebGL streaming spike** ✅ PASS w/ condition (2026-10-01; 2 km kept) | After S7-01 | ADR-0004 Validation #1: no frame > 50 ms, no GC spike > 5 ms over a 3-min boosted drive across tiles, physics step ≤ 4 ms. **Fail → 1 km fallback** (same tile code) |
 | **G2 — Truck asset** | After S7-07 | Blender-MCP truck reads as a storm-chaser truck in ArtTest at gameplay distance; otherwise commission it |
 | **G3 — Feel playtest** | End of sprint | `vehicle-feel.md` Feel acceptance criteria (Andy + 2 outside players, 5 runs each) |
 
@@ -28,7 +28,7 @@ the start so players see the new look while the feel work happens.
 | S7-03 | **Vehicle core**: rigidbody + 4-wheel raycast suspension (F1), combined friction-circle grip (F3), drive/brake/coast/reverse (F2, F2b), steering (F4), downforce/assists (F6), states (Grounded/Sliding/Airborne/Upended + hysteresis), archetype star mapping (F13). Unit tests F1/F10/F12/F13; PlayMode accel/slide/ledge tests | 5 h | S7-02 | GDD unit + PlayMode criteria for these rules pass |
 | S7-04 | **Verbs + input**: handbrake, jump (F8), boost + refill + exploit gates (F9, E1–E3), air control (F7), auto-right (E5); input remap (shutter → RB / left mouse) + title controls copy | 3 h | S7-03 | GDD verb criteria pass; title shows new bindings |
 | S7-05 | **Camera & aim**: orbit + recenter, Storm Cam with offset framing (F14), camera-forward aim, AimScore framing curve (`photo-scoring.md`); update scoring tests | 2.5 h | S7-03 | Storm Cam + camera-aim PlayMode criteria pass |
-| S7-06 | **Forces & impacts**: wind as force (F11), lift + toss impulse (F12/F12b), impact severity + `ImpactKind` (F10, E12, E13), damage-stage hooks; new GameEvents (`StyleEvent`, `Landed`, `Impact`, `Tossed`); update `RunLoopSmokeTests` | 2.5 h | S7-03 | Wind/toss/impact PlayMode criteria pass; smoke test green |
+| S7-06 | **Forces & impacts** (+ **G1 condition**: physics step ≤ 4 ms under real debris + vehicle in WebGL; warm-up/cap if not): wind as force (F11), lift + toss impulse (F12/F12b), impact severity + `ImpactKind` (F10, E12, E13), damage-stage hooks; new GameEvents (`StyleEvent`, `Landed`, `Impact`, `Tossed`); update `RunLoopSmokeTests` | 2.5 h | S7-03 | Wind/toss/impact PlayMode criteria pass; smoke test green |
 | S7-07 | **Blender MCP + hero truck**: install add-on + MCP server, scripted low-poly truck matching F13 Pickup proportions (wheel anchors as named empties), FBX/glTF export → prefab with toon materials | 3 h | — | G2 |
 
 ### Must Have — Codex
