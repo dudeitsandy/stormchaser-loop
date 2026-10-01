@@ -11,6 +11,7 @@ using Debug = UnityEngine.Debug;
 /// machine-readable "[SPIKE-RESULT]" line (readable from the WebGL browser console).
 /// Pass: no frame &gt; 50 ms, no GC spike &gt; 5 ms, physics step ≤ 4 ms.
 /// </summary>
+[DefaultExecutionOrder(100)] // after TileStreamer.Start, so the start log sees the initial ring
 public class SpikeMetrics : MonoBehaviour
 {
     [SerializeField] private TileStreamer _streamer;
@@ -21,6 +22,8 @@ public class SpikeMetrics : MonoBehaviour
     [SerializeField] private float _maxPhysicsMs = 4f;
 
     private readonly List<float> _frames = new List<float>(20000);
+    private readonly List<float> _sortBuffer = new List<float>(20000);
+    private float _nextOverlay;
     private readonly Stopwatch _physicsTimer = new Stopwatch();
     private SimulationMode _previousMode;
     private float _maxPhysicsStepMs, _sumPhysicsMs;
@@ -89,10 +92,14 @@ public class SpikeMetrics : MonoBehaviour
             }
         }
 
-        if (_overlay != null)
+        // 4 Hz: rebuilding this string every frame was itself a steady GC source.
+        if (_overlay != null && Time.realtimeSinceStartup >= _nextOverlay)
+        {
+            _nextOverlay = Time.realtimeSinceStartup + 0.25f;
             _overlay.text = $"S7-01 SPIKE  t={elapsed:F0}/{_warmupSeconds + _durationSeconds:F0}s  frame {frameMs:F1}ms  " +
                             $"tiles {_streamer.ActiveTiles} q{_streamer.QueueLength}  built {_streamer.TilesBuilt}  " +
                             $"slice≤{_streamer.MaxSliceMs:F1}  bake≤{_streamer.MaxColliderBakeMs:F1}  phys≤{_maxPhysicsStepMs:F2}";
+        }
 
         if (Time.realtimeSinceStartup >= _nextLog && Recording)
         {
@@ -114,8 +121,10 @@ public class SpikeMetrics : MonoBehaviour
     private string Summary(bool final)
     {
         if (_frames.Count == 0) return "{}";
-        var sorted = new List<float>(_frames);
-        sorted.Sort();
+        _sortBuffer.Clear();
+        _sortBuffer.AddRange(_frames);
+        _sortBuffer.Sort();
+        List<float> sorted = _sortBuffer;
         float median = sorted[sorted.Count / 2];
         float p99 = sorted[Mathf.Min(sorted.Count - 1, (int)(sorted.Count * 0.99f))];
         float max = sorted[sorted.Count - 1];

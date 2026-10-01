@@ -25,7 +25,9 @@ public class SpikeDriver : MonoBehaviour
     private float _heading = 35f;
     private float _targetHeading = 35f;
     private float _nextTurnTime;
-    private float _nextDebrisTime = 5f;
+    // First drop lands inside SpikeMetrics' 5 s warm-up: models the real game warming PhysX during
+    // the loading screen (first contacts against fresh mesh colliders cost ~9 ms once in WebGL).
+    private float _nextDebrisTime = 2f;
     private readonly List<Rigidbody> _debris = new List<Rigidbody>();
     private System.Random _rng;
 

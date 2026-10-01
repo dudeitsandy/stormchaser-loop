@@ -43,6 +43,7 @@ public class TileStreamer : MonoBehaviour
     private readonly List<Vector2Int> _buildQueue = new List<Vector2Int>();
     private readonly List<Vector2Int> _scratch = new List<Vector2Int>();
     private readonly Stopwatch _slice = new Stopwatch();
+    private readonly DistanceComparer _byDistance = new DistanceComparer();
     private Vector2Int _lastCenter = new Vector2Int(-999, -999);
     private Mesh _cubeMesh, _cylinderMesh;
 
@@ -109,15 +110,17 @@ public class TileStreamer : MonoBehaviour
             if (Chebyshev(kv.Key, center) > _renderRadius) _scratch.Add(kv.Key);
         foreach (Vector2Int c in _scratch) Recycle(c);
 
-        // Queue missing tiles, nearest first.
-        _buildQueue.RemoveAll(c => Chebyshev(c, center) > _renderRadius);
+        // Queue missing tiles, nearest first (no lambdas: closures allocate every ring change).
+        for (int i = _buildQueue.Count - 1; i >= 0; i--)
+            if (Chebyshev(_buildQueue[i], center) > _renderRadius) _buildQueue.RemoveAt(i);
         for (int dy = -_renderRadius; dy <= _renderRadius; dy++)
         for (int dx = -_renderRadius; dx <= _renderRadius; dx++)
         {
             var c = new Vector2Int(center.x + dx, center.y + dy);
             if (HeightField.IsInMap(c) && !_active.ContainsKey(c) && !_buildQueue.Contains(c)) _buildQueue.Add(c);
         }
-        _buildQueue.Sort((a, b) => Chebyshev(a, center).CompareTo(Chebyshev(b, center)));
+        _byDistance.Center = center;
+        _buildQueue.Sort(_byDistance);
 
         // Colliders only near the target; disabling is free, cooking happens in the stream loop.
         foreach (var kv in _active)
@@ -172,7 +175,6 @@ public class TileStreamer : MonoBehaviour
         t.Collider.enabled = false;
         Vector2 o = HeightField.TileOrigin(coord);
         t.Root.transform.position = new Vector3(o.x, 0f, o.y);
-        t.Root.name = $"Tile {coord.x},{coord.y}";
 
         TileMeshBuilder.FillGrid(_seed, coord, t.Grid);
         yield return null;
@@ -217,7 +219,7 @@ public class TileStreamer : MonoBehaviour
 
     private void PlaceProps(Tile t)
     {
-        var rng = new System.Random(_seed * 73856093 ^ t.Coord.x * 19349663 ^ t.Coord.y * 83492791);
+        var rng = new TileRng((uint)(_seed * 73856093 ^ t.Coord.x * 19349663 ^ t.Coord.y * 83492791));
         Vector2 o = HeightField.TileOrigin(t.Coord);
         for (int i = 0; i < _propsPerTile; i++)
         {
@@ -258,9 +260,10 @@ public class TileStreamer : MonoBehaviour
         t.RenderMesh = new Mesh { name = "TileRender" };
         t.RenderMesh.MarkDynamic();
         t.ColliderMesh = new Mesh { name = "TileCollider" };
+        // Collider first: added after a MeshFilter, it would auto-assign the (still empty) render mesh.
+        t.Collider = t.Root.AddComponent<MeshCollider>();
         t.Root.AddComponent<MeshFilter>().sharedMesh = t.RenderMesh;
         t.Root.AddComponent<MeshRenderer>().sharedMaterial = _groundMaterial;
-        t.Collider = t.Root.AddComponent<MeshCollider>();
         t.Collider.cookingOptions = MeshColliderCookingOptions.UseFastMidphase | MeshColliderCookingOptions.CookForFasterSimulation;
         t.Collider.enabled = false;
         return t;
@@ -276,4 +279,24 @@ public class TileStreamer : MonoBehaviour
     }
 
     private static int Chebyshev(Vector2Int a, Vector2Int b) => Mathf.Max(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y));
+
+    private sealed class DistanceComparer : IComparer<Vector2Int>
+    {
+        public Vector2Int Center;
+        public int Compare(Vector2Int a, Vector2Int b) => Chebyshev(a, Center).CompareTo(Chebyshev(b, Center));
+    }
+
+    /// <summary>Allocation-free xorshift for deterministic per-tile placement.</summary>
+    private struct TileRng
+    {
+        private uint _state;
+        public TileRng(uint seed) { _state = seed == 0 ? 0x9E3779B9u : seed; }
+        public double NextDouble()
+        {
+            _state ^= _state << 13;
+            _state ^= _state >> 17;
+            _state ^= _state << 5;
+            return (_state & 0xFFFFFF) / (double)0x1000000;
+        }
+    }
 }
