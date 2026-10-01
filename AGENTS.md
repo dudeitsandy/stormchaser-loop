@@ -94,8 +94,8 @@ Update your own line when you start/finish a task. Sprint 5 board archived in sp
 | C1 Toon lit shader | Claude | done — direction approved by Andy 2026-10-01 |
 | C2 Outline render pass (Render Graph) | Claude | done (FullScreenPass + ToonOutline on PC_Renderer_Toon) |
 | C3 ArtTest scene + world grade + placeholder truck | Claude | done — ArtTest approved |
-| C4 Vehicle Feel GDD | Claude | todo |
-| C5 ADR-0004 destructible terrain | Claude | todo |
+| C4 Vehicle Feel GDD | Claude | done — approved after design review (design/gdd/vehicle-feel.md) |
+| C5 ADR-0004 destructible terrain | Claude | in progress |
 | X1 Camcorder lens on viewfinder/photos | Codex | implemented; Claude materials connected; ArtTest approved; GPU timing pending |
 | X2 Card-based tornado visual | Codex | implemented/wired; overlap + continuous mass polish done; visual recheck pending |
 | X3 Wind streak/dust/debris VFX | Codex | implemented; ArtTest approved; emission tests pass |

@@ -1,6 +1,6 @@
 # Vehicle Feel
 
-> **Status**: In Review (design-review 2026-10-01: NEEDS REVISION → revisions applied)
+> **Status**: Approved (design-review 2026-10-01: NEEDS REVISION → all 15 findings revised; AimScore + ram decisions by Andy)
 > **Author**: Andy Styx + Claude
 > **Last Updated**: 2026-10-01
 > **Implements Pillar**: 1 — Kinetic Chaos (vision-1.0.md)
@@ -269,8 +269,8 @@ Camera aim point = funnel position rotated about the camera by
 `θ_off = clamp(StormCamLag · (v_perp / v_top) + StormCamSway · sin(0.7 t), ±StormCamMaxOffset)`
 where `v_perp` = truck velocity perpendicular to the camera→funnel line (crossing the funnel fast pushes
 it off-center). StormCamLag = 10°, StormCamSway = 3°, StormCamMaxOffset = 8°.
-Requires a framing-sensitive AimScore in `photo-scoring.md`: with the 0.4 dot-product AimScore an 8°
-offset still scores 0.99 and this rule would have no effect.
+Paired with `photo-scoring.md`'s framing-curve AimScore (`clamp01(1 − θ / 15°)`): the full 8° offset
+leaves AimScore at 0.47, so an uncorrected Storm Cam shot lands GOOD, and centering it earns PERFECT.
 
 **F13. Archetype star mapping** (stars 1–5; Armor ✗ = 0)
 
@@ -467,7 +467,7 @@ HUD = Claude lane; style pops = Codex lane.
 | Question | Owner | Resolve by |
 |----------|-------|------------|
 | ~~Storm Cam trivializes aim?~~ Resolved 2026-10-01: offset framing (F14) — contingent on a framing-sensitive AimScore in `photo-scoring.md` | Andy + Claude | Resolved |
-| Replace photo AimScore dot product with a framing curve (proposed `clamp01(1 − θ / 15°)`)? Required for F14 to matter | Andy | Before Sprint 7 implementation |
+| ~~Replace AimScore dot product with a framing curve?~~ Resolved 2026-10-01: `clamp01(1 − θ / 15°)` written to `photo-scoring.md` | Andy | Resolved |
 | ADR-0005: raycast-vehicle architecture (required by coding standards before implementation) | Claude | Before Sprint 7 code |
 | Keyboard comfort: Left Shift boost next to Left Ctrl handbrake, or move handbrake/jump? | Andy | Playtest |
 | Motorcycle: two wheels break the 4-wheel model — suspension and fall-over rules? | Claude | Before the Motorcycle unlock is built |

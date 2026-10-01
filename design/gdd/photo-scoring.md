@@ -35,9 +35,16 @@ Dot product of the **camera's** forward vector (flattened to the ground plane) a
 the tornado. *Changed 2026-10-01 by `vehicle-feel.md` Core Rule 8: aim follows the chase camera /
 Storm Cam, not the truck, so drifting and airborne shots can be framed. Until the Vehicle Feel pass
 ships, the 0.4 implementation still uses truck-forward.*
-- 1.0 = tornado dead ahead
-- 0.0 = tornado 90° to the side
-- Negative values treated as 0.0 (behind player = no score)
+**Framing curve** (decided 2026-10-01, ships with the Vehicle Feel pass):
+`AimScore = clamp01(1 − θ / AimHalfAngle)`, where θ = angle between camera forward (flattened) and the
+direction to the tornado; `AimHalfAngle` = 15°.
+- 1.0 = tornado dead center
+- 0.5 = 7.5° off center
+- 0.0 = 15° or more off center
+Why: with aim following the camera, the old dot product scored ≥ 0.87 for anything on screen (and
+PERFECT only needed ~41° accuracy), so aim stopped being a skill and Storm Cam's offset framing
+(`vehicle-feel.md` F14) had no effect. *0.4 still uses `max(0, dot(truckForward, dirToTornado))`
+until the Vehicle Feel pass replaces it.*
 
 ### DistanceScore
 Bell curve centered on optimal distance (20 units).
@@ -99,6 +106,7 @@ lens ceiling modifiers land (see "Lens-Modified Scoring" below)
 | Knob | Default | Safe Range | Affects |
 |------|---------|-----------|---------|
 | `AimWeight` | 0.6 | 0.4–0.8 | How much framing matters vs. distance |
+| `AimHalfAngle` | 15° | 10–25° | Angle at which AimScore reaches 0; lower = PERFECT demands precise centering (added 2026-10-01) |
 | `DistanceWeight` | 0.4 | 0.2–0.6 | How much distance matters vs. framing |
 | `OptimalDistance` | 20 units | 10–35 | Ideal photo range |
 | `DistanceSpread` | 10 units | 5–20 | Forgiveness of distance scoring |
