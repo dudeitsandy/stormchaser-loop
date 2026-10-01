@@ -55,3 +55,18 @@ Those are the Early Access roadmap, not the prototype.
   S4-07's absolute thresholds made PERFECT impossible below EF3.
 - 2026-10-01: Tests were never running (no test asmdef). Added `StormChaser.asmdef` +
   `StormChaser.Tests.asmdef`; moved the generated input wrapper into `Scripts/Input/`.
+
+## Playtest Notes — 2026-10-01 (Andy)
+- Film (24) is plenty for a 90s run; gameplay is hectic enough that shot count is a good **mode
+  knob**: e.g. a "4 shots only" mode, or film that varies per mode / dynamically. → session-modes.md
+- Wind risk/reward isn't legible yet. Polish later: wind physics feel + secondary effects
+  (debris from destruction, dust, flying props) so the player *sees* the danger and the bonus.
+- Frame rate fine with PiP + props + audio.
+
+## Post-Ship Backlog (from playtests)
+| Item | Lane | Notes |
+|------|------|-------|
+| Film as a per-mode tuning knob (incl. "4 shots" mode) | Claude | `PhotoTrigger._filmPerRun` already data-driven; needs mode config |
+| ~~Wind readability: live "IN THE WIND ×1.4" HUD meter~~ | Claude | **Done pre-ship 2026-10-01** |
+| Debris / dust VFX scaled by wind field | Codex | the "secondary effects" ask |
+| Wind physics polish (gusts, truck lift/tilt) | Claude | after Vehicle Feel pass |

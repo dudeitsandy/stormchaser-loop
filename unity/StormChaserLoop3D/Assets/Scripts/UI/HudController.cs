@@ -15,10 +15,15 @@ public class HudController : MonoBehaviour
     [SerializeField] private VehicleHealth _vehicleHealth;
     [Tooltip("Seconds remaining at which the timer turns red.")]
     [SerializeField] private float _lowTimeWarning = 10f;
+    [Tooltip("Wind multiplier above which the IN THE WIND meter appears.")]
+    [SerializeField] private float _windMeterThreshold = 1.05f;
 
     private Label _timeLabel;
     private Label _scoreLabel;
     private Label _filmLabel;
+    private Label _windLabel;
+    private PhotoTrigger _photo;
+    private float _lastWindShown = -1f;
     private readonly List<VisualElement> _hpPips = new List<VisualElement>();
     private int _lastSeconds = -1;
     private float _lastScore = -1f;
@@ -56,8 +61,8 @@ public class HudController : MonoBehaviour
         _timeLabel.style.marginBottom = 4;
         _scoreLabel = MakePanelLabel("0", 32);
         _scoreLabel.style.marginBottom = 4;
-        var photo = FindAnyObjectByType<PhotoTrigger>();
-        _filmLabel = MakePanelLabel(photo != null ? FilmText(photo.FilmRemaining) : "", 20);
+        _photo = FindAnyObjectByType<PhotoTrigger>();
+        _filmLabel = MakePanelLabel(_photo != null ? FilmText(_photo.FilmRemaining) : "", 20);
         right.Add(_timeLabel);
         right.Add(_scoreLabel);
         right.Add(_filmLabel);
@@ -93,6 +98,21 @@ public class HudController : MonoBehaviour
             left.Add(pip);
         }
         root.Add(left);
+
+        // Top-center risk/reward meter: shows the live bonus a shot would get from here.
+        var center = new VisualElement { pickingMode = PickingMode.Ignore };
+        center.style.position = Position.Absolute;
+        center.style.top = 16;
+        center.style.left = 0;
+        center.style.right = 0;
+        center.style.alignItems = Align.Center;
+        _windLabel = MakePanelLabel("", 26);
+        _windLabel.style.color = HpFull;
+        _windLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+        _windLabel.style.letterSpacing = 4;
+        _windLabel.style.display = DisplayStyle.None;
+        center.Add(_windLabel);
+        root.Add(center);
     }
 
     private void Update()
@@ -106,6 +126,8 @@ public class HudController : MonoBehaviour
             _timeLabel.text = $"{seconds / 60}:{seconds % 60:D2}";
             _timeLabel.style.color = _sessionTimer.IsRunning && seconds <= _lowTimeWarning ? HpHit : Color.white;
         }
+
+        UpdateWindMeter();
 
         if (!Mathf.Approximately(_scoreAccumulator.TotalScore, _lastScore))
         {
@@ -125,6 +147,35 @@ public class HudController : MonoBehaviour
             lost.style.backgroundColor = HpHit;
             lost.schedule.Execute(() => lost.style.backgroundColor = HpEmpty).StartingIn(350);
         }
+    }
+
+    private void UpdateWindMeter()
+    {
+        float mult = _photo != null && _photo.Armed ? _photo.CurrentWindMultiplier : 1f;
+        if (mult < _windMeterThreshold)
+        {
+            if (_lastWindShown != 0f)
+            {
+                _windLabel.style.display = DisplayStyle.None;
+                _lastWindShown = 0f;
+            }
+            return;
+        }
+
+        float shown = Mathf.Round(mult * 10f) / 10f;
+        if (shown != _lastWindShown)
+        {
+            _lastWindShown = shown;
+            _windLabel.text = $"IN THE WIND ×{shown:0.0}";
+            _windLabel.style.display = DisplayStyle.Flex;
+        }
+
+        // Stronger wind = bigger, redder, faster pulse.
+        float t = Mathf.InverseLerp(_windMeterThreshold, 2f, mult);
+        float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * Mathf.Lerp(4f, 12f, t));
+        _windLabel.style.color = Color.Lerp(HpFull, HpHit, t);
+        _windLabel.style.opacity = Mathf.Lerp(0.75f, 1f, pulse);
+        _windLabel.style.scale = new Scale(Vector3.one * Mathf.Lerp(1f, 1.25f, t));
     }
 
     // Start() builds the labels, but FilmChanged can fire before that (PhotoTrigger.Start); the label reads the count itself then.

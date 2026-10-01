@@ -42,6 +42,11 @@ public class PhotoTrigger : MonoBehaviour
     public int FilmRemaining { get; private set; }
     public int FilmCapacity => _filmPerRun;
 
+    /// <summary>"IN THE WIND" multiplier a shot taken right now would get. The HUD meter reads this.</summary>
+    public float CurrentWindMultiplier =>
+        ScoringSystem.WindMultiplier(DisasterEntity.TotalWindAt(transform.position).magnitude,
+            _windBonusFullAt, _windBonusMax);
+
     private void Awake()
     {
         _controls = new StormChaserControls();
@@ -106,8 +111,7 @@ public class PhotoTrigger : MonoBehaviour
         float repeat = _repeatPenalty.GetMultiplier(subjectId, Time.time);
         _repeatPenalty.Record(subjectId, Time.time);
 
-        float windSpeed = DisasterEntity.TotalWindAt(transform.position).magnitude;
-        float wind = ScoringSystem.WindMultiplier(windSpeed, _windBonusFullAt, _windBonusMax);
+        float wind = CurrentWindMultiplier;
 
         float score = baseScore * repeat * wind;
         _scoreAccumulator.AddScore(score);

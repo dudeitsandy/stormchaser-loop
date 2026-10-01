@@ -91,10 +91,10 @@ Update your own line when you start/finish a task.
 
 | Task | Owner | Status |
 |------|-------|--------|
-| C1 Run flow (title/results/retry/best) | Claude | code done, verifying |
-| C2 Vehicle damage + wreck | Claude | code done, verifying |
-| C3 Tornado behavior + EF roster | Claude | code done, verifying |
-| C4 HUD + scene wiring + bounds | Claude | code done, verifying |
+| C1 Run flow (title/results/retry/best) | Claude | done (tests green) |
+| C2 Vehicle damage + wreck | Claude | done (tests green) |
+| C3 Tornado behavior + EF roster | Claude | done (tests green) |
+| C4 HUD + scene wiring + bounds | Claude | done (tests green) |
 | C5 Build script + itch push | Claude | script written; butler not installed |
 | X1 Photo feedback (flash/popup/tier) | Codex | implemented; compile verified; playtest pending |
 | X2 PiP viewfinder | Codex | implemented; compile verified; playtest/GPU check pending |
