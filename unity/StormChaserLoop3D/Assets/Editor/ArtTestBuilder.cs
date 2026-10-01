@@ -75,9 +75,19 @@ public static class ArtTestBuilder
             Glass = ToonMat("Toon_Glass", toon, new Color(0.2f, 0.32f, 0.45f)),
             Tire = ToonMat("Toon_Tire", toon, new Color(0.12f, 0.12f, 0.14f)),
             LightBar = ToonMat("Toon_LightBar", toon, new Color(1f, 0.75f, 0.1f)),
-            Outline = Mat("ToonOutline", Require(Shader.Find("Hidden/Doomsday/ToonOutline"), "ToonOutline shader")),
+            Outline = OutlineMat(),
             Sky = Mat("GradientSky", Require(Shader.Find("Doomsday/GradientSky"), "GradientSky shader")),
         };
+    }
+
+    private static Material OutlineMat()
+    {
+        Material m = Mat("ToonOutline", Require(Shader.Find("Hidden/Doomsday/ToonOutline"), "ToonOutline shader"));
+        // Fade out well before the ~100 m world edge so the ground/sky seam doesn't draw a horizon line.
+        m.SetFloat("_FadeStart", 30f);
+        m.SetFloat("_FadeEnd", 75f);
+        EditorUtility.SetDirty(m);
+        return m;
     }
 
     private static Material ToonMat(string name, Shader shader, Color color)
@@ -229,7 +239,7 @@ public static class ArtTestBuilder
         var color = Add<ColorAdjustments>(profile);
         color.postExposure.Override(0.15f);
         color.contrast.Override(14f);
-        color.saturation.Override(22f);
+        color.saturation.Override(10f);
 
         var bloom = Add<Bloom>(profile);
         bloom.threshold.Override(1.05f);
@@ -239,6 +249,15 @@ public static class ArtTestBuilder
         var vignette = Add<Vignette>(profile);
         vignette.intensity.Override(0.16f);
         vignette.smoothness.Override(0.45f);
+
+        // URP's project-wide DefaultVolumeProfile still carries the 0.4 retro stack and applies under
+        // every scene volume. Explicitly zero it here: the retro look lives only in the viewfinder (ADR-0003).
+        Add<ChromaticAberration>(profile).intensity.Override(0f);
+        Add<FilmGrain>(profile).intensity.Override(0f);
+        Add<ColorLookup>(profile).contribution.Override(0f);
+        Add<LensDistortion>(profile).intensity.Override(0f);
+        Add<MotionBlur>(profile).intensity.Override(0f);
+        Add<DepthOfField>(profile).mode.Override(DepthOfFieldMode.Off);
 
         AssetDatabase.SaveAssets();
         return profile;
@@ -291,8 +310,8 @@ public static class ArtTestBuilder
         RenderSettings.fog = true;
         RenderSettings.fogMode = FogMode.Linear;
         RenderSettings.fogColor = horizon;
-        RenderSettings.fogStartDistance = 70f;
-        RenderSettings.fogEndDistance = 230f;
+        RenderSettings.fogStartDistance = 45f;
+        RenderSettings.fogEndDistance = 170f;
 
         Light sun = Object.FindObjectsByType<Light>(FindObjectsSortMode.None).FirstOrDefault(l => l.type == LightType.Directional);
         if (sun != null)
@@ -357,6 +376,9 @@ public static class ArtTestBuilder
         if (applier == null) applier = new GameObject("ArtStyle").AddComponent<ToonStyleApplier>();
         var so = new SerializedObject(applier);
         so.FindProperty("_template").objectReferenceValue = template;
+        // Volume grade already adds saturation; boosting again here made the grass lime.
+        so.FindProperty("_saturationBoost").floatValue = 1.0f;
+        so.FindProperty("_valueBoost").floatValue = 1.05f;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
