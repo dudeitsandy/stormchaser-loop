@@ -1,6 +1,6 @@
 # Vehicle Feel
 
-> **Status**: In Design
+> **Status**: Designed (pending review)
 > **Author**: Andy Styx + Claude
 > **Last Updated**: 2026-10-01
 > **Implements Pillar**: 1 — Kinetic Chaos (vision-1.0.md)
@@ -222,9 +222,10 @@ head-on at ≥ 12.5 m/s (~45 km/h) → 1 HP; full speed ≥ 22.5 m/s → 2 HP.
 `L = M · g · Exposure · LiftScale · Intensity · (1 − d / (0.5 · R))²` for `d < 0.5 · R`
 (R = tornado wind radius, d = horizontal distance to funnel).
 `LiftScale = max(0, (EFStrength − 2.0) · 0.8)` → EF3 0.4, EF4 0.8, EF5 1.6.
-**Tossed when `L ≥ 0.7 · M · g`.** Pickup sanity: EF3 peaks at 0.4 g (wheels light, grip loss, never
-tossed); EF4 tosses only at dead center (inside damage radius anyway); **EF5 tosses within ≈ 6.4 m —
-just outside its 4.3 m damage radius**: flung right before you'd be hit.
+**Tossed when `L ≥ 0.7 · M · g`.** Pickup sanity (Exposure 0.85): EF3 peaks at 0.34 g (wheels light,
+grip loss, never tossed); EF4 peaks at 0.68 g (never quite tossed — wheels nearly off the ground);
+**EF5 (R = 38 m → lift zone 19 m) tosses within ≈ 5.4 m — just outside its 4.3 m damage radius**:
+flung right before you'd be hit. Higher-Exposure archetypes (Motorcycle 1.3) get tossed by EF4s too.
 
 **F13. Archetype star mapping** (stars 1–5; Armor ✗ = 0)
 
@@ -343,16 +344,76 @@ deltas stay expressible as stars).
 
 ## Visual/Audio Requirements
 
-[To be designed]
+ADR-0003 style; most of this is the Presentation lane (Codex), driven by vehicle state flags and events.
+
+| Moment | Visual | Audio | Priority |
+|--------|--------|-------|----------|
+| Driving | Visible suspension travel, body roll/squat, wheel spin matching speed | Engine pitch tracks speed; load raises rev | Must |
+| Sliding | Hand-drawn tire-smoke cards from rear wheels; skid decals | Tire squeal scaled by slip angle | Must |
+| Landing | Dust-burst cards scaled by impact speed; camera dip | Suspension thump; heavy crunch above 70 % of Light | Must |
+| Boost | Exhaust flame/streak cards; FOV +4° while active | Whoosh on start, sustained roar | Must |
+| Impact (1/2 HP) | Camera kick, spark cards, debris puff; 2 HP adds a brief chroma flash *in the viewfinder only* (retro lens) | Metal crunch sized to severity | Must |
+| Tossed | Debris cards orbiting truck, wind streaks wrapping around it | Wind roar peaks, muffles mid-air | Should |
+| Near-miss | Brief speed-line burst toward the funnel | Doppler whoosh | Should |
+| Wheels light (lift) | Suspension visibly extends | Rising wind pitch | Should |
 
 ## UI Requirements
 
-[To be designed]
+HUD = Claude lane; style pops = Codex lane.
+- **Boost meter** under truck HP: amber fill; flashes when a style refill lands; greys out when Critical
+  damage disables boost.
+- **Storm Cam indicator**: small lock icon + target EF rating near the IN THE WIND meter; "NO TARGET"
+  while toggled with nothing in range.
+- **Controls copy**: title-screen controls panel updates to the new bindings (shutter RB / left mouse);
+  replaces 0.4's "SHOOT SPACE / L2".
+- **Style pops** ("DRIFT 2.4s", "AIR 1.8s", "NEAR MISS") from Codex, driven by `StyleEvent`.
 
 ## Acceptance Criteria
 
-[To be designed]
+**Unit (EditMode, pure math)**
+- [ ] F1: Pickup at rest on flat ground settles at 35 % ± 3 % of travel.
+- [ ] F10: impact speeds just below/above Light and Severe return 0 / 1 / 2 HP; a 12.5 m/s vertical
+      landing returns 0 (×1.5 rule).
+- [ ] F12: Pickup (Exposure 0.85) at Intensity 1 — EF3 never reaches the toss threshold at any
+      distance; EF5 tosses at 5.0 m and not at 6.0 m.
+- [ ] F13: Pickup stars (3/3/2) → exactly 21.5 m/s, 2100 kg, exposure 0.85, 12.5 / 22.5 m/s;
+      Motorcycle and Monster Truck match the doc's extremes.
+- [ ] E2/E3: jump-only airtime (1.5 m apex) adds zero boost; a second near-miss on the same tornado
+      within 3 s adds zero.
+
+**PlayMode (real scene, scripted input)**
+- [ ] Full throttle from rest reaches ≥ 90 % of `v_top` in `AccelTime` ± 0.3 s.
+- [ ] Handbrake at 15 m/s + full steer enters Sliding within 0.3 s; release returns to Grounded within
+      1 s with no spin-out.
+- [ ] Driving off a 2 m ledge at speed: `Airborne` → `Landed` events fire; HP unchanged.
+- [ ] Static wall at 14 m/s → exactly 1 HP; at 24 m/s → exactly 2 HP; light fence → 0 HP.
+- [ ] Parked (no input) 15 m from an EF3: horizontal displacement > 0.5 m within 1 s; never Tossed.
+- [ ] Parked 5 m from a mature EF5: `Tossed` fires within 1 s.
+- [ ] Upside-down on flat ground: auto-rights within 1.5 s, including with wind acting on it.
+- [ ] Storm Cam on, tornado in range: camera-to-tornado angle stays < 5° while the truck drives a full
+      circle around it.
+- [ ] Camera-forward aim: truck facing 90° away, camera centered on funnel at 20 m → PERFECT tier.
+- [ ] Damage hooks: Damaged → max steer = 0.75 × normal; Critical → throttle/boost/jump produce no
+      forward force.
+- [ ] Regression: updated `RunLoopSmokeTests` pass with the new vehicle.
+
+**Performance**
+- [ ] Vehicle physics (4 casts + forces + wind) ≤ 0.3 ms per physics step on dev PC; ≤ 0.8 ms in WebGL.
+- [ ] No vehicle-code frame spikes > 2 ms during a toss → crash sequence (Profiler).
+
+**Feel (playtest gate — Andy + 2 outside players, 5 runs each)**
+- [ ] All three powerslide intentionally within 2 runs, unprompted.
+- [ ] Each answers yes to both "did the truck feel heavy?" and "did it feel responsive?" (weighty-agile).
+- [ ] At least one drift or airborne photo per player by run 5.
+- [ ] EF5 toss reads as exciting/funny, not unfair (watch for "that's cheap").
 
 ## Open Questions
 
-[To be designed]
+| Question | Owner | Resolve by |
+|----------|-------|------------|
+| Does Storm Cam make aiming trivial enough to need a scoring tradeoff (e.g., small aim penalty while locked)? | Andy + Claude | First Vehicle Feel playtest |
+| Keyboard comfort: Left Shift boost next to Left Ctrl handbrake, or move handbrake/jump? | Andy | Playtest |
+| Motorcycle: two wheels break the 4-wheel model — suspension and fall-over rules? | Claude | Before the Motorcycle unlock is built |
+| Monster Truck "terrain immunity": surface-grip exemption, or much larger wheel radius/travel? | Claude | With ADR-0004 |
+| Should Tossed grant a style bonus? Landing a toss is the best stunt in the game | Andy | With the style-scoring GDD |
+| WebGL physics budget: is 50 Hz affordable alongside destructible terrain? | Claude | ADR-0004 performance section |
