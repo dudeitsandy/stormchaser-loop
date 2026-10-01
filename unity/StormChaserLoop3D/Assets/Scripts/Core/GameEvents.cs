@@ -81,6 +81,16 @@ public static class GameEvents
     /// <summary>Fired once when the run ends (timer or wreck).</summary>
     public static event Action<RunSummary> RunEnded;
 
+    // Vehicle events (ADR-0005; vehicle-feel.md Interactions). Presentation listens; only gameplay raises.
+    /// <summary>Style moment: drift seconds, airtime seconds, or a near-miss (amount = 1).</summary>
+    public static event Action<StyleKind, float> StyleEvent;
+    /// <summary>All wheels back down after being airborne. Arg: vertical touchdown speed (m/s).</summary>
+    public static event Action<float> Landed;
+    /// <summary>A collision strong enough to report (severity, HP loss, kind, point).</summary>
+    public static event Action<ImpactInfo> VehicleImpact;
+    /// <summary>Wind lift crossed the toss threshold (vehicle-feel.md F12b).</summary>
+    public static event Action Tossed;
+
     public static void RaiseRunStarted() => RunStarted?.Invoke();
     public static void RaisePhotoTaken(PhotoResult result) => PhotoTaken?.Invoke(result);
     public static void RaisePhotoMissed() => PhotoMissed?.Invoke();
@@ -88,6 +98,10 @@ public static class GameEvents
     public static void RaiseFilmChanged(int remaining, int capacity) => FilmChanged?.Invoke(remaining, capacity);
     public static void RaisePlayerDamaged(int current, int max) => PlayerDamaged?.Invoke(current, max);
     public static void RaiseRunEnded(RunSummary summary) => RunEnded?.Invoke(summary);
+    public static void RaiseStyleEvent(StyleKind kind, float amount) => StyleEvent?.Invoke(kind, amount);
+    public static void RaiseLanded(float verticalSpeed) => Landed?.Invoke(verticalSpeed);
+    public static void RaiseVehicleImpact(ImpactInfo impact) => VehicleImpact?.Invoke(impact);
+    public static void RaiseTossed() => Tossed?.Invoke();
 
     // Static events survive play sessions when domain reload is disabled; clear them on entry.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -100,5 +114,9 @@ public static class GameEvents
         FilmChanged = null;
         PlayerDamaged = null;
         RunEnded = null;
+        StyleEvent = null;
+        Landed = null;
+        VehicleImpact = null;
+        Tossed = null;
     }
 }

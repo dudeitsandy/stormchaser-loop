@@ -1,136 +1,269 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Arcade truck. Throttle sets a target speed along the heading; actual planar velocity converges on
-/// heading × speed + wind at the Grip rate, so hard turns and strong wind produce slide.
-/// Still a placeholder for the full Vehicle Feel pass (vision-1.0, Kinetic Chaos).
+/// The player vehicle (ADR-0005 engine adapter). Each 50 Hz step it sphere-casts the four wheels, samples
+/// surfaces and wind, runs the pure <see cref="VehicleModel"/>, and applies its forces to the Rigidbody.
+/// Public facade is unchanged from 0.4 (CurrentSpeed, MaxSpeed, CurrentWind, InputEnabled, Data,
+/// ApplyKnockback) so RunManager, VehicleHealth, HUD, builders, and the presentation lane keep working.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerVehicle : MonoBehaviour
 {
     [SerializeField] private VehicleData _data;
-    [Tooltip("Half-extent of the drivable square, centered on world origin.")]
+    [Tooltip("Shared tuning (vehicle-feel.md knobs). If empty, GDD defaults are used.")]
+    [SerializeField] private VehicleFeelConfig _config;
+    [Tooltip("Layers the wheels can stand on. The cast ignores the vehicle's own colliders.")]
+    [SerializeField] private LayerMask _groundMask = ~0;
+    [Tooltip("Half-extent of the drivable square (soft boundary, vehicle-feel.md E8).")]
     [SerializeField] private float _worldHalfExtent = 95f;
-    [Tooltip("How fast knockback velocity decays (units/sec²).")]
-    [SerializeField] private float _knockbackDecay = 30f;
+    [SerializeField] private float _boundaryPush = 25f;
+    [SerializeField] private float _respawnBelowY = -10f;
 
     private Rigidbody _rb;
-    private StormChaserControls _controls;
-    private UnityEngine.InputSystem.InputAction _moveAction;
-    private float _currentSpeed;
-    private Vector3 _velocity;
-    private Vector3 _knockback;
-    private float _wobbleSeed;
+    private VehicleModel _model;
+    private VehicleFeelValues _values;
+    private WheelLayout _layout;
+    private IVehicleInput _input;
+    private PlayerInputSource _ownedInput;
+    private VehicleHealth _health;
+    private readonly WheelContact[] _contacts = new WheelContact[VehicleModel.WheelCount];
+    private readonly Vector3[] _anchors = new Vector3[VehicleModel.WheelCount];
+    private readonly Vector3[] _smoothedNormals = new Vector3[VehicleModel.WheelCount];
+    private readonly VehicleStepOutput _output = new VehicleStepOutput();
+    private readonly Dictionary<Collider, SurfaceProperties> _surfaceCache = new Dictionary<Collider, SurfaceProperties>();
+    private Vector3 _rawWind;
+    private Vector3 _lastGroundedPosition;
+    private Quaternion _lastGroundedRotation = Quaternion.identity;
 
     /// <summary>Signed forward speed in units/sec.</summary>
-    public float CurrentSpeed => _currentSpeed;
-    /// <summary>Top forward speed in units/sec.</summary>
-    public float MaxSpeed => _data.MoveSpeed;
+    public float CurrentSpeed => _model != null ? _model.ForwardSpeed : 0f;
+    /// <summary>Top forward speed in units/sec (F13 v_top).</summary>
+    public float MaxSpeed => _model != null ? _model.Params.TopSpeed : 0f;
     /// <summary>Tuning data for this vehicle.</summary>
     public VehicleData Data => _data;
-    /// <summary>Wind velocity acting on the truck this physics step (already scaled by exposure).</summary>
-    public Vector3 CurrentWind { get; private set; }
-    /// <summary>When false, throttle/steer input is ignored and the truck coasts to a stop.</summary>
+    /// <summary>Wind acting on the truck this physics step (exposure-scaled, m/s).</summary>
+    public Vector3 CurrentWind => _model != null ? _rawWind * _model.Params.Exposure : Vector3.zero;
+    /// <summary>When false, player input is ignored and the truck coasts.</summary>
     public bool InputEnabled { get; set; } = true;
+    public VehicleState State => _model != null ? _model.State : VehicleState.Grounded;
+    public float SlipAngle => _model != null ? _model.SlipAngleDeg : 0f;
+    public int GroundedWheels => _model != null ? _model.GroundedWheels : 0;
+    /// <summary>The underlying model (read-only use: tests, presentation).</summary>
+    public VehicleModel Model => _model;
+
+    /// <summary>Replaces the input source (tests, autopilots). Null restores player input.</summary>
+    public IVehicleInput InputSource
+    {
+        set => _input = value ?? (IVehicleInput)EnsureOwnedInput();
+    }
+
+    /// <summary>Dependency injection for tests and runtime-spawned vehicles. Call before the first FixedUpdate.</summary>
+    public void Initialize(VehicleData data, VehicleFeelConfig config, IVehicleInput input = null)
+    {
+        _data = data;
+        _config = config;
+        Build();
+        if (input != null) _input = input;
+    }
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
-        _rb.linearDamping = 0f;
-        _rb.angularDamping = 0f;
-        _rb.interpolation = RigidbodyInterpolation.Interpolate;
-        _rb.constraints = RigidbodyConstraints.FreezeRotationX
-                        | RigidbodyConstraints.FreezeRotationZ
-                        | RigidbodyConstraints.FreezePositionY;
-
-        _controls = new StormChaserControls();
-        _moveAction = _controls.Driving.Move;
-        _wobbleSeed = Random.value * 100f;
+        _health = GetComponent<VehicleHealth>();
+        Time.maximumDeltaTime = 0.1f; // ADR-0005: ≤ 5 catch-up steps
+        Build();
     }
 
-    private void OnEnable() => _controls.Driving.Enable();
-    private void OnDisable() => _controls.Driving.Disable();
-    private void OnDestroy() => _controls.Dispose();
+    private void Build()
+    {
+        if (_rb == null) _rb = GetComponent<Rigidbody>();
+        if (_data == null) _data = ScriptableObject.CreateInstance<VehicleData>();
+        _values = _config != null ? _config.Values : VehicleFeelValues.Defaults;
+        _layout = _data.Layout;
+        ArchetypeParams p = ArchetypeParams.Derive(_data.Stars, _values);
+        _model = new VehicleModel(p, _values, _layout);
+        if (_input == null) _input = EnsureOwnedInput();
+
+        _anchors[0] = new Vector3(-_layout.HalfTrack, _layout.AnchorY, _layout.FrontAxleZ);
+        _anchors[1] = new Vector3(_layout.HalfTrack, _layout.AnchorY, _layout.FrontAxleZ);
+        _anchors[2] = new Vector3(-_layout.HalfTrack, _layout.AnchorY, _layout.RearAxleZ);
+        _anchors[3] = new Vector3(_layout.HalfTrack, _layout.AnchorY, _layout.RearAxleZ);
+        for (int i = 0; i < _smoothedNormals.Length; i++) _smoothedNormals[i] = Vector3.up;
+
+        ConfigureBody(p);
+        _lastGroundedPosition = _rb.position;
+        _lastGroundedRotation = _rb.rotation;
+    }
+
+    private PlayerInputSource EnsureOwnedInput()
+    {
+        if (_ownedInput == null) _ownedInput = new PlayerInputSource();
+        return _ownedInput;
+    }
+
+    private void ConfigureBody(ArchetypeParams p)
+    {
+        _rb.mass = p.Mass;
+        _rb.linearDamping = 0f;
+        _rb.angularDamping = 0.05f;
+        _rb.constraints = RigidbodyConstraints.None;
+        _rb.interpolation = RigidbodyInterpolation.Interpolate;
+        _rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic; // E6
+        _rb.sleepThreshold = 0f;
+        _rb.maxAngularVelocity = _values.MaxAngularSpeed;
+        _rb.maxLinearVelocity = 80f;
+        _rb.automaticCenterOfMass = false;
+        _rb.centerOfMass = _layout.CenterOfMass;
+        _rb.automaticInertiaTensor = false;
+        Vector3 s = _layout.BodySize;
+        _rb.inertiaTensor = p.Mass / 12f * new Vector3(s.y * s.y + s.z * s.z, s.x * s.x + s.z * s.z, s.x * s.x + s.y * s.y);
+        _rb.inertiaTensorRotation = Quaternion.identity;
+
+        // The body collider rides above the suspension instead of resting on the ground (0.4's 1 m cube did).
+        if (TryGetComponent(out BoxCollider box))
+        {
+            box.size = _layout.BodySize;
+            box.center = _layout.BodyCenter;
+        }
+    }
+
+    private void OnDestroy() => _ownedInput?.Dispose();
 
     private void FixedUpdate()
     {
         float dt = Time.fixedDeltaTime;
-        Vector2 input = InputEnabled ? _moveAction.ReadValue<Vector2>() : Vector2.zero;
-        CurrentWind = DisasterEntity.TotalWindAt(_rb.position) * _data.WindExposure;
+        QueryWheels();
+        _rawWind = DisasterEntity.TotalWindAt(_rb.position);
 
-        UpdateSpeed(input.y, dt);
-        UpdateSteering(input.x, dt);
-        UpdateVelocity(dt);
-        ClampToWorld();
+        var input = new VehicleStepInput
+        {
+            Dt = dt,
+            Rotation = _rb.rotation,
+            Velocity = _rb.linearVelocity,
+            AngularVelocity = _rb.angularVelocity,
+            CenterOfMassWorld = _rb.worldCenterOfMass,
+            Wind = _rawWind,
+            Damage = _health != null ? _health.Stage : DamageStage.Healthy,
+            Input = InputEnabled ? _input.Read() : default,
+        };
+        _model.Step(input, _contacts, _output);
+        Apply();
+        HandleBoundary();
     }
 
-    /// <summary>Flings the truck along <paramref name="direction"/> (flattened) and kills forward speed.</summary>
+    private void QueryWheels()
+    {
+        Vector3 down = -transform.up;
+        float maxDistance = _values.RestLength + 0.5f;
+        for (int i = 0; i < VehicleModel.WheelCount; i++)
+        {
+            Vector3 origin = transform.TransformPoint(_anchors[i]);
+            ref WheelContact c = ref _contacts[i];
+            bool hit = Physics.SphereCast(origin, _layout.CastRadius, down, out RaycastHit h, maxDistance,
+                                          _groundMask, QueryTriggerInteraction.Ignore);
+            if (hit && h.rigidbody == _rb) hit = false; // never stand on ourselves
+
+            if (!hit)
+            {
+                c.Grounded = false;
+                c.GroundDistance = maxDistance;
+                continue;
+            }
+
+            if (h.distance <= 1e-4f)
+            {
+                // Cast started overlapping (tile seams, debris): fully compressed, keep last normal (ADR-0005).
+                c.GroundDistance = _values.RestLength - _values.Travel;
+                c.Point = origin + down * _layout.CastRadius;
+            }
+            else
+            {
+                c.GroundDistance = h.distance + _layout.CastRadius;
+                c.Point = h.point;
+                // Triangle normals jump at MeshCollider edges: smooth and rate-limit per wheel.
+                _smoothedNormals[i] = Vector3.RotateTowards(_smoothedNormals[i], h.normal, 0.35f, 0f);
+            }
+            c.Normal = _smoothedNormals[i];
+            c.Grounded = true;
+            c.PointVelocity = _rb.GetPointVelocity(c.Point);
+            SurfaceProperties surface = SurfaceOf(h.collider);
+            c.SurfaceGrip = surface.Grip;
+            c.SurfaceDrag = surface.Drag;
+        }
+    }
+
+    private SurfaceProperties SurfaceOf(Collider col)
+    {
+        if (col == null) return SurfaceTable.Get(SurfaceTable.Default);
+        if (_surfaceCache.TryGetValue(col, out SurfaceProperties s)) return s;
+        s = SurfaceTable.Get(col.TryGetComponent(out SurfaceTag tag) ? tag.Type : SurfaceTable.Default);
+        _surfaceCache[col] = s;
+        return s;
+    }
+
+    /// <summary>Drops cached surface lookups (call when pooled world colliders are reassigned).</summary>
+    public void ClearSurfaceCache() => _surfaceCache.Clear();
+
+    private void Apply()
+    {
+        for (int i = 0; i < VehicleModel.WheelCount; i++)
+            if (_output.WheelForce[i] != Vector3.zero)
+                _rb.AddForceAtPosition(_output.WheelForce[i], _output.WheelPoint[i], ForceMode.Force);
+
+        if (_output.CenterAcceleration != Vector3.zero) _rb.AddForce(_output.CenterAcceleration, ForceMode.Acceleration);
+        if (_output.WindAcceleration != Vector3.zero)
+            _rb.AddForceAtPosition(_output.WindAcceleration * _rb.mass, _output.WindPoint, ForceMode.Force);
+        if (_output.AngularAcceleration != Vector3.zero) _rb.AddTorque(_output.AngularAcceleration, ForceMode.Acceleration);
+
+        if (_output.Landed) GameEvents.RaiseLanded(_output.LandedSpeed);
+        if (_output.AutoRight) AutoRight();
+
+        if (_model.GroundedWheels >= 2 && _model.State != VehicleState.Upended)
+        {
+            _lastGroundedPosition = _rb.position;
+            _lastGroundedRotation = Quaternion.Euler(0f, _rb.rotation.eulerAngles.y, 0f);
+        }
+    }
+
+    /// <summary>E5: flip back onto the wheels, keeping heading. A documented teleport path (ADR-0005).</summary>
+    private void AutoRight()
+    {
+        float yaw = _rb.rotation.eulerAngles.y;
+        Teleport(_rb.position + Vector3.up * 1.2f, Quaternion.Euler(0f, yaw, 0f));
+    }
+
+    private void HandleBoundary()
+    {
+        Vector3 p = _rb.position;
+        if (p.y < _respawnBelowY)
+        {
+            Teleport(_lastGroundedPosition + Vector3.up * 1f, _lastGroundedRotation); // E8 respawn, no HP cost
+            return;
+        }
+        Vector3 push = Vector3.zero;
+        if (p.x > _worldHalfExtent) push.x = -(p.x - _worldHalfExtent);
+        else if (p.x < -_worldHalfExtent) push.x = -_worldHalfExtent - p.x;
+        if (p.z > _worldHalfExtent) push.z = -(p.z - _worldHalfExtent);
+        else if (p.z < -_worldHalfExtent) push.z = -_worldHalfExtent - p.z;
+        if (push != Vector3.zero) _rb.AddForce(push * _boundaryPush, ForceMode.Acceleration);
+    }
+
+    /// <summary>Moves the vehicle and zeroes its motion (respawn, auto-right, tests). Resyncs interpolation.</summary>
+    public void Teleport(Vector3 position, Quaternion rotation)
+    {
+        _rb.linearVelocity = Vector3.zero;
+        _rb.angularVelocity = Vector3.zero;
+        _rb.position = position;
+        _rb.rotation = rotation;
+        transform.SetPositionAndRotation(position, rotation);
+    }
+
+    /// <summary>Flings the truck along <paramref name="direction"/> (flattened). Kept from 0.4 for funnel contact.</summary>
     public void ApplyKnockback(Vector3 direction, float speed)
     {
         direction.y = 0f;
-        _knockback = direction.normalized * speed;
-        _currentSpeed *= 0.25f;
-    }
-
-    private void UpdateSpeed(float throttle, float dt)
-    {
-        float targetSpeed = throttle > 0f ? throttle * _data.MoveSpeed : throttle * _data.ReverseSpeed;
-
-        float rate;
-        bool braking = Mathf.Abs(throttle) > 0.01f && Mathf.Abs(_currentSpeed) > 0.5f
-                       && Mathf.Sign(throttle) != Mathf.Sign(_currentSpeed);
-        if (braking) rate = _data.BrakeDeceleration;
-        else if (Mathf.Abs(throttle) > 0.01f) rate = _data.Acceleration;
-        else rate = _data.Deceleration;
-
-        _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed, rate * dt);
-    }
-
-    private void UpdateSteering(float steer, float dt)
-    {
-        float speedAbs = Mathf.Abs(_currentSpeed);
-        float lowSpeedRamp = Mathf.Clamp01(speedAbs / Mathf.Max(0.01f, _data.FullTurnSpeed));
-        float highSpeedDamp = Mathf.Lerp(1f, _data.HighSpeedTurnFactor, Mathf.Clamp01(speedAbs / _data.MoveSpeed));
-        float turnRate = _data.TurnSpeed * lowSpeedRamp * highSpeedDamp;
-
-        float turn = steer * turnRate * Mathf.Sign(_currentSpeed == 0f ? 1f : _currentSpeed);
-
-        // Strong wind jerks the wheel around.
-        float windSpeed = CurrentWind.magnitude;
-        if (windSpeed > 0.1f)
-        {
-            float gust = Mathf.PerlinNoise(_wobbleSeed, Time.time * 2.5f) * 2f - 1f;
-            turn += gust * _data.WindWobble * Mathf.Clamp01(windSpeed / _data.WindGripLossAt);
-        }
-
-        if (Mathf.Abs(turn) > 0.001f)
-            _rb.MoveRotation(_rb.rotation * Quaternion.Euler(0f, turn * dt, 0f));
-    }
-
-    private void UpdateVelocity(float dt)
-    {
-        // Grip halves at WindGripLossAt, so the truck floats and slides in a tornado's wind.
-        float windSpeed = CurrentWind.magnitude;
-        float grip = _data.Grip / (1f + windSpeed / Mathf.Max(0.01f, _data.WindGripLossAt));
-
-        Vector3 target = transform.forward * _currentSpeed + CurrentWind;
-        _velocity = Vector3.MoveTowards(_velocity, target, grip * dt);
-        _velocity.y = 0f;
-
-        _knockback = Vector3.MoveTowards(_knockback, Vector3.zero, _knockbackDecay * dt);
-        _rb.linearVelocity = _velocity + _knockback;
-    }
-
-    private void ClampToWorld()
-    {
-        Vector3 p = _rb.position;
-        float x = Mathf.Clamp(p.x, -_worldHalfExtent, _worldHalfExtent);
-        float z = Mathf.Clamp(p.z, -_worldHalfExtent, _worldHalfExtent);
-        if (x == p.x && z == p.z) return;
-
-        _rb.position = new Vector3(x, p.y, z);
-        _currentSpeed *= 0.5f;
-        _velocity *= 0.5f;
-        _knockback = Vector3.zero;
+        if (direction.sqrMagnitude < 1e-4f) return;
+        _rb.AddForce(direction.normalized * speed + Vector3.up * 2f, ForceMode.VelocityChange);
     }
 }

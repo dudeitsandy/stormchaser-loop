@@ -19,6 +19,17 @@ public class VehicleHealth : MonoBehaviour
     public bool IsWrecked => _model.IsWrecked;
     public bool IsInvulnerable => _model.IsInvulnerable(Time.time);
 
+    /// <summary>vehicle-damage.md stages: Damaged at ≤ floor(Max·2/3) HP, Critical at ≤ floor(Max/3) HP.</summary>
+    public DamageStage Stage => StageFor(_model.CurrentHealth, _model.MaxHealth);
+
+    /// <summary>Pure stage mapping (vehicle-damage.md Formulas).</summary>
+    public static DamageStage StageFor(int current, int max)
+    {
+        if (current <= max / 3) return DamageStage.Critical;
+        if (current <= max * 2 / 3) return DamageStage.Damaged;
+        return DamageStage.Healthy;
+    }
+
     /// <summary>When false, contact damage is ignored (title / results).</summary>
     public bool Vulnerable { get; set; } = true;
 
