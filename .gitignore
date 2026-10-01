@@ -14,6 +14,7 @@ Desktop.ini
 .claude/settings.local.json
 .claude/docs/UPGRADE-PLAN.md
 CLAUDE.local.md
+project.local.yaml
 production/session-logs/
 production/session-state/*.md
 

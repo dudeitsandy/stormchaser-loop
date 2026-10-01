@@ -1,14 +1,21 @@
 ---
 name: map-systems
-description: "Decompose a game concept into individual systems, map dependencies, prioritize design order, and create the systems index."
-argument-hint: "[optional: 'next' to pick highest-priority undesigned system, or a system name to hand off to /design-system]"
+description: "Decompose a concept into individual systems, map dependencies, prioritize design order, create the systems index."
+argument-hint: "[next | system-name] [--review full|lean|solo]"
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, TodoWrite
+allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, TaskCreate, TaskGet, TaskList, TaskUpdate, Agent, Bash(bash "*/.claude/skills/map-systems/../../hooks/yaml-helper.sh" resolve_config *)
+model: sonnet
 ---
+
+!`bash "${CLAUDE_SKILL_DIR}/../../hooks/yaml-helper.sh" resolve_config --keys review_mode,automation,workflow,docs.density,project.stage`
+
+Resolved above — use as-is; `--review` overrides `review_mode`. No block →
+defaults in `.claude/docs/config-resolution.md`.
+
 
 When this skill is invoked:
 
-## 1. Parse Arguments
+## Parse Arguments
 
 Two modes:
 
@@ -17,17 +24,61 @@ Two modes:
 - **`next`**: `/map-systems next` — Pick the highest-priority undesigned system
   from the index and hand off to `/design-system` (Phase 6).
 
+
+See `.claude/docs/director-gates.md` for the full check pattern. Individual gate definitions live in `.claude/docs/director-gates/[gate-id].md` — the spawned agent reads its own gate file; do not read it in the parent session.
+
+
+Every `AskUserQuestion` call follows `.claude/docs/automation-modes.md`
+(collaborative asks always · guided major-only · autonomous logs and proceeds;
+`automation_always_ask` categories always prompt). In collaborative mode the
+system list, dependency, priority and write approvals are separate questions:
+each waits for its answer before the next step runs.
+
+**`docs.density`** — it controls per-section *depth*, where `workflow`
+controls which sections exist. `modes.rigor` sets both together; set
+`docs.density` explicitly to vary depth alone: `terse` (the default, via `rigor: minimal`) = one-line system descriptions;
+`balanced` = a brief paragraph per system + dependency notes (`rigor: standard`);
+`thorough` = full system-by-system rationale + relationship analysis. Apply it to
+every section you author.
+
+> **Where the per-system prose goes.** `templates/systems-index.md`'s Systems
+> Enumeration is a fixed-column table with no description column, so at
+> `balanced` and `thorough` the prose belongs in `## Overview` — one short
+> paragraph per system at `balanced`, plus relationship analysis at `thorough` —
+> and in the `## Dependency Map` layer notes. **Do not add a column to the
+> enumeration table** — it is a fixed contract in
+> `.claude/docs/templates/systems-index.md`, and its consumers
+> (`/design-system` §6 and §7, `/create-epics`) are written against the columns it
+> defines. Widening it is a schema change, not a formatting choice.
+>
+> **How the consumers actually read it.** Nothing parses this table
+> positionally. The two scripts that mention `systems-index.md`
+> (`gdd-structure-check.sh:51`, `review-scope.sh:40`) match it **by filename** in a
+> `case` statement and parse no columns at all; the two skills key on the
+> **`Category` column by name** (`design-system:229`, `:780`). So `Category` is
+> the column that must never be renamed or dropped, and the table stays a fixed
+> contract because every consumer is written against the set of columns the
+> template defines.
+> At `terse`, the table plus a one-paragraph `## Overview` is the whole output.
+
+**`workflow`** (see `.claude/docs/workflow-modes.md`):
+- `full` / `standard` — required before `/design-system` (systems must be mapped
+  before per-system GDDs are authored).
+- `minimal` — not required (the game brief replaces the systems index). Can
+  still be run voluntarily.
+
 ---
 
-## 2. Phase 1: Read Concept (Required Context)
+## Phase 1: Read Concept (Required Context)
 
 Read the game concept and any existing design work. This provides the raw material
 for systems decomposition.
 
 **Required:**
-- Read `design/gdd/game-concept.md` — **fail with a clear message if missing**:
-  > "No game concept found at `design/gdd/game-concept.md`. Run `/brainstorm` first
-  > to create one, then come back to decompose it into systems."
+- Read `design/gdd/game-concept.md` (at `minimal`, read `design/game-brief.md`
+  instead) — **fail with a clear message if neither is found**:
+  > "No game concept found. Run `/brainstorm` first to create one, then come back
+  > to decompose it into systems."
 
 **Optional (read if they exist):**
 - Read `design/gdd/game-pillars.md` — pillars constrain priority and scope
@@ -45,7 +96,7 @@ for systems decomposition.
 
 ---
 
-## 3. Phase 2: Systems Enumeration (Collaborative)
+## Phase 2: Systems Enumeration (Collaborative)
 
 Extract and identify all systems the game needs. This is the creative core of the
 skill — it requires human judgment because concept docs rarely enumerate every
@@ -94,11 +145,20 @@ Then use `AskUserQuestion` to capture feedback:
 - "Should any of these be combined or split?"
 - "Are there systems listed that this game does NOT need?"
 
-Iterate until the user approves the enumeration.
+**At `collaborative`** — iterate until the user approves the enumeration.
+**At `guided`** — ask once, apply the answer, and proceed; do not loop.
+**At `autonomous`** — do not ask. Record the enumeration and its inferred systems
+via `log_decision` and proceed.
+
+> **The loop needed an exit that does not depend on being asked.**
+> `automation-modes.md:56` defines `autonomous` as *"No `AskUserQuestion`"*, so a
+> loop terminating on "the user approves" has no termination path there at all.
+> Same class as Step 5b, one level up: that was an unconditional *write* gate,
+> this is an unconditional *control-flow loop* around the question.
 
 ---
 
-## 4. Phase 3: Dependency Mapping (Collaborative)
+## Phase 3: Dependency Mapping (Collaborative)
 
 For each system, determine what it depends on. A system "depends on" another if
 it cannot function without that other system existing first.
@@ -137,9 +197,20 @@ Show the dependency map as a layered list. Highlight:
 Use `AskUserQuestion` to ask: "Does this dependency ordering look right? Any
 dependencies I'm missing or that should be removed?"
 
+**Review mode check** — apply before spawning TD-SYSTEM-BOUNDARY:
+- `solo` → skip. Note: "TD-SYSTEM-BOUNDARY skipped — Solo mode." Proceed to priority assignment.
+- `lean` → skip (not a PHASE-GATE). Note: "TD-SYSTEM-BOUNDARY skipped — Lean mode." Proceed to priority assignment.
+- `full` → spawn as normal.
+
+**After dependency mapping is approved, spawn `technical-director` via `Agent` using gate TD-SYSTEM-BOUNDARY (`.claude/docs/director-gates/td-system-boundary.md`) before proceeding to priority assignment.**
+
+Pass: the dependency graph (each system → what it depends on), layer assignments, bottleneck systems, and any circular dependencies with their proposed resolutions.
+
+Present the assessment. If REJECT, revise the system boundaries with the user, show the revised dependency map, and only then move to priority assignment. If CONCERNS, note them inline in the systems index and continue. If NOT ASSESSED [missing input], it is not an APPROVE: name what was missing, then supply it and re-run the gate, or continue with `TD-SYSTEM-BOUNDARY: NOT ASSESSED — [input]` noted in the index draft.
+
 ---
 
-## 5. Phase 4: Priority Assignment (Collaborative)
+## Phase 4: Priority Assignment (Collaborative)
 
 Assign each system to a priority tier based on what milestone it's needed for.
 
@@ -163,6 +234,48 @@ Which systems should be higher or lower priority?"
 Explain reasoning in conversation: "I placed [system] in MVP because the core loop
 requires it — without [system], the 30-second loop can't function."
 
+**How to phrase the reasoning** — this governs what you *say*, not a column you
+write. Neither table has a `Why` column: Systems Enumeration is
+`# / Name / Category / Priority / Status / Design Doc / Depends On`, and
+Recommended Design Order is `Order / System / Priority / Layer / Agent(s) /
+Est. Effort`. The rationale lives in the conversation above and, for anything
+the user should still see after the session, in the index's `## Overview`
+paragraph. Do not invent a column for it.
+
+Mix technical necessity with player-experience reasoning. A purely technical
+justification — "the damage system needs damage math" — is insufficient on its
+own when the system directly shapes what the player feels. Good reasoning names
+both, and cites the pillar it serves:
+- "Required for the core loop — without it the player's main choice has no
+  consequence (Pillar [N]: [pillar name])"
+- "This is where [system]'s identity is established — the stat definitions here
+  are what make it feel different from [the sibling system]"
+- "Foundation for every later economy decision — the player must understand
+  costs before any of the choices built on top of it mean anything"
+
+> **Fill the brackets from *this* project.** The bracketed slots are not
+> decoration. Worked examples from another genre (a tower-defense "Ballista's
+> punch-through identity… what makes it feel different from Archer", "Pillar 2:
+> Placement is the Puzzle") get reproduced verbatim by a run against a different
+> game, which then carries that game's vocabulary instead of its own.
+
+**Review mode check** — apply before spawning PR-SCOPE:
+- `solo` → skip. Note: "PR-SCOPE skipped — Solo mode." Proceed to Step 4c.
+- `lean` → skip (not a PHASE-GATE). Note: "PR-SCOPE skipped — Lean mode." Proceed to Step 4c.
+- `full` → spawn as normal.
+
+**After priorities are approved, spawn `producer` via `Agent` using gate PR-SCOPE (`.claude/docs/director-gates/pr-scope.md`) before writing the index.**
+
+Pass the gate's fields from the index: the full vision scope (every system in the index), the MVP definition (the MVP tier's systems), the scope tiers (system count per milestone tier, with estimated implementation volume — system count × average complexity), the stated project timeline as the timeline estimate, and team size.
+
+Present the assessment. PR-SCOPE answers REALISTIC / OPTIMISTIC / UNREALISTIC.
+If UNREALISTIC, offer to revise priority tier assignments before writing the
+index. If OPTIMISTIC, show the producer's suggested adjustments and ask whether to
+apply them to the tiers before writing; if the user declines, note them and
+continue. If NOT ASSESSED [missing input] — often the team size or timeline — it
+is not a REALISTIC: name what was missing, then supply it and re-run the gate, or
+continue with `PR-SCOPE: NOT ASSESSED — [input]` noted in the index draft.
+
 ### Step 4c: Determine Design Order
 
 Combine dependency sort + priority tier to produce the final design order:
@@ -176,7 +289,7 @@ This is the order the team should write GDDs in.
 
 ---
 
-## 6. Phase 5: Create Systems Index (Write)
+## Phase 5: Create Systems Index (Write)
 
 ### Step 5a: Draft the Document
 
@@ -196,21 +309,55 @@ Present a summary of the document:
 - First 3 systems in the design order
 - Any high-risk items
 
-Ask: "May I write the systems index to `design/gdd/systems-index.md`?"
+**At `automation: collaborative`** — ask: "May I write the systems index to
+`design/gdd/systems-index.md`?" Wait for approval. Write the file only after
+"yes."
 
-Wait for approval. Write the file only after "yes."
+**At `automation: guided`** — a **new** index gets the same "May I write …?"
+question, because `.claude/docs/automation-modes.md` has `guided` ask "May I
+write?" for new files. When the index already exists, present the summary above,
+name the destination (`design/gdd/systems-index.md`), and write the update without
+waiting for an explicit "yes". Say what you wrote afterwards.
+
+> **Keep this line scoped to its mode.** `automation-modes.md` says `guided`
+> *"proceeds after a short summary, does not wait for explicit yes"* and asks
+> "May I write?" *"for new files only"*, and this skill's own Collaborative
+> Protocol section is scoped to `collaborative`. An unconditional "wait for
+> approval" here collides with both.
+
+**Review mode check** — apply before spawning CD-SYSTEMS:
+- `solo` → skip. Note: "CD-SYSTEMS skipped — Solo mode." Proceed to Step 5c.
+- `lean` → skip (not a PHASE-GATE). Note: "CD-SYSTEMS skipped — Lean mode." Proceed to Step 5c.
+- `full` → spawn as normal.
+
+**After the systems index is written, spawn `creative-director` via `Agent` using gate CD-SYSTEMS (`.claude/docs/director-gates/cd-systems.md`).**
+
+Pass: systems index path; game pillars and core fantasy — from `design/gdd/game-concept.md`, or at `minimal` the pitch and "what they feel" line of `design/game-brief.md`, which has no pillars; the priority tier assignments for every tier (MVP / Vertical Slice / Alpha / Full Vision); and the high-risk and bottleneck systems from the dependency map.
+
+Present the assessment. If REJECT, revise the system set with the user before GDD authoring begins. If CONCERNS, show them and use `AskUserQuestion`: `Revise the system set` / `Accept — record them in the index` / `Discuss further`. On *Revise*, rework the affected systems with the user and ask again before re-writing the index. On *Accept* — the option names the edit, so choosing it is the ask — record them in the systems index as a `> **Creative Director Note**`
+placed **directly beneath the `## Priority Tiers` table**, naming the tier each
+concern applies to — e.g. `> **Creative Director Note** (MVP): …`.
+`templates/systems-index.md` has a Priority Tiers *definition table*, not a
+section per tier, so there is no "top of the tier section" to write to — do not
+direct the writer to one. If NOT ASSESSED [missing input], it is not an APPROVE
+(`.claude/docs/director-gates.md`): name what was missing, then supply it and
+re-run the gate, or ask before recording `> **Creative Director Note**:
+CD-SYSTEMS NOT ASSESSED — [input]` in the same place.
 
 ### Step 5c: Update Session State
 
-After writing, update `production/session-state/active.md` with:
+After writing, create `production/session-state/active.md` if it does not exist, then update it with:
 - Task: Systems decomposition
 - Status: Systems index created
 - File: design/gdd/systems-index.md
 - Next: Design individual system GDDs
 
+**Verdict: COMPLETE** — systems index written to `design/gdd/systems-index.md`.
+If the user declined: **Verdict: BLOCKED** — user did not approve the write.
+
 ---
 
-## 7. Phase 6: Design Individual Systems (Handoff to /design-system)
+## Phase 6: Design Individual Systems (Handoff to /design-system)
 
 This phase is entered when:
 - The user says "yes" to designing systems after creating the index
@@ -256,20 +403,29 @@ If continuing, return to Step 6a.
 
 ---
 
-## 8. Phase 7: Suggest Next Steps
+## Phase 7: Suggest Next Steps
 
-After the systems index is created (or after designing some systems), suggest
-the appropriate next actions:
+After the systems index is created (or after designing some systems), present next actions using `AskUserQuestion`:
 
-- "Run `/design-system [system-name]` to write the next system's GDD"
-- "Run `/design-review [path]` on each completed GDD to validate quality"
-- "Run `/gate-check pre-production` to check if you're ready to start building"
-- "Prototype the highest-risk system with `/prototype [system]`"
-- "Plan the first implementation sprint with `/sprint-plan new`"
+- "Systems index is written. What would you like to do next?"
+  - [A] Start designing GDDs — run `/design-system [first-system-in-order]`
+  - [B] Run `/gate-check systems-design` — the Concept → Systems Design gate; offer this only while `project.stage` is still Concept
+  - [C] Run `/gate-check technical-setup` — the Systems Design → Technical Setup gate, once the MVP systems have GDDs
+  - [D] Stop here for this session
+
+**The gate-check option ([C]) is worth knowing about**: `/gate-check technical-setup` checks that the Systems Design phase's required artifacts exist and runs the phase-gate directors before you commit to architecture. CD-SYSTEMS and TD-SYSTEM-BOUNDARY are this skill's own gates — they run here, in `full` review mode, not in `/gate-check`.
+
+After any individual GDD is completed:
+- "Run `/design-review design/gdd/[system].md` in a fresh session to validate quality"
+- "Run `/gate-check technical-setup` when all MVP GDDs are complete"
 
 ---
 
 ## Collaborative Protocol
+
+**Applies in `collaborative` mode (the default).** For `guided` and
+`autonomous` modes, see `.claude/docs/automation-modes.md` — the rules below
+describe what collaborative mode requires, not universal behavior.
 
 This skill follows the collaborative design principle at every phase:
 
@@ -290,3 +446,20 @@ This skill follows the collaborative design principle at every phase:
 **Never** auto-generate the full systems list and write it without review.
 **Never** start designing a system without user confirmation.
 **Always** show the enumeration, dependencies, and priorities for user validation.
+
+## Context Window Awareness
+
+If context reaches or exceeds 70% at any point, append this notice:
+
+> **Context is approaching the limit (≥70%).** The systems index is saved to
+> `design/gdd/systems-index.md`. Open a fresh Claude Code session to continue
+> designing individual GDDs — run `/map-systems next` to pick up where you left off.
+
+---
+
+## Recommended Next Steps
+
+- Run `/design-system [first-system-in-order]` to author the first GDD (use design order from the index)
+- Run `/map-systems next` to always pick the highest-priority undesigned system automatically
+- Run `/design-review design/gdd/[system].md` in a fresh session after each GDD is authored
+- Run `/gate-check technical-setup` when all MVP GDDs are authored and reviewed

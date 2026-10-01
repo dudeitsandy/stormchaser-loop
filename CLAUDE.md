@@ -1,6 +1,6 @@
 # Claude Code Game Studios -- Game Studio Agent Architecture
 
-Indie game development managed through 48 coordinated Claude Code subagents.
+Indie game development managed through 49 coordinated Claude Code subagents.
 Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 ## Technology Stack
@@ -19,11 +19,23 @@ Each agent owns a specific domain, enforcing separation of concerns and quality.
 
 @.claude/docs/directory-structure.md
 
+> **This repo's code root is `unity/StormChaserLoop3D/Assets/`**, not `Assets/` at
+> the repo root. The framework resolves Unity's code root to `Assets/` and has no
+> override key, so read every `Assets/...` path in skills and agent docs as
+> `unity/StormChaserLoop3D/Assets/...` (tests: `unity/StormChaserLoop3D/Assets/Tests/`).
+
 ## Engine Version Reference
 
 @docs/engine-reference/unity/VERSION.md
 
 ## Technical Preferences
+
+`project.yaml` at the repo root is the primary config store — engine, naming,
+performance, modes (pinned: `rigor: standard`, `automation: collaborative`).
+Skills resolve it via `resolve_config` (see `.claude/docs/config-resolution.md`).
+
+`technical-preferences.md` stays imported here because it carries project rules
+`project.yaml` has no slot for (forbidden patterns, ADR log, Steam Deck budgets).
 
 @.claude/docs/technical-preferences.md
 
@@ -52,4 +64,13 @@ See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
 
 ## Context Management
 
-@.claude/docs/context-management.md
+Read `.claude/docs/context-management.md` on demand — it is a reference, not
+session context. Two of its conventions are load-bearing and cited by name
+elsewhere in the repo, so they are restated here rather than lost:
+
+- **`production/session-state/active.md` is the session checkpoint.** The file is
+  the memory, not the conversation. Read it first after any compaction, crash, or
+  `/clear`.
+- **Helpers in `.claude/scripts/` emit observations, never verdicts.** A script
+  that scores or judges will eventually contradict a mode or override it cannot
+  see. (Cited by `artifact-check.sh` and `adr-dep-graph.sh`.)
