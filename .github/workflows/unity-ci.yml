@@ -1,0 +1,150 @@
+# Doomsday CI — tests on every push, builds + itch release on demand.
+# Builds run on GitHub's Linux runners via GameCI (unityci/editor 6000.6.0f1), so they are
+# unaffected by Windows Smart App Control on the dev machine.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   UNITY_LICENSE   contents of the Unity .ulf license file (GameCI activation docs)
+#   UNITY_EMAIL     Unity account email
+#   UNITY_PASSWORD  Unity account password
+#   BUTLER_API_KEY  itch.io API key (only needed for releases)
+#
+# Release: Actions → "Unity CI" → Run workflow → release = true, version = 0.5.0
+#          or push a tag like v0.5.1.
+
+name: Unity CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "unity/**"
+      - ".github/workflows/unity-ci.yml"
+  pull_request:
+    paths:
+      - "unity/**"
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "Build WebGL + Windows"
+        type: boolean
+        default: true
+      release:
+        description: "Push builds to itch.io (ghostweavelabs/doomsday)"
+        type: boolean
+        default: false
+      version:
+        description: "Version label for itch (e.g. 0.5.0)"
+        type: string
+        default: ""
+
+concurrency:
+  group: unity-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_PATH: unity/StormChaserLoop3D
+  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+  UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+  UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+
+jobs:
+  test:
+    name: EditMode + PlayMode tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/cache@v6
+        with:
+          path: ${{ env.PROJECT_PATH }}/Library
+          key: Library-test-${{ hashFiles('unity/StormChaserLoop3D/Assets/**', 'unity/StormChaserLoop3D/Packages/**', 'unity/StormChaserLoop3D/ProjectSettings/**') }}
+          restore-keys: Library-test-
+
+      - uses: game-ci/unity-test-runner@v4.3.2
+        id: tests
+        with:
+          projectPath: ${{ env.PROJECT_PATH }}
+          testMode: all
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Unity test results
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-results
+          path: ${{ steps.tests.outputs.artifactsPath }}
+
+  build:
+    name: Build ${{ matrix.targetPlatform }}
+    needs: test
+    if: >
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.build || inputs.release))
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - targetPlatform: WebGL
+            buildMethod: BuildScript.BuildWebGL
+            outDir: builds/webgl
+            channel: html5
+          - targetPlatform: StandaloneWindows64
+            buildMethod: BuildScript.BuildWindows
+            outDir: builds/windows
+            channel: windows
+    steps:
+      - uses: actions/checkout@v7
+
+      # Unity editor images are large; reclaim runner disk space first.
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+
+      - uses: actions/cache@v6
+        with:
+          path: ${{ env.PROJECT_PATH }}/Library
+          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('unity/StormChaserLoop3D/Assets/**', 'unity/StormChaserLoop3D/Packages/**', 'unity/StormChaserLoop3D/ProjectSettings/**') }}
+          restore-keys: Library-${{ matrix.targetPlatform }}-
+
+      # Uses the same BuildScript as local builds (single ArtTest scene, version, itch-safe WebGL
+      # compression). BuildScript writes to <repo>/builds/<target>.
+      - uses: game-ci/unity-builder@v6.0.0
+        with:
+          projectPath: ${{ env.PROJECT_PATH }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+          buildMethod: ${{ matrix.buildMethod }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.channel }}
+          path: ${{ matrix.outDir }}
+          retention-days: 14
+
+  release:
+    name: Release to itch.io
+    needs: build
+    if: >
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && inputs.release)
+    runs-on: ubuntu-latest
+    env:
+      BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+
+      - name: Install butler
+        run: |
+          curl -sSL -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+          unzip -q butler.zip -d butler && chmod +x butler/butler
+          ./butler/butler -V
+
+      - name: Push to itch
+        run: |
+          VERSION="${{ inputs.version }}"
+          if [ -z "$VERSION" ] && [[ "$GITHUB_REF" == refs/tags/v* ]]; then VERSION="${GITHUB_REF#refs/tags/v}"; fi
+          ARGS=""; if [ -n "$VERSION" ]; then ARGS="--userversion $VERSION"; fi
+          ./butler/butler push dist/build-html5 ghostweavelabs/doomsday:html5 $ARGS
+          ./butler/butler push dist/build-windows ghostweavelabs/doomsday:windows $ARGS

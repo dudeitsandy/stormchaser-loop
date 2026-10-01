@@ -46,6 +46,11 @@ the start so players see the new look while the feel work happens.
 | X7-05 | Codex | `EnvironmentScatter` → per-tile scatter from `WorldPlan` spawning Tier A destructibles (ADR-0004 step 4) | 2 h |
 | S7-09 | Claude | Roads from the global road graph on tiles (Asphalt/DirtRoad surfaces) | 2 h |
 
+### Added mid-sprint
+| ID | Owner | Task | Status |
+|----|-------|------|--------|
+| S7-12 | Claude | **CI**: GitHub Actions + GameCI 6000.6.0f1 — tests on push, WebGL/Windows builds + butler release on demand. Added 2026-10-01 after Windows Smart App Control blocked local WebGL builds (`WebGLPlayerBuildProgram.Data.dll`, unsigned, policy {0283ac0f…}) | Workflow written; needs secrets + first run |
+
 ### Nice to Have (cut first)
 | ID | Owner | Task | Est. |
 |----|-------|------|------|
@@ -82,3 +87,9 @@ the start so players see the new look while the feel work happens.
 - [ ] Truck model in game (G2 passed or commission started)
 - [ ] Codex X7-01–X7-04 done
 - [ ] G3 feel playtest run; findings logged for Sprint 8
+
+## Release Log
+- 2026-10-01 — **0.5.0 Windows** pushed (ArtTest look). html5 channel stays 0.4.0 until WebGL builds via CI.
+- 2026-10-01 — Repo hygiene: 21 `(2)` duplicate files inside `.git` (Mar 31 copy-over artifact) moved to
+  `../stormchaser-git-dupes-backup/`; the bad ref `refs/heads/main (2)` was breaking fetch. Rebased 25
+  local commits onto origin (1 remote session-log commit) and pushed.

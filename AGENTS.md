@@ -75,6 +75,13 @@ private static void Install()
 - Audio: synthesize `AudioClip`s in code (`AudioClip.Create`) — no asset imports needed.
 - Values that designers would tune go in `[SerializeField]` fields with sane defaults.
 
+## CI (GitHub Actions, `.github/workflows/unity-ci.yml`)
+- Pushes to `main` touching `unity/**` run EditMode + PlayMode tests on GitHub's runners. Builds and
+  itch releases run only on manual dispatch or a `v*` tag — committing never ships anything.
+- Agents commit locally as before; **pushing is done only when Andy asks**. CI is the place to run
+  Unity headless when Andy's editor holds the project lock.
+- Never edit the workflow or repo secrets without asking.
+
 ## Coding conventions
 PascalCase types/methods/public members, `_camelCase` private fields, doc comments on public
 APIs, cache references in `Awake`/`Start` (never `Find*` in `Update`), new Input System only,
@@ -91,7 +98,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 
 | Task | Owner | Status |
 |------|-------|--------|
-| S7-00 0.5 Art Preview release | Claude | todo |
+| S7-00 0.5 Art Preview release | Claude | Windows 0.5.0 live; WebGL blocked locally by Smart App Control -> CI |
 | S7-01 WebGL streaming spike (G1) | Claude | todo |
 | S7-02 ADR-0005 raycast vehicle | Claude | todo |
 | S7-03 Vehicle core | Claude | todo |
