@@ -10,7 +10,8 @@ public class RunScreens : MonoBehaviour
     private static readonly Color Alarm = new Color(0.95f, 0.22f, 0.18f);
 
     [SerializeField] private string _title = "DOOMSDAY";
-    [SerializeField] private string _subtitle = "STORM SEASON  ·  PROTOTYPE 0.4";
+    [Tooltip("Shown before the build version, e.g. STORM SEASON · PROTOTYPE 0.5.0.")]
+    [SerializeField] private string _seasonName = "STORM SEASON";
     [SerializeField] private string _tagline = "Chase the storm. Get the shot. Don't get caught.";
 
     private VisualElement _overlay;
@@ -45,7 +46,8 @@ public class RunScreens : MonoBehaviour
     {
         ClearOverlay();
         _overlay.Add(MakeLabel(_title, 112, Amber, bold: true, letterSpacing: 18));
-        _overlay.Add(MakeLabel(_subtitle, 22, Bone, letterSpacing: 6));
+        // Version comes from PlayerSettings.bundleVersion (set by BuildScript), never a scene-saved string.
+        _overlay.Add(MakeLabel($"{_seasonName}  ·  PROTOTYPE {Application.version}", 22, Bone, letterSpacing: 6));
         _overlay.Add(Spacer(28));
         _overlay.Add(MakeLabel(_tagline, 20, Dim));
         _overlay.Add(Spacer(36));

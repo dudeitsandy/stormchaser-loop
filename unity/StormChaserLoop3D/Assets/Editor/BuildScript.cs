@@ -13,6 +13,10 @@ using UnityEngine;
 public static class BuildScript
 {
     private const string ProductName = "Doomsday";
+    /// <summary>Shipped version; also shown on the title screen via Application.version.</summary>
+    public const string Version = "0.5.0";
+    /// <summary>The only scene that ships. 0.5+: the ADR-0003 restyled scene.</summary>
+    private const string ShippingScene = "Assets/Scenes/ArtTest.unity";
 
     private static string OutputRoot => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "builds"));
 
@@ -26,14 +30,13 @@ public static class BuildScript
 
     private static void Build(BuildTarget target, string locationPath)
     {
-        // Art/dev test scenes stay in Build Settings for editor reloads but never ship.
-        string[] scenes = EditorBuildSettings.scenes
-            .Where(s => s.enabled && !s.path.EndsWith("ArtTest.unity"))
-            .Select(s => s.path).ToArray();
-        if (scenes.Length == 0)
-            throw new BuildFailedException("No enabled scenes in Build Settings.");
+        // Ship exactly one scene. VerificationScene (the 0.4 look) stays in Build Settings for editor A/B only.
+        if (!EditorBuildSettings.scenes.Any(s => s.path == ShippingScene))
+            throw new BuildFailedException($"{ShippingScene} is not in Build Settings. Run StormChaser > Art Test > Build ArtTest Scene.");
+        string[] scenes = { ShippingScene };
 
         PlayerSettings.productName = ProductName;
+        PlayerSettings.bundleVersion = Version;
         PlayerSettings.companyName = "Ghostweave Games";
         if (target == BuildTarget.WebGL)
             // itch.io serves without Content-Encoding headers; gzip/brotli builds fail to load there.
