@@ -71,6 +71,7 @@ Those are the Early Access roadmap, not the prototype.
 | Debris / dust VFX scaled by wind field | Codex | the "secondary effects" ask |
 | Wind physics polish (gusts, truck lift/tilt) | Claude | after Vehicle Feel pass |
 | **Vehicle Feel pass — Rocket League target** | Claude | Replace arcade direct-velocity with real rigidbody vehicle: weight transfer on accel/brake, powerslide/handbrake turns, suspension over uneven terrain, air control, tangible crash impacts (camera kick, debris, damage tied to impact force), wind as a real force on the body. Vision-1.0 Pillar 1 (Kinetic Chaos), planned Sprint 6-7 alongside stunt/style scoring. Depends on terrain becoming a large-scale, uneven, destructible space — design both together, not before. Requested 2026-10-01. |
+| **Art direction: stylized world, retro lens** ([ADR-0003](../../docs/architecture/adr-0003-art-direction-stylized-world-retro-lens.md)) | Claude + Codex | Cel-shaded world + 2D VFX cards in 3D; camcorder/VHS look moves to viewfinder, photos, results. First step: visual test scene (cel truck, card tornado, camcorder viewfinder) for approval. Sequence with Vehicle Feel + terrain. Approved 2026-10-01. |
 | Large-scale destructible terrain | Claude + Codex | Prerequisite for the Vehicle Feel pass to matter (bumps, ramps, debris to drive over/through). Needs its own ADR. |
 
 ## Release Log

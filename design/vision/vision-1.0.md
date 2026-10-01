@@ -50,7 +50,7 @@ Each run is shaped by your meta-unlocked loadout, procedural event windows, and 
 
 ## Platform & Feel Target: PC (Steam)
 
-- **Visual Style**: High-contrast, low-poly 3D with a retro arcade post-processing stack (pixel dithering, CRT scanlines, bloom, teal-orange grade).
+- **Visual Style**: *Stylized world, retro lens* (see `ADR-0003`, 2026-10-01). The world is modern stylized: cel shading, outlines, saturated palette, 2D VFX cards in 3D space. The 90s look (CRT scanlines, grain, date stamp) lives in the player's camera: viewfinder, photos, results. Supersedes the original full-screen retro post-processing stack.
 - **Performance Budget**: Locked 60 FPS on PC, 30 FPS on Steam Deck (per `ADR-0001` and `technical-preferences.md`).
 - **Bite-Sized Sessions**: 90-second Sprint and 5–7.5 minute Chase modes optimized for instant pick-up-and-play — this design goal holds regardless of platform.
 
