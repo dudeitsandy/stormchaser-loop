@@ -83,6 +83,12 @@ formulas:
     output_range: "0–1"
     referenced_by: []
     written: 2026-10-01
+  - name: album_eviction                    # F1
+    source: design/gdd/save-profile.md
+    variables: [Score, Date, CoverId, Pinned, AlbumCap]
+    output_range: "one unpinned victim, or none (all pinned / new cover loses)"
+    referenced_by: []
+    written: 2026-10-01
 
 constants:
   - name: GripFloor
@@ -125,5 +131,35 @@ constants:
     source: design/gdd/surfaces-terrain-modifiers.md
     value: 3
     unit: m
+    referenced_by: []
+    written: 2026-10-01
+  - name: AlbumCap_Desktop
+    source: design/gdd/save-profile.md
+    value: 24
+    unit: covers per slot (Windows / Steam Deck)
+    referenced_by: [design/gdd/economy-progression.md]
+    written: 2026-10-01
+  - name: AlbumCap_WebGL
+    source: design/gdd/save-profile.md
+    value: 16
+    unit: covers per slot (browser)
+    referenced_by: [design/gdd/economy-progression.md]
+    written: 2026-10-01
+  - name: CorruptKeep
+    source: design/gdd/save-profile.md
+    value: 3
+    unit: .corrupt files per file
+    referenced_by: []
+    written: 2026-10-01
+  - name: SaveDebounce
+    source: design/gdd/save-profile.md
+    value: 2
+    unit: s
+    referenced_by: []
+    written: 2026-10-01
+  - name: BrowserSyncInterval
+    source: design/gdd/save-profile.md
+    value: 5
+    unit: s
     referenced_by: []
     written: 2026-10-01

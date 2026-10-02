@@ -60,7 +60,7 @@ biomes, and vehicles enter the index when their season is planned.
 | 24 | Vehicle Loadout & Archetypes | Progression | Vertical Slice | Not Started | — | Vehicle Feel, Vehicle Damage |
 | 25 | Per-Run Modifiers | Progression | Alpha | Not Started | — | Run Manager & Session Modes, Four-Axis Scoring, Vehicle Loadout & Archetypes |
 | 26 | Cataclysm Heat | Progression | Alpha | In Design | design/gdd/economy-progression.md | Storm Dollars & HQ Garage, Per-Run Modifiers |
-| 27 | Save & Profile (inferred) | Persistence | MVP | Not Started | — | — |
+| 27 | Save & Profile (inferred) | Persistence | MVP | Designed | design/gdd/save-profile.md | — (platform storage only) |
 | 28 | Settings (inferred) | Persistence | Vertical Slice | Not Started | — | Save & Profile, Input & Controls |
 | 29 | HUD (inferred) | UI | MVP | Implemented | — | Four-Axis Scoring, Run Manager & Session Modes, Vehicle Damage |
 | 30 | Viewfinder / PiP & Camcorder Lens | UI | MVP | Implemented | docs/architecture/adr-0003-art-direction-stylized-world-retro-lens.md | Camera & Aim, Photo Documentation |

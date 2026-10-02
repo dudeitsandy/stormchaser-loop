@@ -178,9 +178,7 @@ At the end of every run, the game generates a mock **retro newspaper or magazine
   the Sensor Deployment event can trigger; see that doc's Edge Cases.
 - `vehicle-damage.md` — Repair Kit, Survivor perk, Heavy Bumper, Anchor Harpoon/Clamps, and
   EMP Deflector Shield all hook into that doc's HP/stage model; see its Dependencies section.
-- **New system required**: a save/profile persistence layer. Nothing in the current codebase
-  saves data across sessions — Storm Dollars, garage unlocks, and the Newspaper Album all
-  require this to exist before Sprint 6-7 implementation can start. Not yet scoped anywhere.
+- `save-profile.md` (Save & Profile) — the persistence layer this doc required: Storm Dollars balance, garage unlocks (stable string IDs), the purchase transaction, and the Newspaper Album (`perk.photojournalist` gates saving covers; AlbumCap 24 desktop / 16 WebGL). Designed 2026-10-01.
 - `vision-1.0.md`'s Vehicle Archetypes table — Tree 1 unlock names must stay in sync with it
 - `vehicle-feel.md` F13 — Speed/Armor/Trick stars are now mechanical (top speed, mass, wind exposure,
   crash thresholds, air control, handbrake grip, style refill). Tree 1 stat deltas should be expressed

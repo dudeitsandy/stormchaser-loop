@@ -75,6 +75,8 @@ Phase 3 (70–100%): EF3–EF1  — dissipating, decreasing risk and reward
 
 ## Dependencies
 
+- `save-profile.md` (Save & Profile) — supplies mode unlocks, best scores, and `LastLoadout`; Run Manager
+  calls its run-complete checkpoint (the only save a run makes). Added 2026-10-01.
 - SessionTimer.cs (S2-05) — extend to support variable duration
 - TornadoSpawner.cs (S3-01) — extend to support storm front sequencing
 - EventSystem (see event-system.md) — Chase mode only
