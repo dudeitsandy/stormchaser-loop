@@ -15,6 +15,8 @@ public sealed class PhotoFeedback : MonoBehaviour
     private float _age = float.PositiveInfinity;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Register() => SceneInstaller.EveryScene(Install); // AfterSceneLoad alone skips reloads
+
     private static void Install()
     {
         if (Object.FindAnyObjectByType<PlayerVehicle>() != null && Object.FindAnyObjectByType<PhotoFeedback>() == null)

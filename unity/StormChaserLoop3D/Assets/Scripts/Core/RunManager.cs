@@ -89,8 +89,9 @@ public class RunManager : MonoBehaviour
         _screens.ShowTitle(BestScoreStore.Load());
         WaitForAnyButton(0.25f, control =>
         {
-            if (control == Keyboard.current?.escapeKey) Quit();
-            else StartRun();
+            if (control != Keyboard.current?.escapeKey) StartRun();
+            else if (CanQuit) Quit();
+            else EnterTitle(); // WebGL: Application.Quit halts the player and freezes the canvas
         });
     }
 
@@ -101,6 +102,12 @@ public class RunManager : MonoBehaviour
         Time.timeScale = 1f;
         _screens.Hide();
         SetGameplayActive(true);
+        // The press that dismissed the title/results belongs to the menu: keep the shutter safe until it's released.
+        if (_photo != null)
+        {
+            _photo.Armed = false;
+            StartCoroutine(ArmShutterOnRelease());
+        }
         _timer.Begin();
         _spawner.Begin();
         GameEvents.RaiseRunStarted();
@@ -151,6 +158,23 @@ public class RunManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
+    private IEnumerator ArmShutterOnRelease()
+    {
+        while (AnyButtonHeld()) yield return null;
+        if (Current == State.Running && _photo != null) _photo.Armed = true;
+    }
+
+    private static bool AnyButtonHeld()
+    {
+        if (Keyboard.current != null && Keyboard.current.anyKey.isPressed) return true;
+        foreach (Gamepad pad in Gamepad.all)
+            foreach (InputControl control in pad.allControls)
+                if (control is UnityEngine.InputSystem.Controls.ButtonControl button && button.isPressed && !button.synthetic)
+                    return true;
+        if (Mouse.current != null && Mouse.current.leftButton.isPressed) return true;
+        return false;
+    }
+
     private void SetGameplayActive(bool active)
     {
         if (_vehicle != null) _vehicle.InputEnabled = active;
@@ -174,6 +198,8 @@ public class RunManager : MonoBehaviour
             onPress(control);
         });
     }
+
+    private static bool CanQuit => Application.platform != RuntimePlatform.WebGLPlayer;
 
     private static void Quit()
     {

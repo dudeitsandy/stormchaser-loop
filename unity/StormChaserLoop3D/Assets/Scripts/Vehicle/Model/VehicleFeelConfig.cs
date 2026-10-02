@@ -53,6 +53,8 @@ public struct VehicleFeelValues
     [Header("Knockback & recovery")]
     public float KnockbackSpreadSeconds, KnockbackGripScale;
     public float StuckSeconds;
+    [Tooltip("Critical damage stage: engine power multiplier (limp mode). Boost and jump stay disabled.")]
+    public float CriticalPowerScale;
 
     [Header("Limits")]
     public float MaxAngularSpeed;
@@ -97,6 +99,8 @@ public struct VehicleFeelValues
 
         KnockbackSpreadSeconds = 0.15f, KnockbackGripScale = 0.35f,
         StuckSeconds = 2f,
+        // Playtest 2026-10-01: momentum-only Critical soft-locked a stopped truck for the rest of the run.
+        CriticalPowerScale = 0.4f,
 
         MaxAngularSpeed = 12f,
     };

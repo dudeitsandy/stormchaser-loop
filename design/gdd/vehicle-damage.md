@@ -12,7 +12,7 @@ failures, disaster-caused collisions, and specific hazard effects (Ice Vortex hu
 EMP shockwaves, wind suction) each consume HP in discrete amounts. Damage is automatic and
 reactive — the player never manages it directly, only makes the driving decisions that cause
 or avoid it. As HP drops, the vehicle progressively degrades both visually and mechanically
-(reduced turning radius, glitched viewfinder, momentum-only movement) before reaching zero,
+(reduced turning radius, glitched viewfinder, limp-mode movement) before reaching zero,
 which destroys the vehicle and ends the run early. This system exists to give weight to every
 risk decision in the game — without it, ramming a roadblock, diving close to an EF5, or
 ignoring a Cataclysm Heat modifier would carry no real cost, and the "Living Damage Economy"
@@ -61,7 +61,7 @@ percentage of Max HP so this generalizes across archetypes:
 |-------|-----------------|-----------------|----------|
 | Healthy | HP > floor(MaxHP × ⅔) | HP drops to Damaged threshold | No penalties |
 | Damaged | HP ≤ floor(MaxHP × ⅔) and > floor(MaxHP × ⅓) | HP drops to Critical threshold, or repaired above threshold | Turning radius reduced (bent frame) |
-| Critical | HP ≤ floor(MaxHP × ⅓) and > 0 | HP reaches 0, or repaired above threshold | Turning radius reduced + viewfinder glitch (broken windshield) + momentum-only movement (disabled engine) — all three combine here |
+| Critical | HP ≤ floor(MaxHP × ⅓) and > 0 | HP reaches 0, or repaired above threshold | Turning radius reduced + viewfinder glitch (broken windshield) + limp-mode movement (engine at `CriticalPowerScale` 0.4, no boost/jump; revised 2026-10-01 from momentum-only, which soft-locked a stopped truck) — all three combine here |
 | Destroyed | HP = 0 | Run ends (or Survivor perk consumes itself and restores to full Healthy) | Session ends early, 80% score banked |
 
 Worked examples: MaxHP=3 (Pickup Truck) → Healthy@3, Damaged@2, Critical@1, Destroyed@0 —
@@ -75,7 +75,7 @@ Critical@1, Destroyed@0 — tankier vehicles absorb more hits before showing any
 | System | Direction | Interface |
 |--------|-----------|-----------|
 | `PlayerVehicle.cs` | This depends on it | Receives collision/ramming/hazard-zone events; must add a health field (doesn't exist today) |
-| `PlayerVehicle.cs` (movement) | This feeds it | Current stage modifies turning radius multiplier; Critical stage forces momentum-only movement |
+| `PlayerVehicle.cs` (movement) | This feeds it | Current stage modifies turning radius multiplier; Critical stage forces limp-mode movement (`vehicle-feel.md` `CriticalPowerScale`) |
 | `event-system.md` | Depended on by | Ramming Impact Threshold's "1 HP damage" and `VehicleMaxHP` knob are already fixed by that doc — this GDD implements them, doesn't redefine them |
 | `economy-progression.md` | Depended on by | Repair Kit (+1 HP), Survivor perk (full restore + destruction-prevention, once per run), Heavy Bumper (zeroes ramming self-damage), Anchor Harpoon/Clamps (immune to wind-suction damage specifically), EMP Deflector Shield (absorbs one EMP/shockwave status effect) |
 | `session-modes.md` | Depended on by | Destroyed state triggers the existing "vehicle destroyed" early-end + 80% score bank behavior |

@@ -22,6 +22,7 @@ public class HudController : MonoBehaviour
     private Label _scoreLabel;
     private Label _filmLabel;
     private Label _windLabel;
+    private Label _hpTitle;
     private PhotoTrigger _photo;
     private float _lastWindShown = -1f;
     private readonly List<VisualElement> _hpPips = new List<VisualElement>();
@@ -80,7 +81,7 @@ public class HudController : MonoBehaviour
         left.style.paddingTop = 6;
         left.style.paddingBottom = 6;
 
-        var hpTitle = new Label("TRUCK");
+        var hpTitle = _hpTitle = new Label("TRUCK");
         hpTitle.style.color = Color.white;
         hpTitle.style.fontSize = 16;
         hpTitle.style.marginRight = 8;
@@ -138,6 +139,12 @@ public class HudController : MonoBehaviour
 
     private void OnPlayerDamaged(int current, int max)
     {
+        if (_hpTitle != null)
+        {
+            bool critical = current > 0 && VehicleHealth.StageFor(current, max) == DamageStage.Critical;
+            _hpTitle.text = critical ? "CRITICAL" : "TRUCK";
+            _hpTitle.style.color = critical ? HpHit : Color.white;
+        }
         for (int i = 0; i < _hpPips.Count; i++)
             _hpPips[i].style.backgroundColor = i < current ? HpFull : HpEmpty;
         // The pip just lost flashes red briefly.

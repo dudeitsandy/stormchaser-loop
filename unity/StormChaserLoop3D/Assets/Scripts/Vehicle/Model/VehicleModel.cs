@@ -138,17 +138,16 @@ public sealed class VehicleModel
         VehicleInputFrame inp = input.Input;
         float driveTotal = 0f;
         bool braking = false;
-        if (!Disabled)
-        {
-            if (inp.Throttle > 0.01f && ForwardSpeed > -1f)
-                driveTotal = _p.Mass * _p.EngineAccel * inp.Throttle * TorqueCurve(ForwardSpeed, _p.TopSpeed);
-            else if (inp.Throttle > 0.01f)
-                braking = true; // throttle while rolling backward brakes first
-            if (inp.Brake > 0.01f && ForwardSpeed >= 1f)
-                braking = true;
-            else if (inp.Brake > 0.01f)
-                driveTotal = -_p.Mass * _p.EngineAccel * inp.Brake * TorqueCurve(-ForwardSpeed, _p.ReverseSpeed);
-        }
+        // Critical = limp mode: reduced engine power, never zero, so a stopped truck can always crawl away.
+        float power = Disabled ? Mathf.Clamp01(_v.CriticalPowerScale) : 1f;
+        if (inp.Throttle > 0.01f && ForwardSpeed > -1f)
+            driveTotal = _p.Mass * _p.EngineAccel * power * inp.Throttle * TorqueCurve(ForwardSpeed, _p.TopSpeed);
+        else if (inp.Throttle > 0.01f)
+            braking = true; // throttle while rolling backward brakes first
+        if (inp.Brake > 0.01f && ForwardSpeed >= 1f)
+            braking = true;
+        else if (inp.Brake > 0.01f)
+            driveTotal = -_p.Mass * _p.EngineAccel * power * inp.Brake * TorqueCurve(-ForwardSpeed, _p.ReverseSpeed);
         bool coasting = Mathf.Abs(inp.Throttle) < 0.01f && Mathf.Abs(inp.Brake) < 0.01f;
 
         // ---- Wind steer: the wind tugs the wheel toward its direction (playtest: small tornadoes pull) ----

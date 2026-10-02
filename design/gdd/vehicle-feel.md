@@ -133,8 +133,9 @@ unstoppable (more mass, terrain immunity, slower to commit).
 - **Viewfinder and photo AimScore use the camera's forward**, not the truck's.
 
 **9. Damage-stage hooks** (implements `vehicle-damage.md`)
-- **Damaged:** max steer angle × 0.75. **Critical:** momentum-only — no throttle, boost, or jump;
-  steering and handbrake still work.
+- **Damaged:** max steer angle × 0.75. **Critical:** limp mode — throttle and reverse at
+  `CriticalPowerScale` (0.4) of engine power; no boost or jump; steering and handbrake still work.
+  *(Revised 2026-10-01: momentum-only soft-locked a stopped truck for the rest of the run in playtest.)*
 
 **10. Input map** *(changes current bindings)*
 
@@ -312,6 +313,7 @@ values is `VehicleFeelConfig` (`VehicleFeelValues.Defaults`); this table records
 | New: `RollStabilization` | — | 0.6 beyond 25° | **0.6 beyond 25°** | knockback was rolling the truck |
 | New: knockback spread / grip | instant | 0.15 s, 0.35× grip, 0.7× strength | **same** | funnel contact slides instead of trips |
 | New: `StuckSeconds` | — | 2 s | **2 s** | hop free when wedged with < 2 wheels down |
+| New: `CriticalPowerScale` | 0 (momentum-only) | — | **0.4** | limp mode; Critical no longer soft-locks a stopped truck |
 | New: `WindSteer` / `WindSteerMax` | — | — | **0.35 / 0.5** | F11b |
 | Camera binding | LockToTarget | **LockToTargetWithWorldUp**, yaw damping 1.6 | same | camera was pitching/rolling/flipping with the truck |
 
@@ -330,7 +332,7 @@ Driving noise, response, and slide polish are deferred to the polish pass (Andy,
 | E7 | Low framerate (Steam Deck 30 fps, WebGL hitches) | Fixed 50 Hz physics, independent of render rate; max catch-up 0.1 s per frame |
 | E8 | Flung out of the world | Soft boundary push-back + hard clamp; below y = −10, respawn at last grounded position (no HP cost) |
 | E9 | Wall-driving via suspension | Wheel grounded only if contact normal is < 60° from up. No Rocket League wall-riding |
-| E10 | Critical damage stage while airborne | Air control allowed (rotation, not propulsion); throttle/boost/jump stay disabled |
+| E10 | Critical damage stage while airborne | Air control allowed (rotation, not propulsion); boost/jump stay disabled; throttle drives only when grounded, at limp power |
 | E11 | Storm Cam with no disaster in range | Falls back to free orbit while staying toggled; re-locks when one enters range; switching targets requires the new one to be ≥ 25 % closer (no flicker) |
 | E12 | Multiple impacts in one physics step | Apply only the single highest severity |
 | E13 | Hitting light destructibles (fences, signs) | Severity scaled by `min(1, m_other / (0.5 · M))`; static geometry = full mass. Plowing through fences never hurts; silos do. *(Masses per ADR-0004 §5)* |
@@ -482,8 +484,8 @@ HUD = Claude lane; style pops = Codex lane.
 - [ ] Storm Cam on, tornado in range: camera-to-tornado angle stays < 5° while the truck drives a full
       circle around it.
 - [ ] Camera-forward aim: truck facing 90° away, camera centered on funnel at 20 m → PERFECT tier.
-- [ ] Damage hooks: Damaged → max steer = 0.75 × normal; Critical → throttle/boost/jump produce no
-      forward force.
+- [ ] Damage hooks: Damaged → max steer = 0.75 × normal; Critical → throttle/reverse drive at
+      `CriticalPowerScale` × normal force; boost/jump produce none.
 - [ ] Regression: updated `RunLoopSmokeTests` pass with the new vehicle.
 
 **Performance**

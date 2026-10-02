@@ -13,6 +13,8 @@ public sealed class EnvironmentScatter : MonoBehaviour
     private Material _wood, _leaves, _wall, _roof, _metal;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Register() => SceneInstaller.EveryScene(Install); // AfterSceneLoad alone skips reloads
+
     private static void Install()
     {
         if (Object.FindAnyObjectByType<PlayerVehicle>() != null && Object.FindAnyObjectByType<EnvironmentScatter>() == null)

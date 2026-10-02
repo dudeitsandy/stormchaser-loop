@@ -106,22 +106,33 @@ public class VehicleModelTests
     }
 
     [Test]
-    public void CriticalDamage_ThrottleProducesNoForwardDrive()
+    public void CriticalDamage_ThrottleDrivesAtLimpPower()
     {
-        // Arrange: grounded at rest, full throttle, Critical stage.
-        var model = NewPickup(out _);
-        WheelContact[] contacts = Contacts(V.RestLength - V.SagFraction * V.Travel, Vector3.zero);
-        var output = new VehicleStepOutput();
-        var input = Input(Vector3.zero);
-        input.Damage = DamageStage.Critical;
-        input.Input.Throttle = 1f;
+        // Arrange: grounded at rest, full throttle, Healthy vs Critical.
+        float Drive(DamageStage stage, float throttle, float brake, out bool disabled)
+        {
+            var model = NewPickup(out _);
+            WheelContact[] contacts = Contacts(V.RestLength - V.SagFraction * V.Travel, Vector3.zero);
+            var output = new VehicleStepOutput();
+            var input = Input(Vector3.zero);
+            input.Damage = stage;
+            input.Input.Throttle = throttle;
+            input.Input.Brake = brake;
+            model.Step(input, contacts, output);
+            disabled = model.Disabled;
+            float forward = 0f;
+            for (int i = 0; i < VehicleModel.WheelCount; i++) forward += output.WheelForce[i].z;
+            return forward;
+        }
         // Act
-        model.Step(input, contacts, output);
-        // Assert
-        float forward = 0f;
-        for (int i = 0; i < VehicleModel.WheelCount; i++) forward += output.WheelForce[i].z;
-        Assert.IsTrue(model.Disabled);
-        Assert.LessOrEqual(forward, 1e-3f);
+        float healthy = Drive(DamageStage.Healthy, 1f, 0f, out _);
+        float critical = Drive(DamageStage.Critical, 1f, 0f, out bool disabled);
+        float reverse = Drive(DamageStage.Critical, 0f, 1f, out _);
+        // Assert: limp mode moves both ways at CriticalPowerScale of healthy power (playtest 2026-10-01).
+        Assert.IsTrue(disabled);
+        Assert.Greater(critical, 0f, "Critical must still drive forward");
+        Assert.AreEqual(healthy * V.CriticalPowerScale, critical, healthy * 0.01f);
+        Assert.Less(reverse, 0f, "Critical must still reverse");
     }
 
     // ---------- F3 grip ----------

@@ -1,4 +1,7 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -91,8 +94,9 @@ public class RunLoopSmokeTests
         }
     }
 
+    /// <summary>vehicle-feel.md AC: parked (no input) 15 m from an EF3 → > 0.5 m horizontal in 1 s; never Tossed.</summary>
     [UnityTest]
-    public IEnumerator TornadoWind_DragsAParkedTruck()
+    public IEnumerator TornadoWind_ParkedNearEF3_IsDraggedNotTossed()
     {
         SceneManager.LoadScene(SceneName);
         yield return null;
@@ -100,24 +104,49 @@ public class RunLoopSmokeTests
 
         var run = Object.FindAnyObjectByType<RunManager>();
         var truck = Object.FindAnyObjectByType<PlayerVehicle>();
+        var spawner = Object.FindAnyObjectByType<DisasterSpawner>();
         run.StartRun();
-        yield return new WaitForSeconds(5f);
-        Assert.Greater(DisasterEntity.Active.Count, 0, "A tornado should have spawned");
-        var tornado = (TornadoController)DisasterEntity.Active[0];
+        spawner.Stop(); // this test spawns its own EF3; random spawns would vary the wind
 
-        // Park inside the wind field but outside the damage radius, no throttle.
-        float standoff = (tornado.DamageRadius + tornado.WindRadius) * 0.5f;
-        Vector3 start = tornado.transform.position + new Vector3(standoff, 0f, 0f);
+        // Spawn an EF3 from the spawner's own prefab and roster, away from the truck, and let it mature.
+        const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
+        var prefab = (TornadoController)typeof(DisasterSpawner).GetField("_tornadoPrefab", Private).GetValue(spawner);
+        var roster = (List<DisasterSpawner.RosterEntry>)typeof(DisasterSpawner).GetField("_roster", Private).GetValue(spawner);
+        TornadoData ef3 = roster.Select(e => e.Data).First(d => d != null && d.EFRating == "EF3");
+        Vector3 origin = truck.transform.position + new Vector3(0f, 0f, 60f);
+        TornadoController tornado = Object.Instantiate(prefab, new Vector3(origin.x, 0f, origin.z), Quaternion.identity);
+        tornado.Initialize(ef3, truck.transform);
+        yield return new WaitForSeconds(4f); // _formSeconds = 3 → Mature
+
+        // Park 15 m off the funnel's axis, no input.
+        Vector3 start = tornado.transform.position + new Vector3(15f, 0f, 0f);
         Place(truck, start, Quaternion.identity);
         yield return new WaitForFixedUpdate();
         Vector3 placed = truck.transform.position;
 
-        yield return new WaitForSeconds(0.75f);
-        float moved = Vector3.Distance(placed, truck.transform.position);
-        Debug.Log($"[Smoke] {tornado.EFRating} windR={tornado.WindRadius:F1} standoff={standoff:F1} " +
-                  $"wind={truck.CurrentWind.magnitude:F2} moved={moved:F2}");
-        Assert.Greater(truck.CurrentWind.magnitude, 0.5f, "Truck should feel wind inside the field");
-        Assert.Greater(moved, 0.5f, "Wind should move a truck with no input");
+        bool tossed = false;
+        System.Action onTossed = () => tossed = true;
+        GameEvents.Tossed += onTossed;
+        try
+        {
+            float t = 0f;
+            while (t < 1f)
+            {
+                yield return null;
+                t += Time.deltaTime;
+            }
+        }
+        finally
+        {
+            GameEvents.Tossed -= onTossed;
+        }
+
+        Vector3 delta = truck.transform.position - placed;
+        float moved = new Vector2(delta.x, delta.z).magnitude;
+        Debug.Log($"[Smoke] {tornado.EFRating} phase={tornado.Phase} windR={tornado.WindRadius:F1} " +
+                  $"wind={truck.CurrentWind.magnitude:F2} moved={moved:F2} tossed={tossed}");
+        Assert.Greater(moved, 0.5f, "EF3 wind at 15 m should drag a parked truck");
+        Assert.IsFalse(tossed, "EF3 at 15 m must never toss");
     }
 
     private static void Place(PlayerVehicle truck, Vector3 position, Quaternion rotation)

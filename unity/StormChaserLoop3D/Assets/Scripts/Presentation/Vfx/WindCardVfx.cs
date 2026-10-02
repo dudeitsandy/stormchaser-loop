@@ -27,6 +27,8 @@ public sealed class WindCardVfx : MonoBehaviour
     private int _cursor;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Register() => SceneInstaller.EveryScene(Install); // AfterSceneLoad alone skips reloads
+
     private static void Install()
     {
         if (Object.FindAnyObjectByType<PlayerVehicle>() != null && Object.FindAnyObjectByType<WindCardVfx>() == null)

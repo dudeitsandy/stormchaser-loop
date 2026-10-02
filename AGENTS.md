@@ -59,12 +59,20 @@ itself after scene load, so no scene edits are needed:
 
 ```csharp
 [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+private static void Register() => SceneInstaller.EveryScene(Install); // AfterSceneLoad alone skips reloads
+
 private static void Install()
 {
     if (Object.FindAnyObjectByType<PlayerVehicle>() == null) return; // only in gameplay scenes
+    if (Object.FindAnyObjectByType<PhotoFeedback>() != null) return; // idempotent
     new GameObject(nameof(PhotoFeedback)).AddComponent<PhotoFeedback>();
 }
 ```
+
+> **AfterSceneLoad fires only for the first scene of an app launch.** Retry/title reload the scene, so
+> installers registered that way vanished after the first run (0.6.0 itch bug: no scenery, PiP, wind
+> cards or audio after Retry). Always register through `SceneInstaller.EveryScene` (Core) and keep
+> `Install()` idempotent.
 
 - Runtime UI: add a `UIDocument` to an *inactive* GameObject, assign the shared panel
   `doc.panelSettings = Resources.Load<PanelSettings>("UI/PanelSettings");` and `doc.sortingOrder`,
@@ -182,3 +190,9 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   `GroundedWheels`, `CurrentSpeed`/`MaxSpeed`/`CurrentWind` (unchanged), and `Model.WindSteerBias`.
   Events live now: `GameEvents.Landed(float verticalSpeed)` and `GameEvents.Tossed()`. Coming in S7-06:
   `VehicleImpact(ImpactInfo)`; S7-04: `StyleEvent(StyleKind, float)`. Tire smoke = `State == Sliding`.
+- **Claude → Codex (2026-10-01, 0.6.1 hotfix — cross-lane edit, Andy approved):** Retry left the world
+  blank because `AfterSceneLoad` installers never re-ran after `SceneManager.LoadScene`. Added
+  `Scripts/Core/SceneInstaller.cs` and changed the attribute in your six installers (EnvironmentScatter,
+  ProceduralAudio, OffscreenIndicator, PhotoFeedback, PipViewfinder, WindCardVfx) to
+  `Register() => SceneInstaller.EveryScene(Install)`; `Install()` bodies are untouched. Pattern section
+  above is updated. Please use it for any new installer. PlayMode check: `RunRestartTests`.

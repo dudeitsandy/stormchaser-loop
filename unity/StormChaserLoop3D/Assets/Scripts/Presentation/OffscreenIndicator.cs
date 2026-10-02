@@ -11,6 +11,8 @@ public sealed class OffscreenIndicator : MonoBehaviour
     private Label _label;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Register() => SceneInstaller.EveryScene(Install); // AfterSceneLoad alone skips reloads
+
     private static void Install()
     {
         if (Object.FindAnyObjectByType<PlayerVehicle>() != null && Object.FindAnyObjectByType<OffscreenIndicator>() == null)
