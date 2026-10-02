@@ -131,6 +131,8 @@ At run start, the News Network assigns 1–3 procedural photo bounties:
 ## Dependencies
 
 - `DisasterEntity.cs` / `TornadoController.cs` — path projection for event placement.
+- `storm-director.md` — owns storm cells, their tracks and ETA (path projection source) and each cell's EF
+  (drives `SpawnChance`). Added 2026-10-01.
 - `VehicleData.cs` / `PlayerVehicle.cs` — collision damage, mass, and payload triggers.
 - `vehicle-feel.md` — supplies Sliding state + slide duration (Drift Framing Zone — this satisfies its
   "requires the Vehicle Feel pass" trigger) and Airborne flag + airtime (Twister Jump Ramp). Added 2026-10-01.

@@ -50,6 +50,37 @@ entities:
     referenced_by: []
     written: 2026-10-01
 
+  - name: Tornado_EF0   # storm scale F3
+    source: design/gdd/storm-director.md
+    attributes: { damage_radius_m: 1.5, wind_radius_m: 12, peak_wind_mps: 8, form_mature_rope_s: "20/30/10", track_speed_mps: 3 }
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: Tornado_EF1   # storm scale F3
+    source: design/gdd/storm-director.md
+    attributes: { damage_radius_m: 2.2, wind_radius_m: 18, peak_wind_mps: 12, form_mature_rope_s: "25/40/12", track_speed_mps: 4 }
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: Tornado_EF2   # storm scale F3
+    source: design/gdd/storm-director.md
+    attributes: { damage_radius_m: 3.2, wind_radius_m: 26, peak_wind_mps: 17, form_mature_rope_s: "30/50/15", track_speed_mps: 5 }
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: Tornado_EF3   # storm scale F3
+    source: design/gdd/storm-director.md
+    attributes: { damage_radius_m: 5, wind_radius_m: 34, peak_wind_mps: 26, form_mature_rope_s: "35/60/20", track_speed_mps: 6.5 }
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: Tornado_EF4   # storm scale F3
+    source: design/gdd/storm-director.md
+    attributes: { damage_radius_m: 6.5, wind_radius_m: 52, peak_wind_mps: 40, form_mature_rope_s: "40/75/25", track_speed_mps: 8 }
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+  - name: Tornado_EF5   # storm scale F3
+    source: design/gdd/storm-director.md
+    attributes: { damage_radius_m: 12, wind_radius_m: 70, peak_wind_mps: 62, form_mature_rope_s: "45/90/30", track_speed_mps: 8 }
+    referenced_by: [design/gdd/vehicle-feel.md]
+    written: 2026-10-01
+
 items: []
 
 formulas:
@@ -87,6 +118,37 @@ formulas:
     source: design/gdd/save-profile.md
     variables: [Score, Date, CoverId, Pinned, AlbumCap]
     output_range: "one unpinned victim, or none (all pinned / new cover loses)"
+    referenced_by: []
+    written: 2026-10-01
+
+  - name: storm_regime_draw   # F1
+    source: design/gdd/storm-director.md
+    variables: [H, w0_r, s_r, p5_0]
+    output_range: "regime probabilities sum to 1; P(any EF5) ~4.2% Heat 0, ~13% Heat 5"
+    referenced_by: []
+    written: 2026-10-01
+  - name: storm_cell_schedule   # F2
+    source: design/gdd/storm-director.md
+    variables: [N_cells, T, t_peak, Form, SpawnDist, CapTotal, CapDelay]
+    output_range: "T 315-450 s; anchor peak 0.40-0.65 T; satellites <= EF3"
+    referenced_by: []
+    written: 2026-10-01
+  - name: storm_scale   # F3
+    source: design/gdd/storm-director.md
+    variables: [d, I, P_EF, R_EF, D_EF]
+    output_range: "W(d) = P*I*(1 - d/(R*I))^2; EF3 8.1 m/s @15 m, EF5 38.3 m/s @15 m"
+    referenced_by: []
+    written: 2026-10-01
+  - name: storm_forecast_estimate   # F4
+    source: design/gdd/storm-director.md
+    variables: [d, b_i, b_t, t_true]
+    output_range: "|EF error| <= 1; exact inside 150 m; ETA error 5-45%"
+    referenced_by: []
+    written: 2026-10-01
+  - name: storm_track_motion   # F5
+    source: design/gdd/storm-director.md
+    variables: [omega_EF, v_track, lambda0, v_cap]
+    output_range: "speed 0.4 v_track to 12.9 m/s; never reads player position"
     referenced_by: []
     written: 2026-10-01
 
@@ -161,5 +223,35 @@ constants:
     source: design/gdd/save-profile.md
     value: 5
     unit: s
+    referenced_by: []
+    written: 2026-10-01
+  - name: StormCapTotal_Epic
+    source: design/gdd/storm-director.md
+    value: 5
+    unit: live cells (Chaos 6)
+    referenced_by: []
+    written: 2026-10-01
+  - name: StormCapCompact
+    source: design/gdd/storm-director.md
+    value: 2
+    unit: live cells
+    referenced_by: []
+    written: 2026-10-01
+  - name: ForecastExactRange
+    source: design/gdd/storm-director.md
+    value: 150
+    unit: m
+    referenced_by: []
+    written: 2026-10-01
+  - name: ForecastMaxErrorRange
+    source: design/gdd/storm-director.md
+    value: 800
+    unit: m
+    referenced_by: []
+    written: 2026-10-01
+  - name: StormJogRate
+    source: design/gdd/storm-director.md
+    value: 0.0833
+    unit: jogs per s at end of life (1/12)
     referenced_by: []
     written: 2026-10-01

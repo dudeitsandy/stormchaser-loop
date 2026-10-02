@@ -265,10 +265,11 @@ wheel; the player can always counter-steer (WindSteerMax < 1).
 **shipped 1.35** after playtest ("more powerful tornadoes should throw") → EF3 0.68, EF4 1.35, EF5 2.7.
 Lift acts only while ≥ 1 wheel is grounded and is capped at 0.9 g (it unloads the suspension); the throw
 itself is solely the F12b impulse.
-**Tossed when `L ≥ 0.7 · M · g`.** Pickup sanity (Exposure 0.85): EF3 peaks at 0.34 g (wheels light,
-grip loss, never tossed); EF4 peaks at 0.68 g (never quite tossed — wheels nearly off the ground);
-**EF5 (R = 38 m → lift zone 19 m) tosses within ≈ 5.4 m — just outside its 4.3 m damage radius**:
-flung right before you'd be hit.
+**Tossed when `L ≥ 0.7 · M · g`.** Pickup sanity (Exposure 0.85, LiftCoefficient 1.35, storm scale from
+`storm-director.md` F3, updated 2026-10-01): EF3 peaks at 0.57 g (wheels light, grip loss, never tossed);
+**EF4 (R = 52 m) tosses within ≈ 5.7 m — inside its 6.5 m core**; **EF5 (R = 70 m → lift zone 35 m)
+tosses within ≈ 15.7 m — outside its 12 m core**, flung before you'd be hit. *(Before the storm-director
+scale, EF5 had R = 38 m and tossed within ≈ 5.4 m; EF4 never tossed.)*
 
 **F12b. Toss impulse** (once on crossing the toss threshold; blocked until the truck has left the
 ground and landed, or 1 s if pinned)
@@ -360,6 +361,7 @@ Driving noise, response, and slide polish are deferred to the polish pass (Andy,
 | `photo-scoring.md` / `PhotoTrigger` | Hard | Camera-forward aim direction | AimScore redefined camera-forward (2026-10-01) |
 | `vehicle-damage.md` | Hard | Impact events with severity (F10) | Added (2026-10-01) |
 | `event-system.md` | Soft | Slide duration; Airborne flag + airtime | Added — Drift Framing Zone now satisfiable (2026-10-01) |
+| `storm-director.md` | Hard (inverse: supplies inputs) | Owns the per-EF storm scale (peak wind, wind radius, damage radius) that F11/F12 read | Added 2026-10-01 |
 | `economy-progression.md` Tree 1 | Soft | Archetype stars → physics (F13) | Added (2026-10-01) |
 | HUD (Claude lane) | Soft | Boost meter value | — |
 | Presentation (Codex lane): viewfinder, VFX, audio | Soft | Camera orientation for PiP; state flags + new events for tire smoke, sparks, landing dust, engine/skid audio | Codex request posted in AGENTS.md: PiP follows camera, not truck |

@@ -57,6 +57,10 @@ saved a family in a truck, and got the photo of my life with three seconds left.
 - Result: 180s + (3×45s) to 180s + (6×45s) = **5.25–7.5 minute** runs depending on storm front
 
 ### Storm Front EF Escalation
+
+> **Superseded 2026-10-01 by `storm-director.md`** (regimes, anchor + satellites, F1–F2). Kept for
+> history; do not implement this curve.
+
 ```
 Phase 1 (0–30%):   EF0–EF1  — scouting, low danger
 Phase 2 (30–70%):  EF2–EF4  — peak danger, best photo opportunities
@@ -75,6 +79,8 @@ Phase 3 (70–100%): EF3–EF1  — dissipating, decreasing risk and reward
 
 ## Dependencies
 
+- `storm-director.md` (Storm Director) — builds the Weather Plan (regime, anchor, satellites) that
+  replaces the Storm Front EF Escalation curve; its cell count feeds `SessionLength`. Added 2026-10-01.
 - `save-profile.md` (Save & Profile) — supplies mode unlocks, best scores, and `LastLoadout`; Run Manager
   calls its run-complete checkpoint (the only save a run makes). Added 2026-10-01.
 - SessionTimer.cs (S2-05) — extend to support variable duration
