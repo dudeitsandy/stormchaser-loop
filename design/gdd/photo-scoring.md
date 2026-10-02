@@ -92,7 +92,7 @@ lens ceiling modifiers land (see "Lens-Modified Scoring" below)
 - `ScoringSystem.cs` (S2-06) — `CalculatePhotoScore()` already implemented
 - `PhotoTrigger.cs` (S3-02) — computes AimScore + DistanceScore, calls ScoringSystem
 - `ScoreAccumulator.cs` (S3-03) — receives score from PhotoTrigger and accumulates
-- `DisasterEntity.cs` (S3-A1) — provides nearest entity query
+- `DisasterEntity.cs` (S3-A1) — provides the live `Active` registry; the nearest-entity search itself is `PhotoTrigger.FindNearest` (see `disaster-entity-framework.md`)
 - `TornadoData.cs` — EFStrength value per tornado type
 - `event-system.md` — `DaredevilMultiplier` and `StuntAirMultiplier` chain onto
   `PhotoScore` from this doc (see that doc's Formulas section)

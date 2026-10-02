@@ -44,7 +44,7 @@ biomes, and vehicles enter the index when their season is planned.
 | 8 | Destructibles & Debris | World | Vertical Slice | Not Started | docs/architecture/adr-0004-destructible-tiled-world.md | Tiled World Streaming, Surfaces & Terrain Modifiers |
 | 9 | Roads & POI Chunks (Heartland) | World | Vertical Slice | Not Started | — | Tiled World Streaming, Surfaces & Terrain Modifiers |
 | 10 | Wind Field | Gameplay | MVP | Implemented | design/gdd/vehicle-feel.md (F11/F12) | Disaster Entity Framework, Vehicle Feel |
-| 11 | Disaster Entity Framework | Gameplay | MVP | Implemented | — | Game Events Bus, Tiled World Streaming |
+| 11 | Disaster Entity Framework | Gameplay | MVP | Implemented | design/gdd/disaster-entity-framework.md | Run Manager & Session Modes (SessionTimer); Tiled World Streaming (intended, not yet used in code) |
 | 12 | Tornado (EF0–EF5) | Gameplay | MVP | Implemented | — | Disaster Entity Framework |
 | 13 | Disaster Alchemy (Merge / Modify) | Gameplay | Alpha | Not Started | — | Tornado, Wildfire, Hailstorm |
 | 14 | Wildfire | Gameplay | Vertical Slice | Not Started | — | Disaster Entity Framework, Wind Field, Surfaces & Terrain Modifiers |
@@ -60,7 +60,7 @@ biomes, and vehicles enter the index when their season is planned.
 | 24 | Vehicle Loadout & Archetypes | Progression | Vertical Slice | Not Started | — | Vehicle Feel, Vehicle Damage |
 | 25 | Per-Run Modifiers | Progression | Alpha | Not Started | — | Run Manager & Session Modes, Four-Axis Scoring, Vehicle Loadout & Archetypes |
 | 26 | Cataclysm Heat | Progression | Alpha | In Design | design/gdd/economy-progression.md | Storm Dollars & HQ Garage, Per-Run Modifiers |
-| 27 | Save & Profile (inferred) | Persistence | MVP | Designed | design/gdd/save-profile.md | — (platform storage only) |
+| 27 | Save & Profile (inferred) | Persistence | MVP | In Review | design/gdd/save-profile.md | — (platform storage only) |
 | 28 | Settings (inferred) | Persistence | Vertical Slice | Not Started | — | Save & Profile, Input & Controls |
 | 29 | HUD (inferred) | UI | MVP | Implemented | — | Four-Axis Scoring, Run Manager & Session Modes, Vehicle Damage |
 | 30 | Viewfinder / PiP & Camcorder Lens | UI | MVP | Implemented | docs/architecture/adr-0003-art-direction-stylized-world-retro-lens.md | Camera & Aim, Photo Documentation |
@@ -209,7 +209,7 @@ GDD in review are listed so the order is complete; their work is `/design-review
 |-------|--------|----------|-------|----------|-------------|
 | 1 | Surfaces & Terrain Modifiers | MVP | Foundation | systems-designer | S |
 | 2 | Save & Profile | MVP | Foundation | game-designer, lead-programmer | S |
-| 3 | Disaster Entity Framework *(reverse-doc)* | MVP | Core | game-designer, systems-designer | M |
+| 3 | Disaster Entity Framework *(reverse-documented 2026-10-01; awaiting /design-review)* | MVP | Core | game-designer, systems-designer | M |
 | 4 | Run Manager & Session Modes *(review session-modes.md)* | MVP | Core | game-designer | S |
 | 5 | Tornado *(reverse-doc)* | MVP | Feature | systems-designer | S |
 | 6 | Four-Axis Scoring & Style Multiplier *(extend photo-scoring.md)* | MVP | Feature | systems-designer, economy-designer | M |

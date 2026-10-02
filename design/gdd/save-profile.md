@@ -83,7 +83,7 @@ through this system, which owns all serialization and storage.
    whole or not at all.
 4. **Checkpoints** (the only times it writes):
    - **run complete**: banked Storm Dollars, best scores, stats, unlocks and the album
-     cover, all in one write;
+     cover, all in one write (see the run-complete sequence below);
    - **purchase**;
    - **leaving the settings menu**, which writes the device file;
    - **slot operations**: create, switch, delete, reset;
@@ -91,22 +91,43 @@ through this system, which owns all serialization and storage.
    - **app quit, browser tab hidden, window losing focus**: these only flush changes
      that are already pending. In-run state is never saved, and quitting mid-run
      forfeits the run.
+
+   **Run-complete sequence** (the one checkpoint that spans several frames):
+   1. The run ends. Banked Storm Dollars, scores, stats and unlocks are applied to the in-memory
+      profile at once, so the Results screen reads the new balance from it, and the slot goes Dirty.
+   2. During the Results transition the cover PNG is encoded. Encoding sits outside the checkpoint's
+      main-thread budget (AC-39); WebGL is single-threaded, so it cannot run inside it.
+   3. When the encode finishes, the PNG is written, then `profile.json` (one write that includes the
+      album entry), and the "FILED" stamp shows.
+   4. A flush that fires before step 3 completes (focus loss, tab hidden, quit) writes the profile
+      **without** the album entry, so dollars, scores, stats and unlocks are never held back for a
+      cover. If the app is still running when the encode finishes, step 3 then runs and adds the
+      entry; if the app quits first, that cover is dropped.
+   5. With no `perk.photojournalist`, or if the encode or the PNG write fails, step 3 writes the
+      profile with no album entry (AC-25, AC-29).
 5. **Write protocol.**
    1. Serialize the data inside an envelope `{schema, checksum, payload}`.
    2. Write it to a temp file.
    3. Rename the current file to `.bak`.
    4. Rename the temp file to current.
 
+   **Exception: a slot that loaded from its `.bak`** (current failed its checksum). Step 3 would
+   overwrite the only good backup with the damaged file, so instead the damaged current is renamed
+   `.corrupt-<timestamp>` (counted by F4) and the good `.bak` is left in place until the new current
+   exists.
+
    In the browser build, the IndexedDB sync happens after step 4; how that works is an
    implementation detail for an ADR (see Open Questions).
-6. **Load protocol.** The current file loads if its checksum and parse both pass.
-   Otherwise the `.bak` loads. If both fail, the slot becomes **Corrupt**: nothing
+6. **Load protocol.** In order: (1) the current file loads if its checksum and parse both pass;
+   (2) if current is missing (a crash between write steps 3 and 4), a `.tmp` whose checksum passes is
+   promoted to current; (3) otherwise the `.bak` loads. An orphan `.tmp` beside a valid current is
+   deleted. If none of these loads, the slot becomes **Corrupt**: nothing
    overwrites it automatically, and the player is offered "Reset slot". On reset, the
    damaged files are first renamed `.corrupt-<timestamp>` and kept.
 7. **Migration.** On load, migrations run in order (v1→v2→…). The file before migration
    is kept as `.v<n>.bak`, and the migrated profile is saved immediately. A file with a
-   newer schema than this build knows opens **read-only**: it can be played, but nothing
-   is written, so an old build can't wipe newer data.
+   newer schema than this build knows opens **ReadOnly** (reason NewerSchema, see States): it
+   can be played, but nothing is written, so an old build can't wipe newer data.
 8. **0.x import.** On the very first boot (no `device.json`), the old
    `Doomsday.Sprint.BestScore` value is copied into slot 1's Sprint best score. The
    `LegacyImported` flag makes this happen exactly once. The old key itself is left in
@@ -142,7 +163,17 @@ Per slot:
 | Dirty | Changes waiting for a checkpoint | An operation changed data | Saving at a checkpoint |
 | Saving | Write in progress | Checkpoint reached | Ready on success; Dirty + warning on failure |
 | Corrupt | Neither current nor `.bak` loads | Load failed twice | Ready after reset (damaged files kept) |
-| ReadOnly | Schema newer than this build | Load found a newer version | Only by running a newer build; no writes |
+| ReadOnly | Loaded, but nothing may be written (reason below) | Load found a newer schema; a migration threw; or another instance holds the slot lock | Ready only when the cause is gone and the slot is reloaded from disk |
+
+ReadOnly has three reasons. They differ in what is in memory and in how they end:
+
+| Reason | In-memory profile | Ends when |
+|---|---|---|
+| NewerSchema | The file's data (unknown fields ignored, never written) | The player runs a build that knows the schema |
+| MigrationFailed | A **fresh default profile** (zero balance, nothing unlocked); the file and its `.v<n>.bak` are untouched | A patched build migrates the file; the error is logged |
+| InstanceLock | The file's data as read | The other instance exits and this slot is reloaded from disk (switch away and back, or restart). Never upgraded in place, because the other instance may have written since this one loaded |
+
+In all three the Profiles card offers only "Play (not saved)", and no write reaches the slot folder.
 
 ### Interactions with Other Systems
 
@@ -174,14 +205,14 @@ the same ordering.
 **Variables:**
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
-| e.Score | int | 0 to 2³¹−1 | data file | Run score, rounded from `RunSummary.Score` |
+| e.Score | int | 0 to 2³¹−1 | data file | `RunSummary.Score` (float) rounded to nearest, ties away from zero, clamped to [0, 2³¹−1]; NaN stores 0. Every stored score, best scores included, uses this conversion |
 | e.Date | int64 | UTC Unix seconds | data file | Save time; new covers use `max(now, latestDate + 1)` (monotonic if the clock goes back) |
 | e.CoverId | string | GUID, ordinal compare | data file | Final deterministic tiebreak |
 | e.Pinned | bool | true / false | data file | Pinned entries are never candidates |
-| AlbumCap | int | 1–100 | constant (per platform) | See F2 |
+| AlbumCap | int | 12–48 | constant (per platform) | See F2 |
 
 **Output Range:** one victim, or none (all pinned, or N loses). Runs only when the album holds
-`AlbumCap` covers. Deletion order: PNG first, then entry; on load, entries with a missing PNG are dropped
+`AlbumCap` or more covers (a cloud profile can exceed the cap, F2). Deletion order: PNG first, then entry; on load, entries with a missing PNG are dropped
 and orphan PNGs are swept.
 **Example:** AlbumCap 24, full, 3 pinned; weakest unpinned A(1200, Jun 3), B(1200, Jun 1),
 C(1500, May 2). New N(1200, Oct 1) → victim B (lowest score, then oldest); N beats B on date → B evicted,
@@ -258,14 +289,13 @@ The write-rate bound is defined as:
 
 **Output Range:** ≤ 30 writes/min desktop, ≤ 12 WebGL. **Immediate (no debounce):** run complete,
 purchase, slot create / switch / delete / reset, and quit / tab-hidden / focus-loss flushes; leaving the
-Album, Results or Profiles screen also flushes a pending debounce. A flush with nothing pending is a no-op.
+Album, Results, Profiles or Settings screen also flushes a pending debounce. A flush with nothing pending is a no-op.
 **Example:** 10 pin toggles within 6 s → one write at t ≈ 8 s holding the final state.
 
 **Defaults for previously undefined values:** `DisplayName` ≤ 24 chars, `Headline` ≤ 60 chars; all
 timestamps UTC; a failed write retries once after 1 s, then the slot returns to Dirty with a warning and
-waits for the next checkpoint; at run complete the cover PNG is written **before** `profile.json`. The PNG is **encoded during the
-Results transition**, outside the run-complete checkpoint's main-thread budget (WebGL is single-threaded,
-so a synchronous 512×640 encode cannot fit inside it).
+waits for the next checkpoint. The run-complete ordering (encode, then PNG, then `profile.json`) is the
+sequence in Core Rule 4.
 
 ## Edge Cases
 
@@ -280,8 +310,8 @@ so a synchronous 512×640 encode cannot fit inside it).
   kept, will retry"; the slot stays Dirty; `.bak` is never deleted.
 - **If the cover PNG write fails at run complete**: the profile still saves without that album entry; the
   run's dollars and scores bank normally.
-- **If a schema migration throws partway**: the pre-migration file opens **ReadOnly**, the error is logged,
-  nothing is written; `.v<n>.bak` is kept.
+- **If a schema migration throws partway**: the slot enters **ReadOnly** (MigrationFailed): play uses a fresh
+  in-memory profile, the error is logged, nothing is written, and the file and `.v<n>.bak` are untouched.
 
 **Boot & slots**
 - **If `LastSlot` is Corrupt at boot**: boot to the Profiles menu with that slot marked Corrupt; never
@@ -290,7 +320,8 @@ so a synchronous 512×640 encode cannot fit inside it).
 - **If the player deletes the active slot**: switch to the next Ready slot, or show "Create profile" on the
   title screen if none remain.
 - **If two game instances run at once (desktop)**: a per-slot lock file makes the second instance open that
-  slot **ReadOnly** with a notice. A lock whose owning process is no longer running (crash) is reclaimed.
+  slot **ReadOnly** (InstanceLock) with a notice. A lock whose owning process is no longer running (crash) is
+  reclaimed.
 - **If Steam Cloud delivers a profile with more covers than the local `AlbumCap`**: keep all of them (F2);
   never trim on load.
 
@@ -318,8 +349,10 @@ so a synchronous 512×640 encode cannot fit inside it).
   as plain text, never interpreted as markup.
 - **If the player quits mid-run**: the run is forfeited and nothing from it is banked; earlier checkpoints
   are already saved.
-- **If a run completes while the slot is ReadOnly**: the run plays normally; Results shows "Progress not
-  saved (this save is from a newer version)."
+- **If a run completes while the slot is ReadOnly**: the run plays normally; Results shows a reason-specific
+  line: "Progress not saved (this save is from a newer version)." (NewerSchema), "Progress not saved (this
+  save couldn't be updated)." (MigrationFailed), or "Progress not saved (this profile is open in another
+  window)." (InstanceLock).
 - **If the system clock moves backward**: cover dates stay monotonic (F1); play time accumulates whole
   seconds of focused session time (paused-in-menu counts; unfocused or minimized does not), never clock
   differences.
@@ -333,6 +366,7 @@ so a synchronous 512×640 encode cannot fit inside it).
 | Platform storage — `Application.persistentDataPath` (desktop filesystem; IndexedDB via Emscripten on WebGL) | Hard | File write / rename / delete / list. WebGL sync behaviour is an open ADR question |
 | Steam Auto-Cloud | Soft | Syncs slot folders, excluding `.corrupt-*`, `.tmp`, and lock files. Fully functional offline |
 | `economy-progression.md` (unlock catalogue) | Soft | Defines unlock IDs and `perk.photojournalist`; this system stores IDs and never interprets their effects |
+| `RunSummary` run-result contract (`Scripts/Core/GameEvents.cs`) | Hard | Source of the run-complete record: float `Score`, photos taken, best shot, wrecked flag. Scores are stored via F1's conversion |
 
 **Depended on by (downstream):**
 
@@ -385,9 +419,9 @@ Built in UI Toolkit; every screen is fully navigable with a gamepad (Steam Deck)
   (one confirmation) per cover. Leaving the screen flushes pending changes (F5).
 - **Pause menu:** "Quit run" states "Nothing from this run is banked."
 - **Messages** (strings fixed in Core Rules and Edge Cases): "Couldn't save — progress kept, will retry"
-  (toast); "Album full: unpin a cover to keep new front pages." and "Progress not saved (this save is from
-  a newer version)." (Results); "Progress won't be saved in this browser mode." (title banner); the
-  two-instance ReadOnly notice (Profiles menu).
+  (toast); "Album full: unpin a cover to keep new front pages." and the three reason-specific "Progress not
+  saved (...)" lines (Results; Edge Cases); "Progress won't be saved in this browser mode." (title banner);
+  the two-instance ReadOnly notice (Profiles menu).
 
 ## Cross-References
 
@@ -440,8 +474,9 @@ Built in UI Toolkit; every screen is fully navigable with a gamepad (Steam Deck)
 - **AC-12 [Unit] (R7)** GIVEN `SchemaVersion` = current + 1, WHEN it loads and a run completes, THEN the
   state is ReadOnly, zero writes reach the slot folder, and Results shows "Progress not saved (this save is
   from a newer version)."
-- **AC-13 [Unit]** GIVEN a migration that throws partway, WHEN the slot loads, THEN the state is ReadOnly,
-  the error is logged, and the file bytes are unchanged.
+- **AC-13 [Unit]** GIVEN a migration that throws partway, WHEN the slot loads, THEN the state is ReadOnly
+  (MigrationFailed) on a fresh in-memory profile, the error is logged, a completed run writes nothing, and the
+  file and `.v<n>.bak` bytes are unchanged.
 
 **Slots**
 - **AC-14 [Unit] (R9)** GIVEN `LastSlot` = 2 and slot 2 Ready, WHEN the game boots, THEN slot 2 is active
@@ -515,6 +550,21 @@ Built in UI Toolkit; every screen is fully navigable with a gamepad (Steam Deck)
   during the Results transition) and is measured separately: no Results-transition frame exceeds
   33.3 ms on WebGL.
 
+**Run-complete sequence, ReadOnly reasons, backup rotation, score conversion**
+- **AC-40 [Unit] (R4 sequence)** GIVEN an owner of `perk.photojournalist` finishing a run, WHEN a quit flush
+  fires while the PNG encode is pending, THEN `profile.json` holds the banked dollars, scores, stats and
+  unlocks, has no album entry for this run, and no PNG exists for it; GIVEN a focus-loss flush instead and the
+  encode then finishes, THEN a second write adds the entry and the PNG was written before it.
+- **AC-41 [Unit] (States)** GIVEN a slot ReadOnly with reason InstanceLock, WHEN the other instance exits and
+  the slot is reloaded, THEN it opens Ready from the other instance's latest bytes, and without a reload it
+  stays ReadOnly; GIVEN reason MigrationFailed, THEN the in-memory profile is the default and no write reaches
+  the slot folder.
+- **AC-42 [Unit] (R5 exception)** GIVEN a slot that loaded from its `.bak` because current failed its checksum,
+  WHEN the next save runs, THEN the damaged file is renamed `.corrupt-<timestamp>`, `.bak` still holds the
+  previous good bytes until the new current is in place, and no step overwrites `.bak` with damaged data.
+- **AC-43 [Unit] (F1)** GIVEN run scores 1200.5, 1200.4999, −3, NaN and 3.0e9, WHEN stored, THEN they read back
+  as 1201, 1200, 0, 0 and 2147483647.
+
 ## Open Questions
 
 | Question | Owner | Resolve by |
@@ -524,3 +574,6 @@ Built in UI Toolkit; every screen is fully navigable with a gamepad (Steam Deck)
 | Online Leaderboard identity: does it need a stable player ID in the profile, or only the Steam ID? | Leaderboard GDD (#35) | When #35 is designed |
 | AC-39 timing: approve the Unity Performance Testing package, or keep it a manual Profiler capture | Andy (technical-preferences.md) | Before the save story |
 | CoverBytes / ProfileBytes are estimates; re-measure with real covers (AC-38) | qa-lead | First playable album |
+| Steam Auto-Cloud conflicts: if two machines advance one profile offline, what survives, and can a mixed slot folder drop a purchase or orphan album entries? AC-37 covers only the happy path | release-manager + Save ADR | Before Steam page setup |
+| AC-39 names a "desktop reference machine" that no doc defines: name the CPU / GPU / RAM the 2 ms and 4 ms budgets are measured on | Andy | Before the save story |
+| Leaderboard trust: stored best scores are editable and the CRC is not anti-cheat, so #35 should submit at run complete with server-side validation instead of reading the stored best | Leaderboard GDD (#35) | When #35 is designed |
