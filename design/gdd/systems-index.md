@@ -210,7 +210,7 @@ GDD in review are listed so the order is complete; their work is `/design-review
 |-------|--------|----------|-------|----------|-------------|
 | 1 | Surfaces & Terrain Modifiers | MVP | Foundation | systems-designer | S |
 | 2 | Save & Profile | MVP | Foundation | game-designer, lead-programmer | S |
-| 3 | Disaster Entity Framework *(reverse-documented 2026-10-01; awaiting /design-review)* | MVP | Core | game-designer, systems-designer | M |
+| 3 | Disaster Entity Framework *(reviewed 2026-10-01: NEEDS REVISION, revisions applied, In Review; re-run /design-review)* | MVP | Core | game-designer, systems-designer | M |
 | 4 | Run Manager & Session Modes *(review session-modes.md)* | MVP | Core | game-designer | S |
 | 5 | Tornado *(reverse-doc)* | MVP | Feature | systems-designer | S |
 | 6 | Four-Axis Scoring & Style Multiplier *(extend photo-scoring.md)* | MVP | Feature | systems-designer, economy-designer | M |

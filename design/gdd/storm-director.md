@@ -330,7 +330,7 @@ jog per 32 s; a +75° jog at 8–12 m/s for 3 s moves the funnel ≈ 30 m off it
 
 | Dependency | Type | Interface |
 |------------|------|-----------|
-| Disaster Entity Framework / Tornado (`disaster-entity-framework.md`; `TornadoController`, `TornadoData`, `TornadoLifecycle`) | Hard | Director spawns cells and hands each its EF row (F3) and track (F5); `TornadoData` gains per-EF scale fields. That GDD already defers spawn choice, placement and timing to this doc; its EF table (wind radius 20–38 m, move speed 4–16 m/s) is the **current** behavior that F3/F5 replace. Back-link: pending, owned by the session editing that doc |
+| Disaster Entity Framework / Tornado (`disaster-entity-framework.md`; `TornadoController`, `TornadoData`, `TornadoLifecycle`) | Hard | Director spawns cells and hands each its EF row (F3) and track (F5); `TornadoData` gains per-EF scale fields. That GDD already defers spawn choice, placement and timing to this doc; its EF table (wind radius 20–38 m, move speed 4–16 m/s) is the **current** behavior that F3/F5 replace. Back-link: done 2026-10-01 (its Storm Director dependency row, plus supersession notes on its Tornado F5/F6, EF table and Tuning Knobs) |
 | Run Manager & Session Modes (`session-modes.md`) | Hard | Run start and end, mode (Epic / Arcade / compact), session length T; Arcade scenario supplies plan parameters |
 | Tiled World Streaming (ADR-0004) | Hard for Epic, soft for compact | World bounds; streaming-ring position (full simulation vs far-field) |
 | Cataclysm Heat (`economy-progression.md`) | Soft | Heat 0–5 for F1; defaults to 0 |

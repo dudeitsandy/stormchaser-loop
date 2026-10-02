@@ -39,6 +39,21 @@ Today the Tornado (EF0 to EF5) is the only disaster built on it. Wildfire and Ha
 | `ThreatClass` / `BehaviorPattern` | Reserved for non-tornado disasters; `ThreatMultiplier` stays the numeric driver | Defined and exposed, never read by any consumer; all EF assets use the defaults (Class I, Move) |
 | Damage at height | Intentional: the funnel column hurts at any height | Matches: damage uses horizontal (XZ) distance only |
 
+**Decision from design review (Andy, 2026-10-01): the Storm Director owns spawn choice, placement and
+timing (F1, F2, F3).** `DisasterSpawner` is transitional. Its end state is a spawn-by-order executor that
+instantiates a typed disaster at a position the director gives it. Rules 6 to 9 and F1 to F3 below
+describe the **current** spawner and stay documented because Sprint and the existing tests run on them,
+but no new work should extend them. The generalization targets (AC-12 to AC-14) belong to
+`storm-director.md`, not here.
+
+## Player Fantasy
+
+*Draft, for Andy to confirm.* Disasters are the thing worth driving toward and the thing that can end the
+run. A player should read a funnel's size and tier from a distance, feel the pull of its wind well before
+contact, and know the damage zone is small and unforgiving: at EF5 the wind reaches about 38 units but
+contact needs about 4. The framework serves that by keeping one contract for every disaster (so new types
+feel like the same bargain) and by making danger scale with the tier through `ThreatMultiplier`.
+
 ## Detailed Design
 
 ### Core Rules
@@ -51,7 +66,21 @@ Today the Tornado (EF0 to EF5) is the only disaster built on it. Wildfire and Ha
    `MoveSpeed`, and the virtual `ThreatMultiplier` (default 1). `TornadoData` adds `EFRating`,
    `StrengthMultiplier` (returned as `ThreatMultiplier`) and `ConeScale`. `ThreatMultiplier` is the one
    number that drives scoring and lift; `ThreatClass` and `BehaviorPattern` are classification fields
-   reserved for non-tornado disasters.
+   reserved for non-tornado disasters. The Tornado values (from `Assets/Prefabs/TornadoData_EF*.asset`,
+   at commit `0c6ee73`):
+
+   | EF | ThreatMultiplier | ConeScale | MoveSpeed | Contact radius (F6, full intensity) | Wind radius (F5) | Wind scale (F5) |
+   |----|------------------|-----------|-----------|-------------------------------------|------------------|-----------------|
+   | EF0 | 1 | 0.6 | 4 | 1.98 | 20 | 1.25× |
+   | EF1 | 1.5 | 0.8 | 6 | 2.24 | 22 | 1.42× |
+   | EF2 | 2 | 1.0 | 8 | 2.50 | 24 | 1.56× |
+   | EF3 | 2.5 | 1.5 | 10 | 3.15 | 29 | 1.69× |
+   | EF4 | 3 | 1.8 | 13 | 3.54 | 32 | 1.80× |
+   | EF5 | 4 | 2.4 | 16 | 4.32 | 38 | 2.00× |
+
+   Wind and contact radii are at Intensity 1; wind scale is `0.5 + 0.75 × √ThreatMultiplier`.
+   **Current behavior only.** `storm-director.md` F3 (Storm scale) replaces the per-EF wind, radius and
+   contact values with its own lookup table; where the two differ, the director's F3 is the target.
 3. **Per-disaster queries** (virtual, defaults in brackets): `DamageRadius` [3 units],
    `GetWindAt(position)` [zero], `GetLiftFractionAt(position, exposure, liftCoefficient)` [zero].
    A subclass overrides only what it needs.
@@ -63,6 +92,11 @@ Today the Tornado (EF0 to EF5) is the only disaster built on it. Wildfire and Ha
    whose horizontal distance to the vehicle is within its `DamageRadius` ends the check for that frame.
    If the damage model accepts the hit (not invulnerable), the vehicle loses 1 health, is knocked back
    away from the disaster, and `PlayerDamaged` is raised. Vertical distance is ignored on purpose.
+   The test is `dx² + dz² ≤ DamageRadius²`, so a `DamageRadius` of 0 still matches at distance exactly 0
+   (see Edge Cases and AC-15).
+> **Rules 6 to 9 describe the current `DisasterSpawner`, which the Storm Director replaces** (decision
+> above). Keep them as the behavior of record until the director ships.
+
 6. **Spawner lifecycle.** `RunManager` calls `Begin()` when the run starts and `Stop()` when it ends.
    `Stop()` ends new spawns; disasters already alive keep going. Before `Begin()` it never spawns.
 7. **Spawner timing.** The first attempt is `FirstSpawnDelay` after `Begin()`. At each attempt it
@@ -177,7 +211,9 @@ The aggregation rule is defined as:
 | GetWindAt | Vector3 | XZ, units/s | disaster | Per-disaster wind |
 | GetLiftFractionAt | float | ≥ 0 | disaster | Lift as a fraction of vehicle weight |
 
-**Output Range:** wind is unbounded above (it adds); lift is the single strongest value.
+**Output Range:** wind adds, so it is bounded only by `MaxConcurrent` (3) overlapping disasters at their
+peaks, not by this function; any clamp on the resulting force belongs to `vehicle-feel.md` F11. Lift is the
+single strongest value.
 **Example:** winds (3, 0, 0) and (−1, 0, 2) give (2, 0, 2). Lifts 0.2 (strength 1) and 0.5 (strength 2.5)
 give 0.5 and efStrength 2.5.
 
@@ -200,8 +236,12 @@ The vortex wind formula is defined as:
 2.24 (matches the existing unit test). How the vehicle turns this into force is `vehicle-feel.md` F11.
 *Tornado's instance of F5 (until a Tornado GDD exists):* `R = (14 + 10 × Cone) × Intensity`, inflow 7 and
 swirl 11, both scaled by `(0.5 + 0.75 × √ThreatMultiplier) × Intensity` (EF0 1.25×, EF5 2.0×).
+**Superseded by `storm-director.md` F3** (per-EF peak wind `P_EF` and radius `R_EF`, inflow/swirl split
+0.537/0.843). This instance records the code until that table is implemented.
 
 **F6. Contact radius (Tornado's `DamageRadius`)**
+
+*Current behavior; the per-EF contact radius target is in `storm-director.md` F3.*
 
 The tornado contact radius is defined as:
 
@@ -229,7 +269,8 @@ Contact test: `dx² + dz² ≤ DamageRadius²`.
 - **Domain reload / Enter Play Mode**: the static list is cleared.
 - **No player assigned**: spawns around the origin facing +Z.
 - **Vehicle wrecked or not vulnerable**: contact damage is skipped.
-- **Tornado below Intensity 0.4**: `DamageRadius` is 0, so a forming or dying funnel cannot hurt.
+- **Tornado below Intensity 0.4**: `DamageRadius` is 0, so a forming or dying funnel cannot hurt, except
+  at horizontal distance exactly 0 (see the next section).
 
 **Not handled (observed gaps)**
 - ⚠️ **Empty sky waits the full interval.** `EmptySkyRetry`'s tooltip says the sky should never stay empty
@@ -244,6 +285,9 @@ Contact test: `dx² + dz² ≤ DamageRadius²`.
   index even if that entry's weight is 0 (an EF5 at run start). Very rare, but not impossible.
 - ⚠️ **Only the first in-range disaster is considered per frame**, in enable order; a second disaster
   also in range does not contribute and is not checked.
+- ⚠️ **A zero `DamageRadius` still hits at distance exactly 0.** `VehicleHealth` skips a disaster only when
+  `sqrMagnitude > R²`, so R = 0 matches at 0. That disaster would also end the per-frame check and mask a
+  real one later in the list. Fix: treat `DamageRadius <= 0` as "cannot hurt" (AC-15).
 - ⚠️ **Phase Arc and Interaction Tags** (vision-1.0) are not in the base class.
 
 **Unclear (need a decision)**
@@ -270,7 +314,7 @@ Contact test: `dx² + dz² ≤ DamageRadius²`.
 | Photo Documentation | Hard | `Active`, `ThreatMultiplier` | `photo-scoring.md` (line 95 says `DisasterEntity` provides a nearest-entity query; the code has it in `PhotoTrigger.FindNearest`) |
 | Dynamic Objectives & Events | Soft | Path projection for event placement | `event-system.md:133`; **no such API exists yet** |
 | Camera, off-screen indicator, audio, toon style | Soft | `Active`, wind | none |
-| Storm Director (`storm-director.md`, In Design) | Soft (planned) | Takes over spawn timing and intensity: it "replaces the random timer in `DisasterSpawner`" (F3, possibly F1/F2) | `storm-director.md` (Summary still `[To be designed]`) |
+| Storm Director (`storm-director.md`, In Design) | Soft (planned) | **Decided 2026-10-01:** owns F1, F2 and F3 (type, placement, timing). `DisasterSpawner` becomes a spawn-by-order executor | `storm-director.md` Dependencies (Disaster Entity Framework row); its F3 Storm scale supersedes this doc's Tornado F5/F6 values |
 | Wildfire (#14), Hailstorm (#15), Civilians (#20) | Soft (planned) | The base class and generic spawner | No GDD yet |
 
 ## Acceptance Criteria
@@ -279,11 +323,16 @@ Contact test: `dx² + dz² ≤ DamageRadius²`.
 > not yet meet (it will fail today). "Exists" marks criteria already covered by a test.
 
 **Registry and aggregation**
+> **Test seams.** `[Unit]` here means a pure-C# test with no scene. `OnEnable` does not run for a plain
+> `AddComponent` in EditMode, so criteria that need the live `Active` list are `[PlayMode]` (or the
+> test disaster carries `[ExecuteAlways]`; confirm in the first test). Spawn placement needs an injectable
+> random source, because the spawner calls `UnityEngine.Random` directly today.
+
 - **AC-01 [PlayMode] (R1)** GIVEN no disasters, WHEN one is enabled, THEN `Active` contains it; WHEN it is
   disabled or destroyed, THEN it is gone; after Enter Play Mode `Active` is empty.
-- **AC-02 [Unit] (F4)** GIVEN two test disasters with wind (3,0,0) and (−1,0,2) at P, THEN `TotalWindAt(P)`
+- **AC-02 [PlayMode] (F4)** GIVEN two test disasters with wind (3,0,0) and (−1,0,2) at P, THEN `TotalWindAt(P)`
   = (2,0,2); with none active it is zero.
-- **AC-03 [Unit] (F4)** GIVEN lifts 0.2 (strength 1) and 0.5 (strength 2.5), THEN `MaxLiftFractionAt`
+- **AC-03 [PlayMode] (F4)** GIVEN lifts 0.2 (strength 1) and 0.5 (strength 2.5), THEN `MaxLiftFractionAt`
   returns 0.5 with efStrength 2.5; with none active it returns 0 and 0.
 
 **Spawner**
@@ -294,8 +343,10 @@ Contact test: `dx² + dz² ≤ DamageRadius²`.
 - **AC-06 [PlayMode] (F3) — partly exists (`RunLoopSmokeTests`: a tornado spawns)** GIVEN the scene
   settings, WHEN a run begins, THEN the first spawn is at 1.5 s (±1 frame), later attempts are every
   10 s, and never more than 3 tornadoes are alive.
-- **AC-07 [Unit] (F2)** GIVEN 1000 samples with the player at the origin facing +Z, THEN every spawn is
-  45 to 70 units away, within ±70° of +Z, and inside the bounds.
+- **AC-07 [Unit] (F2)** GIVEN a placement function with an injected random source (a fixed seed or a
+  scripted sequence) and 1000 samples with the player at the origin facing +Z, THEN every spawn is
+  45 to 70 units away, within ±70° of +Z, and inside the bounds. Needs the placement math extracted
+  from `DisasterSpawner` into a pure function (the injected-RNG seam).
 - **AC-08 [Unit] (F1)** GIVEN roll = 1.0 at p = 0, THEN the result is not an entry with weight 0.
   *(Fails today; see Edge Cases.)*
 
@@ -309,6 +360,13 @@ Contact test: `dx² + dz² ≤ DamageRadius²`.
   Cone 1.0, THEN 2.5.
 
 **Confirmed intent not yet met [Target]**
+
+AC-12 to AC-14 state the spawner intent. Under the Storm Director decision they are **transferred to
+`storm-director.md`** once it is written, and this GDD keeps them only as a record of the requirement.
+AC-15 stays here because it belongs to the base contract.
+
+- **AC-15 [Unit] [Target] (R5)** GIVEN a disaster with `DamageRadius` 0 and a vehicle at horizontal
+  distance exactly 0, THEN no damage is dealt and the disaster does not end the per-frame check.
 - **AC-12 [PlayMode] [Target]** GIVEN the 2 km world and the player near its edge, WHEN a disaster spawns,
   THEN it is inside the world extent and at least `MinDist` from the player.
 - **AC-13 [PlayMode] [Target]** GIVEN a roster that includes a non-tornado type, WHEN spawns occur, THEN
@@ -316,8 +374,26 @@ Contact test: `dx² + dz² ≤ DamageRadius²`.
 - **AC-14 [PlayMode] [Target]** GIVEN no disaster alive, WHEN the last one is destroyed, THEN a spawn
   occurs within `EmptySkyRetry` (2 s).
 
-**Definition of done:** AC-01 to AC-11 pass; AC-12 to AC-14 pass once the spawner is generalized and
-bound to the world extent.
+**Definition of done:** AC-01 to AC-11 pass and AC-15 passes. AC-12 to AC-14 are done when the Storm
+Director GDD adopts them and its implementation passes them.
+
+## Tuning Knobs
+
+All values below are serialized fields (scene or prefab), not hardcoded. Ranges are proposed starting
+points for playtest and have not been balance-tested.
+
+| Knob | Where | Today | Proposed safe range | Affects |
+|------|-------|-------|---------------------|---------|
+| `FirstSpawnDelay` | spawner | 1.5 s | 0 to 5 | Time to first danger |
+| `SpawnInterval` | spawner (scene) | 10 s (code default 9) | 5 to 20 | Pressure; moves to the director |
+| `EmptySkyRetry` | spawner | 2 s | 1 to 5 | Dead air after the last tornado dies |
+| `MaxConcurrent` | spawner | 3 | 1 to 5 | Stacked wind and chaos; wind sums, so higher values raise peak force |
+| Early/late weights | roster (scene) | EF0 30→5 … EF5 0→15 | each column sums to 100 | Difficulty ramp across a run |
+| `Arc`, `MinDist`, `MaxDist` | spawner | 70°, 45 to 70 | Arc 30 to 120, MinDist ≥ 30 | Telegraphing vs surprise |
+| `_harmlessBelowIntensity` | `TornadoController` | 0.4 | 0.2 to 0.6 | How long a forming or dying funnel is safe |
+| `_baseDamageRadius`, `_damageRadiusPerConeScale` | `TornadoController` | 1.2, 1.3 | radius at EF5 between 3 and 6 | How forgiving the contact zone is. Superseded by `storm-director.md` F3 |
+| `_windRadiusBase`, wind inflow/swirl, `_windScalePerSqrtEF` | `TornadoController` | 14, 7/11, 0.75 | wind scale EF5/EF0 between 1.5 and 3 | How much danger is felt before contact; today the EF0 to EF5 spread is only 1.6×. Superseded by `storm-director.md` F3 |
+| `ThreatMultiplier` per EF | `TornadoData` | 1 to 4 | strictly increasing | Photo score, lift and wind scale together |
 
 ## Open Questions
 
@@ -329,12 +405,15 @@ bound to the world extent.
 | Spawn height on terrain: sample the heightfield instead of y = 0? | Andy / technical-director | Before the streamed world carries runs |
 | `SpawnTable.Pick` at roll = 1.0: clamp the roll or guard zero-weight fallback | gameplay-programmer | Next touch of `SpawnTable` |
 | What of vision-1.0's Phase Arc and Interaction Tags belongs in the base class vs per disaster? Photo scoring (`IsInteracting`) and events (path projection) already ask for them | game-designer | When #14 or #15 is designed |
-| Storm Director (`storm-director.md`) "replaces the random timer in `DisasterSpawner`": which of F1 (roster pick), F2 (placement) and F3 (cadence) does it take over, and what is left of the spawner? Until decided, F3 and AC-06/AC-14 describe the current timer only | game-designer | When the Storm Director GDD is written |
+| ~~Storm Director boundary~~ **Resolved 2026-10-01 (Andy):** the director owns F1, F2, F3; the spawner becomes a spawn-by-order executor. Still open: the executor's interface (typed disaster id + position + scale?) | game-designer | In `storm-director.md` |
+| Combination ("Disaster Alchemy" in `game-concept.md`) has no hook in the base contract. When two disasters overlap, who creates the combined one, and does the registry need a pair query? Lift-max vs wind-sum is the first place this shows | game-designer | When #14 is designed |
 
 ## Follow-Up Work
 
-- [ ] Generalize `DisasterSpawner` to a typed roster and bind F2 bounds and tornado steer-back to the world extent (AC-12, AC-13).
-- [ ] Fix the empty-sky retry and the `Random.value` = 1.0 case (AC-14, AC-08).
+- [ ] Do **not** generalize `DisasterSpawner` further. Reduce it to a spawn-by-order executor when the Storm Director is implemented; AC-12 to AC-14 move there.
+- [ ] Extract the placement math into a pure function with an injectable random source (AC-07).
+- [ ] Fix the `Random.value` = 1.0 case (AC-08) and the zero-radius contact test (AC-15).
+- [ ] Bind tornado steer-back (`±90`) to the world extent.
 - [ ] Add the missing tests: registry, aggregation, placement, contact radius (AC-01 to AC-03, AC-07, AC-09, AC-11).
 - [ ] Update `systems-index.md` row 11 (design doc path, status) and correct its dependency list; add back-links in `vehicle-damage.md` and fix the wording at `photo-scoring.md:95`.
 - [ ] Write the Tornado GDD (#12): lifecycle, movement, and the Tornado instance of F5/F6.
@@ -343,4 +422,5 @@ bound to the world extent.
 
 | Date | Author | Changes |
 |------|--------|---------|
+| 2026-10-01 | Claude (design-review revision) | Storm Director owns F1 to F3 (decision); ThreatMultiplier table; AC test seams, AC-15 and zero-radius edge case; Player Fantasy (draft) and Tuning Knobs added; F4 bound clarified |
 | 2026-10-01 | Claude (reverse-doc) | Initial reverse-documentation from `Scripts/Disaster/` at `0c6ee73`; intent confirmed by Andy on spawner scope, world bounds, ThreatClass and airborne damage |
