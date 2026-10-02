@@ -98,6 +98,8 @@ lens ceiling modifiers land (see "Lens-Modified Scoring" below)
   `PhotoScore` from this doc (see that doc's Formulas section)
 - `economy-progression.md` — Camera Lens unlocks override `OptimalDistance`/`DistanceSpread`
   and introduce `CameraAimMultiplier` (see "Lens-Modified Scoring" below)
+- `storm-director.md` — owns each cell's EF; a photo of a cell reveals its true EF in the HUD forecast
+  (F4). The EFStrength used in scoring is unchanged. Added 2026-10-02.
 
 ---
 

@@ -367,6 +367,7 @@ sequence in Core Rule 4.
 | Steam Auto-Cloud | Soft | Syncs slot folders, excluding `.corrupt-*`, `.tmp`, and lock files. Fully functional offline |
 | `economy-progression.md` (unlock catalogue) | Soft | Defines unlock IDs and `perk.photojournalist`; this system stores IDs and never interprets their effects |
 | `RunSummary` run-result contract (`Scripts/Core/GameEvents.cs`) | Hard | Source of the run-complete record: float `Score`, photos taken, best shot, wrecked flag. Scores are stored via F1's conversion |
+| Storm Director (`storm-director.md`) | Soft | Run seed, build version and regime, optionally stored with the run-complete record for replay. Added 2026-10-02 |
 
 **Depended on by (downstream):**
 

@@ -124,8 +124,8 @@ formulas:
   - name: storm_regime_draw   # F1
     source: design/gdd/storm-director.md
     variables: [H, w0_r, s_r, p5_0]
-    output_range: "regime probabilities sum to 1; P(any EF5) ~4.2% Heat 0, ~13% Heat 5"
-    referenced_by: []
+    output_range: "regime probabilities sum to 1; P(any EF5) 4.39% Heat 0, 13.85% Heat 5"
+    referenced_by: [design/gdd/economy-progression.md]
     written: 2026-10-01
   - name: storm_cell_schedule   # F2
     source: design/gdd/storm-director.md
@@ -147,10 +147,10 @@ formulas:
     written: 2026-10-01
   - name: storm_track_motion   # F5
     source: design/gdd/storm-director.md
-    variables: [omega_EF, v_track, lambda0, v_cap]
-    output_range: "speed 0.4 v_track to 12.9 m/s; never reads player position"
-    referenced_by: []
-    written: 2026-10-01
+    variables: [omega_EF, v_track, k_H, lambda0, v_cap]
+    output_range: "speed 0.4 v_track to 15.05 m/s (12 m/s at Heat 0); never reads player position"
+    referenced_by: [design/gdd/economy-progression.md]
+    written: 2026-10-02
 
 constants:
   - name: GripFloor

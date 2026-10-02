@@ -108,11 +108,11 @@ After completing a standard Chase run, players unlock **Cataclysm Heat** selecti
 
 | Heat Rank | Modifier Name | Effect |
 |:---:|:---|:---|
-| **1** | **F5 Maximum** | Disasters move 40% faster with wider suction pull. |
+| **1** | **F5 Maximum** | Storms track 25% faster (k_H = 1.25, `storm-director.md` F5). No suction pull: storms never home on the player. *(Revised 2026-10-02; was "40% faster with wider suction pull".)* |
 | **2** | **Dry Lightning** | Wildfires spawn continuously on storm perimeters. |
 | **3** | **Blackout** | Full night mode: zero ambient light, headlights + lightning only. |
 | **4** | **Brittle Chassis** | Debris and collision impacts deal 2× damage. |
-| **5** | **Supercell Convergence**| Two simultaneous high-threat disasters active at all times. |
+| **5** | **Supercell Convergence**| Sequence and Outbreak runs add an EF4 co-anchor alongside the anchor, so two high-threat storms share the run (`storm-director.md` Rule 3). *(Revised 2026-10-02; was "two simultaneous high-threat disasters at all times".)* |
 
 ---
 
@@ -183,6 +183,8 @@ At the end of every run, the game generates a mock **retro newspaper or magazine
 - `vehicle-feel.md` F13 — Speed/Armor/Trick stars are now mechanical (top speed, mass, wind exposure,
   crash thresholds, air control, handbrake grip, style refill). Tree 1 stat deltas should be expressed
   as star changes so F13 stays the single source of truth. Added 2026-10-01.
+- `storm-director.md` — reads HeatLevel to weight regimes and the EF5 share (F1); Heat rank 1 sets track
+  speed (F5) and rank 5 adds an EF4 co-anchor (Rule 3). Added 2026-10-02.
   (see that table's note).
 
 ---
