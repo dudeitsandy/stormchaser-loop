@@ -1,9 +1,9 @@
 # Storm Director
 
-> **Status**: In Review (revised 2026-10-02 after first /design-review)
+> **Status**: In Review (revised 2026-10-02 after fourth /design-review)
 > **Author**: Andy Styx + Claude
 > **Last Updated**: 2026-10-02
-> **Last Verified**: 2026-10-01
+> **Last Verified**: 2026-10-02
 > **Implements Pillar**: 2 — Disaster Stacking & "Disaster Alchemy" (game-concept.md); serves Pillar 1 (Kinetic Chaos) via tension, and the anti-pillar "NOT scripted spectacle" (set pieces come from rules)
 
 ## Summary
@@ -14,7 +14,7 @@ storm and smaller satellites, and it owns the EF scale that makes an EF5 imposin
 spawning into a run with a shape: tension you can see building on the horizon, a window to get there, and a
 peak worth the risk.
 
-> **Quick reference** — Layer: `Core` · Priority: `MVP` (compact mode now; Epic after the 2 km world) · Key deps: Disaster Entity Framework / Tornado, Run Manager & Session Modes, Tiled World Streaming, Vehicle Feel (wind and lift)
+> **Quick reference** — Layer: `Core` · Priority: `MVP` (compact mode now; Epic after the 2 km world) · Key deps: Disaster Entity Framework / Tornado, Run Manager & Session Modes, Tiled World Streaming · Key dependent: Vehicle Feel (reads wind and lift)
 
 ## Overview
 
@@ -56,8 +56,9 @@ choice to drive at it.
    which is the only cell that can be EF4–EF5. **Satellites** are capped at EF3 (Andy, 2026-10-01) and
    give early points and risk. This is what keeps EF5 rare. **Heat 5 exception (Supercell
    Convergence):** Sequence and Outbreak plans add one **co-anchor**, fixed at EF4, so two high-threat
-   cells share the run (Andy, 2026-10-02). The co-anchor follows the anchor's never-dropped rule (F2).
-   Lone Giant, Quiet and Chaos are unchanged.
+   cells share the run (Andy, 2026-10-02). In those plans the anchor is floored at EF4 (F1), so the
+   anchor still holds the run's peak and the co-anchor never outranks it. The co-anchor follows the
+   anchor's never-dropped rule (F2). Lone Giant, Quiet and Chaos are unchanged.
 4. **Cell lifecycle.** Forming (visible and growing; **damage and lift are zero**, wind ramps with
    intensity), Mature (the peak window), Roping Out (decline), Done. Bigger storms last longer.
    Intensity I ramps linearly 0 → 1 over Forming, holds at 1 through Mature, and falls linearly 1 → 0
@@ -74,29 +75,45 @@ choice to drive at it.
    visibly huge and rare. The pre-director scale was too flat: peak wind was about 16 m/s at EF0 and
    26 m/s at EF5.
 7. **Telegraphs (all four):**
-   - a **far-field cell** is rendered at ≥ 800 m in Epic (across the whole arena in compact mode) while
+   - a **far-field cell** stays visible out to at least 800 m in Epic (across the whole arena in compact mode) while
      Forming or Mature;
    - a **forecast** on the HUD lists each cell's bearing, estimated EF, distance and "peak in N s". The
      EF estimate can be off by ±1 and gets more accurate as the player gets close (F4), which is
      deliberate uncertainty;
    - a **siren / radio cue** on forming EF3+ and on the anchor's peak;
-   - **environmental cues** (sky darkening, gust amplitude, debris) rise monotonically with the nearest
-     cell's wind at the player, W(d_player), and are at maximum when W ≥ 20 m/s.
+   - **environmental cues** (sky darkening, gust amplitude, debris) rise monotonically with the total
+     wind at the player, W_player = |`TotalWindAt`(player)| (all cells summed, as in Edge Cases), and are
+     at maximum when W_player ≥ 20 m/s. A weak cell nearby never masks a strong one farther out.
 8. **Concurrency and budget.** Active cells are capped (Epic and Arcade each have a cap). Only cells
-   inside the streaming ring (ADR-0004) run full wind and damage; farther cells run as simple tracks plus
-   the far-field visual.
+   inside the streaming ring (ADR-0004) run full wind and damage; farther cells skip wind and damage and
+   show the far-field visual. **Track motion (F5) is identical in both tiers**, so the ring, which follows
+   the player, never changes where a storm is (Rules 5, 10; AC-17).
 9. **Authority.** In **Epic** the director draws the regime and builds the plan. In **Arcade** a scenario
    supplies the plan parameters directly (counts, EF range, wind multiplier, timing) and no regime is
    drawn. Both use the same cell and scale model.
 10. **Determinism.** All director randomness comes from one run seed with its own RNG stream, separate
-    from gameplay RNG. The seed shows on the results screen so a run can be replayed.
-11. **Events out.** The director raises `GameEvents` for a cell forming, reaching peak, roping out and
-    ending (names agreed with AGENTS.md before implementation). It holds no references to downstream
-    systems; it only raises `GameEvents`.
+    from gameplay RNG. The stream and the track noise are the director's own implementations (a seeded
+    integer PRNG and hash-based noise), never `UnityEngine.Random`, `System.Random` or
+    `Mathf.PerlinNoise`, so a plan is the same on desktop and WebGL builds of one version. The seed shows
+    on the results screen so a run can be replayed.
+11. **Events out.** The director raises four `GameEvents`, agreed with Codex in AGENTS.md (2026-10-02):
+    `StormCellForming`, `StormCellPeak` (Mature start; for the anchor, the touchdown alert),
+    `StormCellRopeOut` and `StormCellEnded`, all `Action<StormCellInfo>` with
+    `StormCellInfo { CellId, EF, Role (Anchor / CoAnchor / Satellite), Position }`, where Position is the
+    cell's position at that transition. Per-frame values (I, wind at the player, forecast rows) are a
+    read-only query surface, not events. **Lifecycle rule:**
+    - a cell that never spawns (dropped by the cap, or scheduled after the run ends) raises nothing;
+    - every spawned cell raises `StormCellEnded` exactly once;
+    - normal life: Forming → Peak → RopeOut → Ended;
+    - evicted while Forming (failed touchdown): Forming → RopeOut → Ended, no Peak;
+    - cut short by leaving the world or by run end: `StormCellEnded` immediately, with no fabricated Peak
+      or RopeOut.
+
+    The director holds no references to downstream systems; it only raises `GameEvents`.
 12. **Compact mode (provisional).** Until the 2 km world is integrated (S7-06+), the director runs in
     compact mode, a **mini-Epic** on today's arena (Andy, 2026-10-02): it draws a regime (F1, Heat
     applies) and builds a plan exactly as Epic does, but with a fixed T = 180 s, compact spawn
-    distances, compact lifecycle times and a cap of 2 (F2, F3). Arcade scenarios played on the compact
+    distances, compact lifecycle times, smaller satellite counts and a cap of 2 (F2, F3). Arcade scenarios played on the compact
     arena keep their own timer and are not affected. This lets tension tuning ship before the chase map
     does.
 
@@ -109,7 +126,11 @@ choice to drive at it.
 | Idle | No plan | Title screen | Planning on run start |
 | Planning | Building the Weather Plan | Run starts | Running when the plan is ready (same frame) |
 | Running | Executing the plan | Plan ready | Complete at run end |
-| Complete | Run over; plan kept for the results screen | Timer ends, wreck, or all cells Done | Idle on retry or title |
+| Complete | Run over; plan kept for the results screen | Run Manager signals run end (timer, wreck, quit) | Idle on retry or title |
+
+The director never ends a run. If every cell is Done before run end, it stays Running with an empty sky
+and raises nothing further; whether an exhausted plan ends the run is the Run Manager's call (Open
+Questions).
 
 Per cell: **Scheduled → Forming → Mature → Roping Out → Done.** A cell can skip to Done if it leaves the
 world.
@@ -127,8 +148,7 @@ world.
 | Save & Profile | — | seed and regime for the Results record | Optional |
 
 **Provisional assumptions:** the Epic world size (2 km) and the Arcade settings list are not yet designed;
-`session-modes.md` needs a revision to define them. The `GameEvents` names need a handoff in AGENTS.md
-before implementation.
+`session-modes.md` needs a revision to define them. The `GameEvents` contract is agreed with Codex (Rule 11).
 
 ## Formulas
 
@@ -145,7 +165,9 @@ The regime draw formula is defined as:
 
 `w_r(H) = w0_r · exp(s_r · H)`, `P_r = w_r / Σ w`. The anchor's EF is then drawn from that regime's
 anchor table, whose EF5 share is `p5(r, H) = p5_0(r) · (1 + 0.4 · H)`; the added EF5 mass is taken from
-the table's lowest tier.
+the table's lowest tier. **Heat 5 anchor floor (Rule 3):** for Sequence and Outbreak at H = 5, after the
+EF5 adjustment, all EF2 and EF3 mass moves onto EF4, giving EF4 .91 / EF5 .09 for both. EF5 odds are
+unchanged.
 
 **Variables:**
 | Variable | Type | Range | Source | Description |
@@ -161,7 +183,8 @@ the table's lowest tier.
 Chaos .100. Heat 5 → Quiet .007, Lone .165, Sequence .254, Outbreak .345, Chaos .230. P(any EF5 in a run,
 Epic, drawn EF before cap resolution) = **4.39 %** at Heat 0 and **13.85 %** at Heat 5, computed exactly:
 Σ P_r · p5(r, H), with Chaos contributing P_C · mean over N = 3..8 of 1 − (1 − p5_C)^N. The Heat 5
-co-anchor is fixed at EF4, so it doesn't change these numbers.
+co-anchor is fixed at EF4 and the anchor floor only moves EF2/EF3 mass, so neither changes these numbers.
+"EF5 is rare" holds at low Heat; at Heat 5 a Lone Giant anchor is EF5 30 % of the time, by design.
 **Example:** Heat 3 → weights Q .038, L .291, S .405, O .369, C .246 (sum 1.349) → P = Q .028, L .215,
 S .300, O .274, C .182. Draw u = 0.47 → Sequence (cumulative .543). Sequence p5 = .03 × 2.2 = .066, so
 EF2 drops to .264; second draw 0.90 → EF4 (cumulative .264 / .664 / .934).
@@ -174,30 +197,37 @@ The cell schedule formula is defined as:
 `t_a = t_peak − Form(EF_a)`, clamped so the anchor is Mature by `T − 30`. Satellites by regime:
 
 - Quiet: S = 1–3, EF ≤ min(2, EF_a), spawn at `U(0.05T, 0.75T)`. Lone Giant: same, with EF ≤ min(2, EF_a − 2).
-- Sequence: S = 2–4, spawn `t_k = t_a − (S − k + 1) · Δ`, `Δ = U(35, 55)` s, EF rising to min(EF_a − 1, 3);
-  drop any with t < 5 s.
+- Sequence: S = 2–4, spawn `t_k = t_a − (S − k + 1) · Δ`, `Δ = U(35, 55)` s,
+  `EF_k = max(0, EF_top − (S' − k))` with `EF_top = min(EF_a − 1, 3)` and S' the satellites placed (S, or
+  S − 1 at Heat 5), so the last satellite is EF_top and each earlier one is one lower; drop any with t < 5 s.
 - Outbreak: S = 3–5, EF ≤ min(EF_a − 1, 3), spawn `t_a + U(−15, 15)` within 120 m of the anchor.
 - Chaos: N = U{3..8}, spawn at `U(5, 0.8T)`, no anchor.
-- **Heat 5 co-anchor** (Sequence, Outbreak; Rule 3): one extra EF4 cell. Sequence: it takes the last
-  sequence slot, `t_a − Δ`. Outbreak: it spawns at `t_a + U(−15, 15)` within 120 m of the anchor. It counts
-  toward N_cells and the caps.
-- **Compact mode (Rule 12):** T = 180 s fixed (no N_cells term). Δ = U(17, 28) s; Chaos N = U{3..5};
-  satellites spawn 40–90 m from P0; CapTotal = 2. Every other rule is the same.
+- **Draws:** every count range (S, N) is a uniform integer draw. Quiet, Lone Giant and Outbreak satellites
+  draw EF uniformly from 0..cap, where cap is the regime's limit above. Sequence EF is deterministic (above).
+- **Heat 5 co-anchor** (Sequence, Outbreak; Rule 3): one EF4 cell. Sequence: it **replaces satellite S**
+  in the last sequence slot, `t_a − Δ`, so the plan keeps S − 1 satellites and N_cells is unchanged.
+  Outbreak: it is an extra cell that spawns at `t_a + U(−15, 15)` within 120 m of the anchor and counts
+  toward N_cells. It counts toward the caps in both.
+- **Compact mode (Rule 12):** T = 180 s fixed (no N_cells term). Δ = U(17, 28) s; Sequence S = 1–3;
+  Outbreak S = 1–2; Chaos N = U{3..5}; satellites spawn 40–90 m from P0; CapTotal = 2. At Heat 5 the anchor
+  and co-anchor fill the cap, so any satellite still live when they spawn ropes out early. Every other rule
+  is the same.
 
 **Variables:**
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
-| N_cells | int | 2–8 | calculated | Anchor + co-anchor + satellites (Chaos: all cells); clamped to 3–6 inside T |
+| N_cells | int | 2–8 | calculated | Anchor + co-anchor + satellites (Chaos: all cells), as drawn, **before** any t < 5 s or cap drops; clamped to 3–6 inside T. T is fixed once computed |
 | T | float | 315–450 s (compact 180 s) | calculated | Epic session length (`session-modes.md` Chase formula); compact mode fixes it at 180 s |
 | t_peak | float | 0.40T–0.65T | calculated | When the anchor reaches Mature |
 | Form(EF) | float | 20–45 s | data file (F3) | Forming time of the cell's EF |
 | SpawnDist (Epic) | float | anchor 350–700 m, satellites 200–600 m | data file | From plan origin P0 (player start); first satellite ≥ 40° from the anchor bearing; ≥ 100 m inside the world edge |
 | SpawnDist (compact) | float | anchor 70–110 m, satellites 40–90 m | data file | Compact mode (pre-2 km world) |
 | CapRing / CapTotal | int | Epic 3 / 5 (Chaos 6); Arcade 3; compact 2 | data file | Concurrency caps |
-| CapDelay | float | 10 s steps, 30 s max | data file | Over-cap spawns wait; past 30 s the lowest-EF waiting cell is dropped. **Resolved against CapTotal at plan time**, so the plan never depends on the player. CapRing only decides which cells run full simulation, never when they spawn. **Anchors never wait:** when an anchor or co-anchor would exceed the cap, the lowest-EF live satellite ropes out early instead, so the `T − 30` Mature clamp always holds |
+| CapDelay | float | 10 s steps, 30 s max | data file | Over-cap spawns wait in 10 s steps; a cell that has waited 30 s and still has no slot is dropped (when several reach 30 s on the same step, the lowest-EF one goes first). **Resolved against CapTotal at plan time**, using each cell's Form + Mature + Rope lifetime (a cell that leaves the world early only frees its slot early, which is safe), so the plan never depends on the player. CapRing only decides which cells run full simulation, never when they spawn. **Anchors never wait:** when an anchor or co-anchor would exceed the cap, the lowest-EF live satellite ropes out early instead, so the `T − 30` Mature clamp always holds. An early rope-out starts from the cell's current I (F3) |
 
 **Output Range:** T = 315–450 s (compact 180 s); anchor spawn ≥ 15 s (compact: anchor Mature start
-72–117 s); never more cells alive than the cap.
+72–117 s); never more cells alive than the cap. The `T − 30` clamp never binds today (0.65T ≤ T − 30 for
+every T ≥ 86 s, and anchors never wait); it is a safety net for tuning changes.
 **Example:** Sequence, S = 3 → N = 4, T = 360 s. Anchor EF4 (Form 40 s), t_peak = 0.5T = 180 s, spawn
 140 s. Δ = 45 s → satellites spawn at 95, 50 and 5 s as EF3, EF2, EF1.
 
@@ -210,9 +240,14 @@ The storm scale formula is defined as:
 other column is a per-EF lookup.
 
 **Intensity and phase gating.** Forming: I = age / Form; lift and damage are 0. Mature: I = 1. Roping
-Out: I = 1 − t_rope / Rope; lift = I · F12(d) (vehicle-feel F12 at full R) and the damage radius is
-D · I. Damage per tick is unchanged (owned by `disaster-entity-framework.md`). An EF5 rope-out stops
-tossing at the axis once I < 0.30, and an EF4 once I < 0.61.
+Out: I = 1 − t_rope / Rope; lift = I · F12(d) with F12 evaluated at radius R · I (so lift and wind
+shrink together and there is no lift outside the wind field), and the damage radius is D · I. Damage per
+tick is unchanged (owned by `disaster-entity-framework.md`). An EF5 rope-out stops tossing at the axis
+once I < 0.305 (0.7 / 2.295), and an EF4 once I < 0.61 (0.7 / 1.1475).
+**Early rope-out** (cap eviction, F2): the cell enters Roping Out from its current intensity I0, with
+I = I0 · (1 − t_rope / (I0 · Rope)), so there is no jump. A cell evicted while Forming skips Mature,
+never raises Peak and **fails to touch down**: its lift and damage radius stay 0 for the whole decline
+(only wind scales with I), so a cell that was harmless while Forming never becomes harmful by eviction.
 
 | EF | Damage radius D | Wind radius R | Peak wind P | P / v_top | W at 15 m | Form / Mature / Rope-out | Track speed |
 |----|----|----|----|----|----|----|----|
@@ -278,7 +313,9 @@ The track motion formula is defined as:
 `dθ/dt = n(t) · ω_EF`, `n = 2 · Perlin(seed_i, 0.25 t) − 1`; initial heading θ0 within ±60° of the
 bearing to world centre; `v = v_track · k_H · lerp(0.4, 1, I)`, where k_H = 1.25 at Heat 1+ (rank 1, "F5
 Maximum") and 1 otherwise. Late-life jogs are pre-rolled at plan time as a Poisson process with rate
-`λ(u) = λ0 · clamp01((u − 0.6) / 0.4)`, u = age / lifetime. Each jog turns `±U(40°, 110°)` eased over
+`λ(u) = λ0 · clamp01((u − 0.6) / 0.4)`, u = age / lifetime, where lifetime is the cell's **plan-time**
+lifetime after cap resolution (an early rope-out shortens Rope to I0 · Rope; leaving the world early
+does not change it, since that isn't known at plan time). Each jog turns `±U(40°, 110°)` eased over
 1.5 s with a 3 s speed burst (× 1.5), telegraphed by a 1 s funnel tilt. **Refractory:** no jog starts
 within 4.5 s of the previous jog's start (tilt + burst + 0.5 s); pre-rolled events inside that window
 are discarded.
@@ -333,7 +370,7 @@ jog per 32 s; a +75° jog at 8–12 m/s for 3 s moves the funnel ≈ 30 m off it
 - **If the player is inside the core when a cell spawns or forms**: damage and lift are zero while
   Forming (Core Rule 4); only wind ramps. The player gets the Forming window to react.
 - **If an EF5 forms in compact mode with the player anywhere in the arena**: allowed (Andy, 2026-10-01).
-  The arena has no safe zone from wind, but the tossing core is only ≈ 16 m across (F3), so survival comes
+  The arena has no safe zone from wind, but the tossing core is only ≈ 31 m across (15.7 m radius, F3), so survival comes
   down to distance and luck.
 - **If a storm's late-life jog points at the player**: allowed. Jogs are pre-rolled at plan time without
   the player's position (F5), so it's chance, not homing. The 1 s funnel-tilt warning always plays first.
@@ -345,7 +382,7 @@ jog per 32 s; a +75° jog at 8–12 m/s for 3 s moves the funnel ≈ 30 m off it
   and shrinks inside 150 m (F4), and the true EF is always revealed when the player is close or takes a
   photo.
 - **If more cells are alive than the forecast UI can show**: list the nearest 3 by distance plus the
-  anchor; the rest are summarized as "+N more".
+  anchor and co-anchor if not already among them; the rest are summarized as "+N more".
 
 **Arcade and seeds**
 - **If an Arcade scenario's settings are contradictory** (an EF range wider than its storm count allows,
@@ -358,8 +395,10 @@ jog per 32 s; a +75° jog at 8–12 m/s for 3 s moves the funnel ≈ 30 m off it
 **Timing**
 - **If the game is paused or the tab is hidden**: director time is game time, so it pauses too. No cell
   advances while paused.
-- **If the frame rate drops badly**: cell motion integrates on game time with a capped step, so a storm
-  never teleports past the player.
+- **If the frame rate drops badly**: cell motion integrates in fixed 0.05 s substeps of game time (an
+  accumulator), so a cell's position depends only on its age, never on frame rate. A slow frame runs more
+  substeps; nothing is dropped, so a replayed seed puts every storm in the same place on any machine
+  (Rule 10).
 
 ## Dependencies
 
@@ -397,17 +436,17 @@ column.
 |------|---------|-----------|-----------------------------|
 | Regime base weights w0_r | .20 / .25 / .30 / .15 / .10 | each 0.05–0.5 | Run variety; AC-2 targets must be recomputed if changed |
 | Heat slopes s_r | −0.55 / +.05 / +.10 / +.30 / +.30 | −1 to 1 | How Heat reshapes runs; Quiet must stay negative so Heat 5 isn't a breather |
-| p5_0 (Lone / Seq / Outbreak / Chaos per cell) | .10 / .03 / .03 / .01 | Lone ≤ .15, others ≤ .05 | EF5 rarity (AC-5); p5_0 × 3 (Heat 5) must not exceed the lowest tier that funds it |
+| p5_0 (Lone / Seq / Outbreak / Chaos per cell) | .10 / .03 / .03 / .01 | Lone ≤ .15, others ≤ .05 | EF5 rarity (AC-5); the Heat 5 added mass 2 × p5_0 must not exceed the lowest tier that funds it |
 | Peak wind P_EF | 8 / 12 / 17 / 26 / 40 / 62 m/s | strictly increasing; EF3+ > 21.5 | Danger at range; AC-10/11 |
 | Wind radius R_EF | 12 / 18 / 26 / 34 / 52 / 70 m | strictly increasing; EF5 ≤ 0.45 × compact arena | Reach of the wind; toss radius via F12 |
 | Damage radius D_EF | 1.5 / 2.2 / 3.2 / 5 / 6.5 / 12 m | strictly increasing; ≤ 0.25 R | Core size and visual width |
 | Form / Mature / Rope (s) | F3 table | Form ≥ 20 s Epic; Form + Mature ≥ 700 m ÷ 15.05 m/s = 47 s | Reachability (Rule 4) and the notice step |
 | Track speed v_track | 3–8 m/s | ≤ 0.4 v_top (8.6 m/s) | Fleeing guarantee (AC-32) |
-| k_H (Heat rank 1) | 1.25 | 1.0–1.3 | Keeps jog speed ≤ v_cap |
+| k_H (Heat rank 1) | 1.25 | 1.0–1.25 | Keeps jog speed ≤ v_cap (8 × 1.25 × 1.5 = 15.0 m/s) |
 | λ0 (jog rate) | 1/12 s | 1/20–1/8 s | Late-life loiter danger |
 | Jog turn / burst | ±40–110°, × 1.5 for 3 s | burst ≤ × 1.5 | Jog stays below v_cap |
 | σ max (forecast EF error) | 0.7 | 0.4–0.9 | P(wrong EF) far away: 47.5 % at 0.7, ≈ 58 % at 0.9; AC-15 must be recomputed if changed |
-| Forecast exact / max-error range | 150 / 800 m | exact ≥ 100 m | Where the forecast becomes trustworthy |
+| Forecast exact / max-error range | 150 / 800 m | exact 100–200 m; max-error ≥ exact + 400 m | Where the forecast becomes trustworthy |
 | Caps (CapRing / CapTotal) | Epic 3 / 5 (Chaos 6); Arcade 3; compact 2 | CapTotal ≥ 2 (anchor + co-anchor) | Perf (AC-28/29) vs. Outbreak density |
 | Compact T | 180 s | 150–240 s | Compact run length; anchor peak window 0.40–0.65 T |
 | Compact multipliers | Form × 0.25 (≥ 4 s), Mature / Rope × 0.5 | Form ≥ 4 s | Compact pacing |
@@ -446,11 +485,13 @@ column.
 - **Mature:** full ground contact, debris ring and dust skirt on, peak darkness.
 - **Roping Out:** width falls to ≈ 0.25, the funnel bends into an S-curve or tilts up to 30°, debris drops
   off, the base lightens. It reads as a rope, not a shrinking cone.
+- **Failed touchdown (evicted while Forming):** the condensation funnel retracts back into a lightening
+  base; no ground contact, no debris, no rope.
 - **Jog telegraph (1 s):** the funnel leans ≈ 15° toward the new heading, the base shifts off-centre, and
   a dust puff kicks up on the leading side. The lean always points where the storm will go.
 
 **Environmental cues**
-- One normalised value `e = clamp01(W(d_player) / 20 m/s)` drives every cue so they rise together: sky
+- One normalised value `e = clamp01(W_player / 20 m/s)` (total wind at the player, Rule 7) drives every cue so they rise together: sky
   gradient and sun intensity drop by up to 60 % with a green-teal shift; gust streak density and length;
   grass and tree sway; pooled ambient debris (leaves, paper).
 - World-grade only: no grain or CRT on the world as storms rise.
@@ -494,7 +535,8 @@ arrive, risk and escape.
 
 - **Forecast panel (HUD):** one row per cell, for the nearest 3 plus the anchor, then "+N more". Each row
   has a bearing arrow, estimated EF (marked "~EF3" while uncertain, plain "EF3" inside 150 m), distance,
-  and "peak in ~N s" or "roping out". The anchor's row is highlighted. Shares the off-screen indicator's
+  and "peak in ~N s" or "roping out". The anchor and the Heat 5 co-anchor always get a row and are
+  highlighted. Shares the off-screen indicator's
   bearing logic.
 - **Radio caption:** a one-line caption when the siren or radio cue plays ("Tornado warning: EF3+ forming,
   bearing NW"), so the audio is also readable on screen (accessibility).
@@ -542,13 +584,17 @@ arrive, risk and escape.
   at Heat 0 and 13.85 % ±1.1 pp at Heat 5 (≈ 3 standard errors of the exact F1 values).
 - **AC-6 [Unit]** GIVEN 10,000 non-Chaos plans, THEN exactly one cell is the anchor, no satellite is EF4+,
   no satellite exceeds the anchor's EF (including Quiet plans with an EF0 or EF1 anchor), and Quiet plans
-  contain no EF5. At Heat 5, Sequence and Outbreak plans also contain exactly one EF4 co-anchor, and
-  other regimes contain none.
+  contain no EF5. At Heat 5, Sequence and Outbreak plans also contain exactly one EF4 co-anchor and an
+  anchor of EF4 or EF5 (never below the co-anchor), and other regimes contain none. Heat 5 Sequence plans
+  have S − 1 satellites plus the co-anchor in slot `t_a − Δ`.
+- **AC-6b [Unit] (F2 draws)** Every Sequence plan's satellites satisfy `EF_k = max(0, EF_top − (S' − k))`
+  (e.g. S = 3, EF_a = 4 → EF1, EF2, EF3). GIVEN 10,000 Outbreak satellites with an EF4 anchor (cap 3), THEN
+  each of EF0–EF3 is 25 % ±1.5 pp; GIVEN 10,000 Outbreak plans, THEN each S ∈ 3..5 is 33.3 % ±1.5 pp.
 - **AC-7 [Unit]** GIVEN 10,000 Chaos plans at Heat 5, THEN none has more than one EF5 and none has an anchor;
   GIVEN a forced draw sequence of EF5, EF5, THEN the second cell is EF4.
 
 **Schedule (Rule 8, F2)**
-- **AC-8 [Unit]** For all plans: T ∈ [315, 450] s; the anchor's Mature start ∈ [0.40T, 0.65T] and ≤ T − 30;
+- **AC-8 [Unit]** For all Epic plans (compact: AC-21): T ∈ [315, 450] s; the anchor's Mature start ∈ [0.40T, 0.65T] and ≤ T − 30;
   anchor spawn ≥ 15 s; no Sequence satellite spawns before 5 s; in Epic, anchor Form + Mature ≥ distance
   from P0 ÷ (0.7 × 21.5 m/s).
 - **AC-9 [Unit]** GIVEN an Outbreak plan with S = 5 and CapTotal 5, WHEN the schedule is resolved, THEN live
@@ -562,8 +608,10 @@ arrive, risk and escape.
   ≤ 8.6 m/s for every EF (≤ 10.75 m/s with k_H at Heat 1+); W(15 m) = 8.1 ±0.05 m/s for EF3 and
   38.3 ±0.1 m/s for EF5; W = 0 for I < 0.01 with no NaN or infinity.
 - **AC-10b [Unit] (Rule 4, F3)** For an EF5 cell: in Forming, lift and damage radius are 0 at every d; at
-  Rope-out I = 0.5, lift at the axis = 0.5 × 2.295 ±0.01 and the damage radius = 6.0 m ±0.05; at I = 0.25 the
-  axis lift is < 0.7 (no toss).
+  Rope-out I = 0.5, lift at the axis = 0.5 × 2.295 ±0.01, the damage radius = 6.0 m ±0.05, and lift is 0 at
+  every d ≥ 0.5 × R × I = 17.5 m; at I = 0.25 the axis lift is < 0.7 (no toss). A cell evicted at Forming
+  I0 = 0.4 enters Rope-out at I = 0.4 (no jump), reaches 0 after 0.4 × Rope, and has lift and damage
+  radius 0 at every d throughout.
 - **AC-11 [PlayMode]** GIVEN a Mature EF3 and the truck parked 15 m away with no input, WHEN 1 s passes,
   THEN horizontal displacement > 0.5 m and `Tossed` is not raised.
 - **AC-12 [PlayMode]** GIVEN a Mature EF5 and the truck parked 5 m away, THEN `Tossed` fires within 1 s.
@@ -589,20 +637,28 @@ arrive, risk and escape.
   and the truck is not Tossed.
 
 **Events, compact mode, pause (Rules 7, 11, 12)**
-- **AC-20 [PlayMode]** Each cell raises Forming → Peak → RopeOut → Ended once each, in order; a cell that
-  leaves the world raises Ended. The director assembly holds no references to downstream systems.
+- **AC-20 [PlayMode] (Rule 11)** A cell that lives its full life raises `StormCellForming` →
+  `StormCellPeak` → `StormCellRopeOut` → `StormCellEnded`, once each, in order. A cell evicted while
+  Forming raises Forming → RopeOut → Ended (no Peak). A Mature cell forced out of the world raises Ended
+  only, with no Peak or RopeOut after its exit. Ending the run with 2 cells live raises exactly one Ended
+  for each and nothing else. A cell dropped by the cap raises nothing. Every payload carries the cell's
+  CellId, EF and Role. The director assembly holds no references to downstream systems.
 - **AC-21 [Unit]** Compact mode: a regime is drawn; T = 180 s; anchor Mature start ∈ [72, 117] s; anchors
   spawn 70–110 m and satellites 40–90 m from P0; Form = max(4 s, 0.25 × table); Mature and Rope-out =
-  0.5 × table; Chaos N ∈ 3..5; live cells never exceed 2.
+  0.5 × table; Sequence S ∈ 1..3, Outbreak S ∈ 1..2, Chaos N ∈ 3..5; live cells never exceed 2.
 - **AC-22 [PlayMode]** Pausing for 10 s leaves every cell's age and position unchanged. [WebGL]: same with
   the browser tab hidden for 10 s.
-- **AC-23 [PlayMode]** At a forced 5 FPS, no cell moves more than v × max-step in one frame.
-- **AC-24 [PlayMode]** With 6 cells live, the forecast shows the nearest 3 plus the anchor and "+2 more".
-  Screenshot retained.
+- **AC-23 [PlayMode]** GIVEN seed 777 run once at a forced 5 FPS and once at 60 FPS, THEN every cell's
+  position at ages 10, 30 and 60 s matches within 0.01 m (fixed 0.05 s substeps).
+- **AC-24 [PlayMode]** (a) A Chaos run with 6 cells live shows the nearest 3 and "+3 more". (b) A
+  non-Chaos Epic run with 5 cells live and the anchor 4th nearest shows the nearest 3, the highlighted
+  anchor, and "+1 more". (c) A Heat 5 Outbreak run with 5 cells live and the anchor and co-anchor 4th
+  and 5th nearest shows 5 rows, both highlighted, and no "+N more". Screenshot of each retained.
 - **AC-25 [PlayMode]** GIVEN a run ends before the anchor is Mature, THEN Results shows "The big one got
   away" with its EF.
 - **AC-26 [WebGL]** GIVEN an anchor Forming 800 m away in Epic, THEN its far-field cell is visible on
-  screen; environmental cues are at maximum when W(d_player) ≥ 20 m/s. Screenshot retained.
+  screen; environmental cues are at maximum when W_player ≥ 20 m/s. Companion [Unit]: with an EF0 5 m
+  away and an EF5 Mature 30 m away, `e` = 1. Screenshot retained.
 
 **Performance**
 - **AC-27 [Unit / WebGL]** Plan generation ≤ 2 ms desktop, ≤ 8 ms WebGL (median of 100 runs).
@@ -628,7 +684,8 @@ arrive, risk and escape.
 | Regime weights, Heat slopes, jog rate and forecast error are placeholders; simulate 10k plans and playtest | systems-designer | Before the director story is accepted |
 | WebGL EF5 budget (AC-29): can a 12 m core plus debris fit? | technical-artist / Codex (X7-06) | Before EF5 ships |
 | The Arcade settings list (which knobs, ranges, scenario-code format) | `session-modes.md` revision | Next modes pass |
-| `GameEvents` names for cell Forming / Peak / RopeOut / Ended | Claude + Codex via AGENTS.md | Before implementation |
+| ~~`GameEvents` names for cell Forming / Peak / RopeOut / Ended~~ Resolved 2026-10-02: Codex ack in AGENTS.md; contract and lifecycle exceptions in Rule 11 | — | — |
+| Should an exhausted plan (every cell Done before T) end an Epic run early, or leave an empty sky? Quiet runs can go quiet ~80–150 s before T | `session-modes.md` revision | First Epic playtest |
 | ~~Back-links from `disaster-entity-framework.md` and `save-profile.md`~~ Resolved: DEF in 3c8254d, save-profile 2026-10-02 | — | — |
 | ~~Heat ranks 1 and 5 contradicted Rule 3 and no-homing~~ Resolved 2026-10-02: rank 1 → k_H 1.25, rank 5 → EF4 co-anchor | — | — |
 | Does Heat 3 "Blackout" (night) break the far-field read? A near-black EF5 against a black sky | art-director | Before Heat ships |
