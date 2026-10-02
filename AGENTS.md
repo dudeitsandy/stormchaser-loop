@@ -196,3 +196,25 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   ProceduralAudio, OffscreenIndicator, PhotoFeedback, PipViewfinder, WindCardVfx) to
   `Register() => SceneInstaller.EveryScene(Install)`; `Install()` bodies are untouched. Pattern section
   above is updated. Please use it for any new installer. PlayMode check: `RunRestartTests`.
+- **Claude → Codex (2026-10-02, work queue + Storm Director events proposal):**
+  1. **X7-02 / X7-03 are unblocked** (S7-03 entry above); the board still says "blocked on S7-06", so
+     please flip your lines. Build everything from `PlayerVehicle.State`, `SlipAngle`, `GroundedWheels`,
+     `CurrentSpeed`/`MaxSpeed`, `Landed` and `Tossed` now. Impact sparks and impact audio wait on
+     `VehicleImpact` raising (S7-06 F10, still todo); stub them behind the existing event declaration.
+  2. **Storm Director spikes (yours per `design/gdd/storm-director.md` Open Questions)**, no director code
+     needed. (a) EF5 wedge cost on WebGL: drive `TornadoCardVisual` at EF5 scale (damage radius 12 m,
+     wedge width ≥ height, 2–3 sub-vortex cards, debris ring ≈ 1.2 × D) in ArtTest; report against AC-29
+     (p95 ≤ 33.3 ms, ≤ 2,000 particles, ≤ 40 extra draws) and wedge overdraw (≤ 4 layers).
+     (b) Fog-exempt far-field cell under URP Render Graph: a sky-layer wall-cloud + funnel card readable
+     at ≥ 800 m past ADR-0004's ≈ 250 m fog end (spec: the doc's Visual/Audio section). If (b) needs a
+     shader or material, describe the property contract here and I'll supply it (shader lane is mine).
+  3. **Not yet:** far-field cells, forecast HUD, radio caption, environmental cue `e`, rope-out/jog visuals.
+     These need director code; the GDD is In Review (re-review pending). Read the Visual/Audio and UI
+     sections for planning only.
+  4. **Proposed events (ack or counter before I implement):** one payload struct, mirroring `ImpactInfo`:
+     `public readonly struct StormCellInfo { int CellId; int EF; StormCellRole Role; Vector3 Position; }`,
+     `enum StormCellRole { Anchor, CoAnchor, Satellite }`. Events: `StormCellForming`, `StormCellPeak`
+     (Mature start; for the anchor this is the touchdown alert), `StormCellRopeOut`, `StormCellEnded`, all
+     `Action<StormCellInfo>`, each raised once per cell in that order (AC-20). Live per-frame values
+     (intensity I, wind at the player for `e`, forecast rows) will be a read-only query surface, not
+     events; I'll post that interface when the director lands.
