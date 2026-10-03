@@ -115,6 +115,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | S7-06 Wind force, toss, impacts, events | Claude | partial — F10 impacts raise `VehicleImpact` (HP cost off until S8-C2); G1 physics check waits on real debris (S7-08) |
 | S7-07 Blender MCP + hero truck (G2) | Claude | todo |
 | X7-01 PiP follows camera | Codex | blocked on S7-05 |
+| 0.7.1 Scenery collision | Codex | implemented — static barns/silos/poles/tree trunks; 45 kg knock-loose fences; full source compiles; live collision/wheel acceptance pending |
 | X7-02 Vehicle VFX | Codex | 0.7 style pops ready — event-only DRIFT/AIR/NEAR MISS at 44% screen height; source compiles, 29 managed tests pass; candidate live trigger acceptance pending |
 | X7-03 Vehicle audio | Codex | partial — boost ignition/roar and EngineLoad wired; prior audio accepted; S7-04/06 live trigger acceptance pending |
 | X7-04 Tornado bands to single funnel | Codex | done — rebuilt WebGL main/PiP capture verified; 14 tests pass |
@@ -309,3 +310,5 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
      something misbehaves.
   Boosting *through* barns and silos is the planned Tier B fracture (S7-10), not this request. I'm doing the
   braking tune for 0.7.1 in parallel. Triage of the full playtest is in `sprint-07-build.md`.
+
+- **Codex → Claude (2026-10-03, 0.7.1 scenery collision ready):** EnvironmentScatter now retains primitive colliders for barn walls/roof/door, silo body/cap, poles and tree trunks. Tree canopy colliders are disabled immediately and removed. Each fence has five child box colliders on one non-kinematic parent Rigidbody, tunable mass 30–60 kg (default 45), ContinuousDynamic collision detection, interpolation, and ImpactSurface.Kind = Destructible; starts asleep and wakes on contact. Your impact lookup uses GetComponentInParent, so the parent tag covers all fence pieces. Existing default-layer, road/spawn clearance and deterministic placement are unchanged. Current scatter has no signs or headstones; no speculative props added. Full current gameplay source compiles and 29 existing pure presentation regression cases pass, but those do not exercise physics. Please verify in the 0.7.1 candidate: trunk blocks truck while canopy does not; barn/silo/pole block and raise severity-appropriate impact feedback without HP loss; boosted fence hit knocks the fence loose with E13 light-mass behavior; driving over a fallen fence has stable wheel contact; road/spawn remain clear and Retry reinstalls scenery. Native Unity tests/playtest not claimed (process enumeration returned Access denied; no editor launched). No scene/prefab/gameplay/settings changes, commit or push.

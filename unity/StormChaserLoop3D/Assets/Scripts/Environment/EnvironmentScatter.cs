@@ -9,6 +9,7 @@ public sealed class EnvironmentScatter : MonoBehaviour
     [SerializeField] private float _halfExtent = 85f;
     [SerializeField] private float _roadClearance = 10f;
     [SerializeField] private float _minimumSpacing = 9f;
+    [SerializeField, Range(30f, 60f)] private float _fenceMass = 45f;
     private readonly List<Material> _materials = new List<Material>();
     private Material _wood, _leaves, _wall, _roof, _metal;
 
@@ -50,25 +51,36 @@ public sealed class EnvironmentScatter : MonoBehaviour
             switch (random.Next(5))
             {
                 case 0:
+                    group.name = "RuralBarn";
                     Part(group.transform, PrimitiveType.Cube, new Vector3(0, 1.5f, 0), new Vector3(5, 3, 4), _wall);
                     Part(group.transform, PrimitiveType.Cube, new Vector3(0, 3.1f, 0), new Vector3(5.5f, 0.5f, 4.5f), _roof);
                     Part(group.transform, PrimitiveType.Cube, new Vector3(0, 1, -2.05f), new Vector3(0.9f, 2, 0.1f), _wood);
                     break;
                 case 1:
+                    group.name = "RuralSilo";
                     Part(group.transform, PrimitiveType.Cylinder, new Vector3(0, 3, 0), new Vector3(3, 3, 3), _metal);
                     Part(group.transform, PrimitiveType.Sphere, new Vector3(0, 6, 0), new Vector3(3, 1.2f, 3), _metal);
                     break;
                 case 2:
+                    group.name = "RuralFence";
                     for (int j = -1; j <= 1; j++) Part(group.transform, PrimitiveType.Cube, new Vector3(j * 2, 0.8f, 0), new Vector3(0.2f, 1.6f, 0.2f), _wood);
                     for (int j = 0; j < 2; j++) Part(group.transform, PrimitiveType.Cube, new Vector3(0, 0.5f + j * 0.6f, 0), new Vector3(4.5f, 0.15f, 0.15f), _wood);
+                    var body = group.AddComponent<Rigidbody>();
+                    body.mass = Mathf.Clamp(_fenceMass, 30f, 60f);
+                    body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+                    body.interpolation = RigidbodyInterpolation.Interpolate;
+                    group.AddComponent<ImpactSurface>().Kind = ImpactKind.Destructible;
+                    body.Sleep();
                     break;
                 case 3:
+                    group.name = "RuralPole";
                     Part(group.transform, PrimitiveType.Cylinder, new Vector3(0, 3.5f, 0), new Vector3(0.25f, 3.5f, 0.25f), _wood);
                     Part(group.transform, PrimitiveType.Cube, new Vector3(0, 6.5f, 0), new Vector3(2, 0.18f, 0.18f), _wood);
                     break;
                 default:
+                    group.name = "RuralTree";
                     Part(group.transform, PrimitiveType.Cylinder, new Vector3(0, 1.5f, 0), new Vector3(0.5f, 1.5f, 0.5f), _wood);
-                    Part(group.transform, PrimitiveType.Sphere, new Vector3(0, 3.5f, 0), new Vector3(3.2f, 4, 3.2f), _leaves);
+                    Part(group.transform, PrimitiveType.Sphere, new Vector3(0, 3.5f, 0), new Vector3(3.2f, 4, 3.2f), _leaves, false);
                     break;
             }
         }
@@ -80,15 +92,19 @@ public sealed class EnvironmentScatter : MonoBehaviour
         _materials.Add(material);
         return material;
     }
-    private static void Part(Transform parent, PrimitiveType type, Vector3 position, Vector3 scale, Material material)
+    private static void Part(Transform parent, PrimitiveType type, Vector3 position, Vector3 scale, Material material, bool solid = true)
     {
         var part = GameObject.CreatePrimitive(type);
         part.transform.SetParent(parent, false);
         part.transform.localPosition = position;
         part.transform.localScale = scale;
-        var collider = part.GetComponent<Collider>();
-        collider.enabled = false;
-        Object.Destroy(collider);
+        // Retain primitive colliders for solid parts. Canopies remain visual only.
+        if (!solid)
+        {
+            var collider = part.GetComponent<Collider>();
+            collider.enabled = false;
+            Object.Destroy(collider);
+        }
         part.GetComponent<Renderer>().sharedMaterial = material;
     }
     private void OnDestroy()
