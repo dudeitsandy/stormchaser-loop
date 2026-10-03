@@ -87,6 +87,7 @@
         let kind = names.includes('_ChromaPixels') && names.includes('_BarrelStrength') ? 'camcorder' : 'other';
         if (names.includes('_BaseColor') && names.includes('_BaseMap') && names.includes('unity_FogColor')
           && !/_ShadowTint|_RimColor|_MainLightColor|_WorldSpaceCameraPos|_Cutoff/.test(names)) kind = 'cards';
+        if (names.includes('_HorizonBlend') && names.includes('_BaseMap')) kind = 'farField';
         shader = { id: probe.programs.length, uniforms, sources, kind };
         if (kind === 'cards') {
           const indices = originals.getUniformIndices(program, ['_BaseColor']);
@@ -98,6 +99,7 @@
         probe.programs.push(shader);
       }
       if (shader?.kind === 'camcorder') return 'camcorder';
+      if (shader?.kind === 'farField') return 'farFieldCards';
       if (shader?.kind === 'cards') {
         const slot = uniformSlots.get(shader.colorSlot);
         const bytes = slot && buffers.get(slot.buffer);
@@ -192,7 +194,28 @@
           fbos.set(framebuffer, { texture: args[3] });
         const frame = probe.enabled ? probe.frame : null;
         const draw = /^draw(Arrays|Elements)/.test(name);
-        const category = frame ? classify() : null;
+        const category = frame || (draw && (probe.hideFarField || probe.hideNearCards)) ? classify() : null;
+        if (draw && category === 'farFieldCards' && (probe.farFieldSamples?.length || 0) < 5) {
+          const index = originals.getUniformIndices(program, ['hlslcc_mtx4x4unity_ObjectToWorld[0]'])[0];
+          const block = originals.getActiveUniforms(program, [index], gl.UNIFORM_BLOCK_INDEX)[0];
+          const offset = originals.getActiveUniforms(program, [index], gl.UNIFORM_OFFSET)[0];
+          const binding = originals.getActiveUniformBlockParameter(program, block, gl.UNIFORM_BLOCK_BINDING);
+          const slot = uniformSlots.get(binding), bytes = slot && buffers.get(slot.buffer);
+          if (bytes && (slot.offset || 0) + offset + 64 <= bytes.length) {
+            const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+            const matrix = Array.from({length:16}, (_, i) => view.getFloat32((slot.offset || 0) + offset + i * 4, true));
+            const vp = Array.from({length:4}, (_, i) => Array.from(originals.getUniform(program,
+              originals.getUniformLocation(program, `hlslcc_mtx4x4unity_MatrixVP[${i}]`)) || [])).flat();
+            if (vp?.length === 16) {
+              const transform = (m, v) => Array.from({length:4}, (_, row) => v.reduce((sum, value, col) => sum + m[col * 4 + row] * value, 0));
+              const world = transform(matrix, [0,0,0,1]);
+              const clip = transform(vp, world);
+              (probe.farFieldSamples ||= []).push({worldPosition:world.slice(0,3), ndcOrigin:clip.slice(0,3).map(v => v / clip[3])});
+            }
+          }
+        }
+        if (draw && probe.hideFarField && category === 'farFieldCards') return;
+        if (draw && probe.hideNearCards && ['tornadoCards','windCards','cardsUnclassified'].includes(category)) return;
         if (frame && draw) {
           begin(category);
           frame.drawCalls[category] = (frame.drawCalls[category] || 0) + 1;

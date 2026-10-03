@@ -1,5 +1,22 @@
 # Presentation verification
 
+Follow-up verdict and evidence: [capture-review-2026-10-02.md](capture-review-2026-10-02.md). AC-29 frame-time and draw-count subchecks pass on the reference capture; X7-06 remains open for Unity CPU attribution, and wedge pixel overdraw is still unmeasured. The far-field material renders a visible 800 m daylight silhouette in the development build. Boost visuals/audio now read `BoostActive` (dormant until S7-04), and engine audio reads `EngineLoad`; earlier acceleration-proxy/interface-wait notes below describe the initial delivery.
+
+## Sprint 7 vehicle feedback and storm probes (2026-10-02)
+
+`VehicleCardVfx` self-installs through `SceneInstaller.EveryScene`. Its fixed default pool has 24 smoke/dust cards and 12 spark cards. Sliding rear-wheel smoke requires ground contact, speed and slip; spawn raycasts follow terrain height. Landing and toss emit bounded dust bursts. Declared `VehicleImpact` and `StyleEvent` listeners supply sparks and DRIFT/AIR/NEAR MISS pops once gameplay raises them. Disable/run-end clears cards and UI; disable unsubscribes all callbacks. `ProceduralAudio` adds one skid loop and one vehicle one-shot source, with slip-dependent squeal, landing thump, toss whoosh, severity-dependent metal crunch, and smoothed speed/acceleration-dependent engine revs. Boost awaits an authoritative gameplay query, and engine load is currently an acceleration proxy. Listening/ArtTest/retry checks remain necessary.
+
+Opt-in probes are included in gameplay code, with no scene/prefab edits:
+
+- WebGL: add `?stormVisualSpike=wedge` or `?stormVisualSpike=far` to the game URL.
+- Desktop/editor launch: `-stormVisualSpike=wedge` or `-stormVisualSpike=far`.
+- Wedge applies a **visual-only** Mature EF5 preview to the first existing illustrated tornado. Width 24 m, height 20 m, ground width 20.4 m; three orbiting sub-vortices; debris ring centered at 14.4 m with height 18 m; dust ring spans 12–35 m. It replaces sparse dust/debris cards with one ring mesh and two dynamic billboard mesh batches containing 1,200 debris and 500 gusts. Seven renderers imply at most 14 draws for main + PiP before other scene/presentation work. These are structural counts, not measured draw calls or timing. The controller continues moving/expiring normally: discard capture intervals after it expires or before the preview activates. This does not model EF5 physics/wind, nor the proposed single-atlas production material. Overlapping billboards can exceed four layers; pixel overdraw must be captured, not inferred from renderer count.
+- Far requires Claude's `Resources/Presentation/FarFieldStormMaterial`, whose fog-exempt contract is in AGENTS.md. It builds an octagonal wall-cloud base, three anvil cards and one wedge silhouette at a fixed horizontal 800 m bearing. The main camera far clip is temporarily extended and restored on disable. Missing material disables the probe with a prerequisite warning. This probe is for shader/depth/readability validation, not director lifecycle behavior. The PiP clip is unchanged.
+
+For AC-29 capture **60 uninterrupted active seconds** with the mature wedge visible up close. Compare against the same empty-sky camera path on the reference machine; report p95 complete frame latency, extra draws, live particles and a pixel overdraw capture. The seven-renderer/1,700-particle implementation satisfies only structural capacity expectations; neither p95 ≤33.3 ms nor ≤4-layer overdraw is certified. If the existing controller lifecycle prevents the 60-second window, a Claude-owned controlled ArtTest harness is required.
+
+Unity CPU markers now cover `Presentation.Pip.Update`, `Presentation.Lens.Blit`, `Presentation.Lens.UI`, `Presentation.Tornado.Update/Camera`, `Presentation.Wind.Update/Camera`, `Presentation.VehicleVfx.Update/Camera`, and `Presentation.Audio.Update`. Capture in a development build and include native camera rendering/culling and UI cost; markers alone do not account for all presentation work. Browser instrumentation still does not measure Unity component CPU work. Existing browser color-based VFX classification predates the dark EF5 and new vehicle effects: treat unknown cards separately rather than labeling them as tornado/wind automatically.
+
 From the repository root, run the pure presentation tests without opening Unity:
 
 ```powershell

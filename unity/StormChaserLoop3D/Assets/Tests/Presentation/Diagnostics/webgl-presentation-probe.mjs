@@ -10,7 +10,8 @@ import { spawn } from 'node:child_process';
 const root = resolve(process.argv[2]);
 const output = resolve(process.argv[3]);
 const seconds = Number(process.argv[4] || 30);
-const build = join(root, 'builds/webgl');
+const build = resolve(root, process.env.PRESENTATION_PROBE_BUILD || 'builds/webgl');
+const query = new URLSearchParams(process.env.PRESENTATION_PROBE_QUERY || '').toString();
 const here = dirname(fileURLToPath(import.meta.url));
 await mkdir(output, { recursive: true });
 const mime = { '.html':'text/html', '.js':'application/javascript', '.wasm':'application/wasm', '.data':'application/octet-stream', '.css':'text/css', '.png':'image/png' };
@@ -77,7 +78,7 @@ try {
   session = (await cdp('Target.attachToTarget', { targetId, flatten: true }, null)).sessionId;
   await cdp('Runtime.enable');
   await cdp('Page.enable');
-  await cdp('Page.navigate', { url: `http://127.0.0.1:${port}/` });
+  await cdp('Page.navigate', { url: `http://127.0.0.1:${port}/${query ? '?' + query : ''}` });
   async function evaluate(expression) {
     const result = await cdp('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
     if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails));
@@ -134,20 +135,47 @@ try {
     audioSources:__presentationProbe.audioSources, maxAudioSources:__presentationProbe.maxAudioSources,
     missingMaterialBuffer:__presentationProbe.missingMaterialBuffer,
     materialColors:__presentationProbe.materialColors,
+    farFieldSamples:__presentationProbe.farFieldSamples,
     skippedQueries:__presentationProbe.skippedQueries, canvas:{width:document.querySelector('canvas').width,height:document.querySelector('canvas').height},
     browser:navigator.userAgent})`);
   data.console = logs;
   data.audioTrace = audioTrace;
   const screenshot = await cdp('Page.captureScreenshot', { format: 'png' });
   await writeFile(join(output, 'webgl-capture.png'), Buffer.from(screenshot.data, 'base64'));
+  if (process.env.PRESENTATION_PROBE_FAR_COMPARISON === '1') {
+    await evaluate('__presentationProbe.hideFarField = true');
+    await sleep(200);
+    const hidden = await cdp('Page.captureScreenshot', { format: 'png' });
+    await writeFile(join(output, 'webgl-far-hidden.png'), Buffer.from(hidden.data, 'base64'));
+    await evaluate('__presentationProbe.hideFarField = false');
+  }
+  if (process.env.PRESENTATION_PROBE_EMPTY_SKY === '1') {
+    // GPU draw-only comparison: keep gameplay, both cameras, UI, post and culling unchanged.
+    // This is not an empty-scene CPU baseline, and suppresses all near VFX cards, not just tornadoes.
+    await evaluate('__presentationProbe.hideNearCards = true; __presentationProbe.start()');
+    await sleep(5000);
+    await evaluate('__presentationProbe.stop()');
+    data.emptySkyDrawFrames = await evaluate('__presentationProbe.frames');
+    const emptySky = await cdp('Page.captureScreenshot', { format: 'png' });
+    await writeFile(join(output, 'webgl-empty-sky.png'), Buffer.from(emptySky.data, 'base64'));
+    await evaluate('__presentationProbe.hideNearCards = false');
+  }
   await writeFile(join(output, 'webgl-raw.json'), JSON.stringify(data, null, 2));
   const mean = values => values.length ? values.reduce((sum,v) => sum + v, 0) / values.length : null;
   const p95 = values => values.length ? [...values].sort((a,b) => a-b)[Math.floor((values.length - 1) * 0.95)] : null;
   const summary = { gpu:data.gpu, canvas:data.canvas, browser:data.browser, frames:data.frames.length,
-    durationSeconds:seconds, maxAudioSources:data.maxAudioSources, skippedQueries:data.skippedQueries, categories:{} };
+    build, query, farFieldSamples:data.farFieldSamples, durationSeconds:seconds, maxAudioSources:data.maxAudioSources, skippedQueries:data.skippedQueries, categories:{} };
   const running = data.frames.filter(frame => frame.drawCalls.camcorder > 0);
   summary.runningFrames = running.length;
-  for (const category of ['pipCamera','camcorder','tornadoCards','windCards','cardsUnclassified','worldAndUI']) {
+  const totalDraws = frames => frames.map(frame => Object.values(frame.drawCalls).reduce((sum, value) => sum + value, 0));
+  summary.totalDrawCallsMean = mean(totalDraws(running));
+  if (data.emptySkyDrawFrames) {
+    const emptyFrames = data.emptySkyDrawFrames.filter(frame => frame.drawCalls.camcorder > 0);
+    summary.emptySkyDrawComparison = { frames:emptyFrames.length, drawCallsMean:mean(totalDraws(emptyFrames)),
+      extraDrawsMean:summary.totalDrawCallsMean - mean(totalDraws(emptyFrames)),
+      scope:'Browser suppresses near VFX card draws only; cameras/UI/post/gameplay/culling remain active. Not a CPU baseline.' };
+  }
+  for (const category of ['pipCamera','camcorder','tornadoCards','windCards','cardsUnclassified','farFieldCards','worldAndUI']) {
     const gpuFrames = running.filter(frame => Object.keys(frame.gpuMs).length);
     const gpuValues = gpuFrames.map(frame => frame.gpuMs[category] || 0);
     const cpuValues = running.map(frame => frame.submitMs[category] || 0);
@@ -161,7 +189,7 @@ try {
   summary.callbackP95Ms = p95(data.frames.map(frame => frame.callbackMs));
   summary.frameIntervalMeanMs = mean(data.frames.slice(1).map((frame,i) => frame.timestamp - data.frames[i].timestamp));
   const sampled = running.filter(frame => Object.keys(frame.gpuMs).length);
-  const subtotal = sampled.map(frame => ['pipCamera','camcorder','tornadoCards','windCards','cardsUnclassified']
+  const subtotal = sampled.map(frame => ['pipCamera','camcorder','tornadoCards','windCards','cardsUnclassified','farFieldCards']
     .reduce((sum,category) => sum + (frame.gpuMs[category] || 0) + (frame.submitMs[category] || 0), frame.audioSubmitMs));
   summary.measuredSubtotalMeanMs = mean(subtotal);
   summary.measuredSubtotalP95Ms = p95(subtotal);

@@ -1,0 +1,125 @@
+{
+  "gpu": {
+    "timerQueries": true,
+    "renderer": "ANGLE (AMD, AMD Radeon(TM) 890M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "vendor": "Google Inc. (AMD)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "canvas": {
+    "width": 960,
+    "height": 600
+  },
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+  "frames": 603,
+  "build": "C:\\Users\\subfl\\dev\\games\\stormchaser\\builds\\webgl-dev",
+  "query": "stormVisualSpike=wedge&stormHarness=hold",
+  "durationSeconds": 10,
+  "maxAudioSources": 3,
+  "skippedQueries": 0,
+  "categories": {
+    "pipCamera": {
+      "gpuMeanMs": 0.21330450000000004,
+      "gpuP95Ms": 1.1739000000000002,
+      "gpuFrames": 120,
+      "glSubmitMeanMs": 0.1767827529355167,
+      "glSubmitP95Ms": 0.40000000037252903,
+      "drawCallsMean": 98,
+      "drawCallsMax": 98
+    },
+    "camcorder": {
+      "gpuMeanMs": 0.04093975000000001,
+      "gpuP95Ms": 0.16539,
+      "gpuFrames": 120,
+      "glSubmitMeanMs": 0.042122719726010935,
+      "glSubmitP95Ms": 0.19999999925494194,
+      "drawCallsMean": 1,
+      "drawCallsMax": 1
+    },
+    "tornadoCards": {
+      "gpuMeanMs": 0.054005583333333336,
+      "gpuP95Ms": 0.02896,
+      "gpuFrames": 120,
+      "glSubmitMeanMs": 0.009950248746952014,
+      "glSubmitP95Ms": 0.09999999962747097,
+      "drawCallsMean": 5.552238805970149,
+      "drawCallsMax": 42
+    },
+    "windCards": {
+      "gpuMeanMs": 0,
+      "gpuP95Ms": 0,
+      "gpuFrames": 120,
+      "glSubmitMeanMs": 0,
+      "glSubmitP95Ms": 0,
+      "drawCallsMean": 0,
+      "drawCallsMax": 0
+    },
+    "cardsUnclassified": {
+      "gpuMeanMs": 0.06766766666666668,
+      "gpuP95Ms": 0.09008,
+      "gpuFrames": 120,
+      "glSubmitMeanMs": 0.027860696506292665,
+      "glSubmitP95Ms": 0.10000000149011612,
+      "drawCallsMean": 9.00497512437811,
+      "drawCallsMax": 10
+    },
+    "farFieldCards": {
+      "gpuMeanMs": 0,
+      "gpuP95Ms": 0,
+      "gpuFrames": 120,
+      "glSubmitMeanMs": 0,
+      "glSubmitP95Ms": 0,
+      "drawCallsMean": 0,
+      "drawCallsMax": 0
+    },
+    "worldAndUI": {
+      "gpuMeanMs": 3.2405550833333328,
+      "gpuP95Ms": 5.046889999999998,
+      "gpuFrames": 120,
+      "glSubmitMeanMs": 0.42238805975276933,
+      "glSubmitP95Ms": 0.7000000011175871,
+      "drawCallsMean": 322.6550580431177,
+      "drawCallsMax": 323
+    }
+  },
+  "runningFrames": 603,
+  "totalDrawCallsMean": 436.212271973466,
+  "emptySkyDrawComparison": {
+    "frames": 294,
+    "drawCallsMean": 422,
+    "extraDrawsMean": 14.212271973465988,
+    "scope": "Browser suppresses near VFX card draws only; cameras/UI/post/gameplay/culling remain active. Not a CPU baseline."
+  },
+  "audioSubmitMeanMs": 0.008789386402562285,
+  "audioSubmitP95Ms": 0.09999999962747097,
+  "callbackMeanMs": 6.485074626828604,
+  "callbackP95Ms": 7.799999998882413,
+  "frameIntervalMeanMs": 17.109966777408637,
+  "measuredSubtotalMeanMs": 0.6400841667691124,
+  "measuredSubtotalP95Ms": 1.676950000745058,
+  "audioTraceEvents": {
+    "RenderAudioFromSource": {
+      "calls": 1032,
+      "totalMs": 86.65099999999981
+    },
+    "IAudioClient frames": {
+      "calls": 1032,
+      "totalMs": 68.26699999999998
+    },
+    "IAudioClock position": {
+      "calls": 1032,
+      "totalMs": 3.8029999999999706
+    },
+    "AudioConverter::Convert": {
+      "calls": 1032,
+      "totalMs": 41.59799999999992
+    },
+    "AudioConverter::SourceCallback": {
+      "calls": 1032,
+      "totalMs": 38.64399999999994
+    },
+    "AudioOutputDevice::FireRenderCallback": {
+      "calls": 1032,
+      "totalMs": 85.8969999999999
+    }
+  }
+}

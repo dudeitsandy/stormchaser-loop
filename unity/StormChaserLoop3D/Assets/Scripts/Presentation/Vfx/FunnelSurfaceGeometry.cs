@@ -5,14 +5,15 @@ using UnityEngine;
 public static class FunnelSurfaceGeometry
 {
     /// <summary>Creates paired edge vertices from ground tip to full-width crown, normalized to unit height.</summary>
-    public static Vector3[] Vertices(int segments)
+    public static Vector3[] Vertices(int segments, float baseRadius = 0.04f)
     {
         Validate(segments);
+        if (baseRadius < 0f || baseRadius > 1f || float.IsNaN(baseRadius)) throw new ArgumentOutOfRangeException(nameof(baseRadius));
         var vertices = new Vector3[(segments + 1) * 2];
         for (int row = 0; row <= segments; row++)
         {
             float t = row / (float)segments;
-            float radius = Mathf.Lerp(0.04f, 1f, Mathf.Pow(t, 0.8f));
+            float radius = Mathf.Lerp(baseRadius, 1f, Mathf.Pow(t, 0.8f));
             float bend = Mathf.Sin(t * 7f) * t * 0.035f;
             vertices[row * 2] = new Vector3(bend - radius, t, 0);
             vertices[row * 2 + 1] = new Vector3(bend + radius, t, 0);

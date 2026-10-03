@@ -1,10 +1,13 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using Unity.Profiling;
 
 /// <summary>Viewfinder-only camcorder processing, recording overlays and brief photo review.</summary>
 public sealed class CamcorderLens : MonoBehaviour
 {
+    private static readonly ProfilerMarker RenderMarker = new ProfilerMarker("Presentation.Lens.Blit");
+    private static readonly ProfilerMarker UpdateMarker = new ProfilerMarker("Presentation.Lens.UI");
     [SerializeField, Range(0, 0.4f)] private float _scanlineStrength = 0.12f;
     [SerializeField, Range(0, 0.2f)] private float _grainStrength = 0.045f;
     [SerializeField, Range(0, 3f)] private float _chromaPixels = 0.8f;
@@ -133,6 +136,7 @@ public sealed class CamcorderLens : MonoBehaviour
     private void OnCameraRendered(ScriptableRenderContext context, Camera camera)
     {
         if (camera != _camera) return;
+        using var sample = RenderMarker.Auto();
         _hasFootage = true;
         if (_material == null) return;
         _material.SetFloat("_TimeSeconds", Time.unscaledTime);
@@ -154,6 +158,7 @@ public sealed class CamcorderLens : MonoBehaviour
     }
     private void LateUpdate()
     {
+        using var sample = UpdateMarker.Auto();
         if (_preview == null) return;
         if (_camera != null && _camera.enabled) _elapsed += Time.unscaledDeltaTime;
         bool reviewing = Time.unscaledTime < _reviewUntil;

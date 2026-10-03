@@ -1,10 +1,12 @@
 using UnityEngine;
+using Unity.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 
 /// <summary>Low-resolution forward-facing photo preview matching the truck's scoring direction.</summary>
 public sealed class PipViewfinder : MonoBehaviour
 {
+    private static readonly ProfilerMarker UpdateMarker = new ProfilerMarker("Presentation.Pip.Update");
     [SerializeField] private int _textureWidth = 320;
     [SerializeField] private int _textureHeight = 240;
     [SerializeField] private float _fieldOfView = 60f;
@@ -80,6 +82,7 @@ public sealed class PipViewfinder : MonoBehaviour
     }
     private void LateUpdate()
     {
+        using var sample = UpdateMarker.Auto();
         if (_camera == null || _vehicle == null) return;
         bool active = _vehicle.InputEnabled;
         _camera.enabled = active;

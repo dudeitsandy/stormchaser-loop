@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 /// <summary>Owned, lazily generated illustrated card textures and transparent URP materials.</summary>
 internal sealed class CardVfxAssets : IDisposable
 {
-    internal enum Shape { Band, Dust, Streak, Debris, Funnel }
+    internal enum Shape { Band, Dust, Streak, Debris, Funnel, Flame }
     private readonly Dictionary<Shape, Material> _materials = new Dictionary<Shape, Material>();
     private readonly List<UnityEngine.Object> _owned = new List<UnityEngine.Object>();
     private Mesh _quad;
@@ -37,9 +37,9 @@ internal sealed class CardVfxAssets : IDisposable
         return host.transform;
     }
 
-    internal Transform CreateFunnel(Transform parent, int segments)
+    internal Transform CreateFunnel(Transform parent, int segments, float baseRadius = 0.04f)
     {
-        var vertices = FunnelSurfaceGeometry.Vertices(segments);
+        var vertices = FunnelSurfaceGeometry.Vertices(segments, baseRadius);
         var uvs = new Vector2[vertices.Length];
         var colors = new Color[vertices.Length];
         for (int i = 0; i < vertices.Length; i++)
@@ -134,6 +134,12 @@ internal sealed class CardVfxAssets : IDisposable
                 case Shape.Streak:
                     alpha = Mathf.Clamp01((1f - Mathf.Abs(u)) * 5f) * Mathf.Clamp01((0.22f - Mathf.Abs(v - 0.12f * u * u)) * 20f);
                     tone = 1f;
+                    break;
+                case Shape.Flame:
+                    float taper = Mathf.Clamp01((1f - u) * 0.5f);
+                    alpha = Mathf.Clamp01((taper * 0.65f - Mathf.Abs(v)) * 12f)
+                        * Mathf.Clamp01((u + 1f) * 5f) * Mathf.Clamp01((1f - u) * 4f);
+                    tone = 0.8f + taper * 0.2f;
                     break;
                 default:
                     alpha = Mathf.Abs(u + v * 0.3f) < 0.55f && Mathf.Abs(v) < 0.65f ? 1f : 0f;

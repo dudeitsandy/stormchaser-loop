@@ -1,9 +1,12 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using Unity.Profiling;
 
 /// <summary>Fixed-pool wind streaks, dust and debris driven by the truck's actual wind exposure.</summary>
 public sealed class WindCardVfx : MonoBehaviour
 {
+    private static readonly ProfilerMarker UpdateMarker = new ProfilerMarker("Presentation.Wind.Update");
+    private static readonly ProfilerMarker CameraMarker = new ProfilerMarker("Presentation.Wind.Camera");
     [SerializeField, Range(12, 96)] private int _poolSize = 60;
     [SerializeField, Min(1f)] private float _fullWindSpeed = 15f;
     [SerializeField, Range(1f, 60f)] private float _cardsPerSecond = 30f;
@@ -71,6 +74,7 @@ public sealed class WindCardVfx : MonoBehaviour
     private float Random01() => (float)_random.NextDouble();
     private void Update()
     {
+        using var sample = UpdateMarker.Auto();
         if (_vehicle == null || !_vehicle.InputEnabled) { Clear(); return; }
         _wind = _vehicle.CurrentWind;
         float dt = Time.deltaTime;
@@ -125,6 +129,7 @@ public sealed class WindCardVfx : MonoBehaviour
     }
     private void OnCamera(ScriptableRenderContext context, Camera camera)
     {
+        using var sample = CameraMarker.Auto();
         Vector3 bearing = camera.transform.InverseTransformDirection(_wind);
         float roll = Mathf.Atan2(bearing.y, bearing.x) * Mathf.Rad2Deg;
         for (int i = 0; i < _cards.Length; i++)

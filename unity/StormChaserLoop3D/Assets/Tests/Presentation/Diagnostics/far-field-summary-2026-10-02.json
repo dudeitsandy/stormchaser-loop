@@ -1,0 +1,180 @@
+{
+  "gpu": {
+    "timerQueries": true,
+    "renderer": "ANGLE (AMD, AMD Radeon(TM) 890M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "vendor": "Google Inc. (AMD)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "canvas": {
+    "width": 960,
+    "height": 600
+  },
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+  "frames": 607,
+  "build": "C:\\Users\\subfl\\dev\\games\\stormchaser\\builds\\webgl-dev",
+  "query": "stormVisualSpike=far",
+  "farFieldSamples": [
+    {
+      "worldPosition": [
+        38,
+        48.5,
+        796
+      ],
+      "ndcOrigin": [
+        0.05881344013917109,
+        0.9878513515570037,
+        0.9997420022361568
+      ]
+    },
+    {
+      "worldPosition": [
+        -38,
+        40.5,
+        796
+      ],
+      "ndcOrigin": [
+        -0.05851413219652628,
+        0.9651948891046309,
+        0.9997463691534615
+      ]
+    },
+    {
+      "worldPosition": [
+        0,
+        44.5,
+        796
+      ],
+      "ndcOrigin": [
+        2.350434299609875e-11,
+        0.9764942215052292,
+        0.9997441912649101
+      ]
+    },
+    {
+      "worldPosition": [
+        0,
+        4.5,
+        792
+      ],
+      "ndcOrigin": [
+        2.303425036862708e-11,
+        0.866030647974319,
+        0.9997613094662243
+      ]
+    },
+    {
+      "worldPosition": [
+        0,
+        26.5,
+        792
+      ],
+      "ndcOrigin": [
+        2.3355389992429118e-11,
+        0.9264006115990148,
+        0.9997496152838984
+      ]
+    }
+  ],
+  "durationSeconds": 10,
+  "maxAudioSources": 3,
+  "skippedQueries": 0,
+  "categories": {
+    "pipCamera": {
+      "gpuMeanMs": 0.14023884297520664,
+      "gpuP95Ms": 0.37948000000000004,
+      "gpuFrames": 121,
+      "glSubmitMeanMs": 0.17874794069116037,
+      "glSubmitP95Ms": 0.39999999990686774,
+      "drawCallsMean": 98,
+      "drawCallsMax": 98
+    },
+    "camcorder": {
+      "gpuMeanMs": 0.04217371900826447,
+      "gpuP95Ms": 0.16229,
+      "gpuFrames": 121,
+      "glSubmitMeanMs": 0.032948929159035155,
+      "glSubmitP95Ms": 0.10000000009313226,
+      "drawCallsMean": 1,
+      "drawCallsMax": 1
+    },
+    "tornadoCards": {
+      "gpuMeanMs": 0.04465033057851241,
+      "gpuP95Ms": 0.25884,
+      "gpuFrames": 121,
+      "glSubmitMeanMs": 0.011696869851116096,
+      "glSubmitP95Ms": 0.10000000009313226,
+      "drawCallsMean": 9.591433278418451,
+      "drawCallsMax": 42
+    },
+    "windCards": {
+      "gpuMeanMs": 0,
+      "gpuP95Ms": 0,
+      "gpuFrames": 121,
+      "glSubmitMeanMs": 0,
+      "glSubmitP95Ms": 0,
+      "drawCallsMean": 0,
+      "drawCallsMax": 0
+    },
+    "cardsUnclassified": {
+      "gpuMeanMs": 0,
+      "gpuP95Ms": 0,
+      "gpuFrames": 121,
+      "glSubmitMeanMs": 0.0014827018112705214,
+      "glSubmitP95Ms": 0,
+      "drawCallsMean": 0,
+      "drawCallsMax": 0
+    },
+    "farFieldCards": {
+      "gpuMeanMs": 0.014081322314049587,
+      "gpuP95Ms": 0.01732,
+      "gpuFrames": 121,
+      "glSubmitMeanMs": 0.012026359144555285,
+      "glSubmitP95Ms": 0.10000000009313226,
+      "drawCallsMean": 5,
+      "drawCallsMax": 5
+    },
+    "worldAndUI": {
+      "gpuMeanMs": 3.1546684297520655,
+      "gpuP95Ms": 4.927009999999999,
+      "gpuFrames": 121,
+      "glSubmitMeanMs": 0.39439868203347433,
+      "glSubmitP95Ms": 0.6999999997206032,
+      "drawCallsMean": 320.11037891268535,
+      "drawCallsMax": 325
+    }
+  },
+  "runningFrames": 607,
+  "audioSubmitMeanMs": 0.009390444810083366,
+  "audioSubmitP95Ms": 0.10000000009313226,
+  "callbackMeanMs": 6.0179571663835,
+  "callbackP95Ms": 7.2999999998137355,
+  "frameIntervalMeanMs": 16.968811881188117,
+  "measuredSubtotalMeanMs": 0.49734256199501636,
+  "measuredSubtotalP95Ms": 0.9366499995343387,
+  "audioTraceEvents": {
+    "RenderAudioFromSource": {
+      "calls": 1031,
+      "totalMs": 87.78599999999973
+    },
+    "IAudioClient frames": {
+      "calls": 1031,
+      "totalMs": 68.96499999999993
+    },
+    "IAudioClock position": {
+      "calls": 1031,
+      "totalMs": 3.60899999999997
+    },
+    "AudioConverter::Convert": {
+      "calls": 1031,
+      "totalMs": 42.19299999999993
+    },
+    "AudioConverter::SourceCallback": {
+      "calls": 1031,
+      "totalMs": 39.241999999999976
+    },
+    "AudioOutputDevice::FireRenderCallback": {
+      "calls": 1030,
+      "totalMs": 87.92799999999981
+    }
+  }
+}
