@@ -201,10 +201,11 @@ public sealed class VehicleCardVfx : MonoBehaviour
     }
     private void Style(StyleKind kind, float amount)
     {
-        if (!Running || _popup == null) return;
+        if (_popup == null) return;
         string duration = Mathf.Max(0f, amount).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "s";
         _popup.text = kind == StyleKind.NearMiss ? "NEAR MISS" : (kind == StyleKind.Drift ? "DRIFT " : "AIR ") + duration;
         _popupAge = 0;
+        _popup.style.opacity = 1;
     }
     private void End(RunSummary summary) => Clear();
     private void Clear()

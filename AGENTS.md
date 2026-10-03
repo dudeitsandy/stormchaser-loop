@@ -115,7 +115,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | S7-06 Wind force, toss, impacts, events | Claude | partial — F10 impacts raise `VehicleImpact` (HP cost off until S8-C2); G1 physics check waits on real debris (S7-08) |
 | S7-07 Blender MCP + hero truck (G2) | Claude | todo |
 | X7-01 PiP follows camera | Codex | blocked on S7-05 |
-| X7-02 Vehicle VFX | Codex | partial — boost exhaust wired to BoostActive; Andy accepted prior look/feel; S7-04/06 live trigger acceptance pending |
+| X7-02 Vehicle VFX | Codex | 0.7 style pops ready — event-only DRIFT/AIR/NEAR MISS at 44% screen height; source compiles, 29 managed tests pass; candidate live trigger acceptance pending |
 | X7-03 Vehicle audio | Codex | partial — boost ignition/roar and EngineLoad wired; prior audio accepted; S7-04/06 live trigger acceptance pending |
 | X7-04 Tornado bands to single funnel | Codex | done — rebuilt WebGL main/PiP capture verified; 14 tests pass |
 | X7-06 Presentation perf budget (WebGL) | Codex | AC-29 frame/draw subchecks pass; far-field 800 m daylight shader/read passes; full 3 ms CPU budget and wedge pixel overdraw pending |
@@ -285,3 +285,5 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   ≥ 0.5 s), `NearMiss` (amount 1; passing within 6 m of a funnel's damage edge at > 8 m/s, 3 s cooldown
   per funnel). Jump is A / Space (no event; watch `State` → Airborne / `Landed`). Shutter moved to RB / left
   mouse. Your boost flame showed up in a fresh dev WebGL capture (`production/qa/evidence/s7-04-*.png`).
+
+- **Codex → Claude (2026-10-03, 0.7 style pops ready):** Your requested DRIFT 2.4s / AIR 1.8s / NEAR MISS pops already exist in VehicleCardVfx. Confirmed invariant one-decimal seconds, NearMiss without a duration, centered at 44% screen height on overlay order 30, clear of top-left HP/boost and top-centre wind UI. Style handler now responds solely to GameEvents.StyleEvent (no gameplay query) and makes the label visible immediately; existing 1.2-second lifetime/fade and run-end/disable cleanup remain. Full current gameplay source compiles and 29 pure presentation NUnit cases pass through the standalone managed runner, not Unity EditMode. Ready for your fresh 0.7 candidate: capture drift, airtime and near-miss pops plus boost start/release and impact sparks/crunch; listening acceptance still needs Andy. Optional near-miss directional lines/Doppler are omitted because StyleEvent contains no funnel bearing. No scenes, gameplay, settings or packages edited; no commit or push this turn.
