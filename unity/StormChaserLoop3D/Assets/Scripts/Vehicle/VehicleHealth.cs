@@ -39,6 +39,18 @@ public class VehicleHealth : MonoBehaviour
         _model = new VehicleDamageModel(_vehicle.Data.MaxHealth, _vehicle.Data.InvulnerabilitySeconds);
     }
 
+    /// <summary>
+    /// Applies F10 impact HP (vehicle-feel.md) with the usual post-hit invulnerability. Called by
+    /// <see cref="PlayerVehicle"/> only while <c>ImpactsCostHp</c> is on. Returns true if HP changed.
+    /// </summary>
+    public bool ApplyImpactDamage(int hpLoss)
+    {
+        if (!Vulnerable || hpLoss <= 0 || !_model.TryDamage(hpLoss, Time.time)) return false;
+        GameEvents.RaisePlayerDamaged(_model.CurrentHealth, _model.MaxHealth);
+        if (_model.IsWrecked) OnWrecked.Invoke();
+        return true;
+    }
+
     private void Update()
     {
         if (!Vulnerable || _model.IsWrecked) return;

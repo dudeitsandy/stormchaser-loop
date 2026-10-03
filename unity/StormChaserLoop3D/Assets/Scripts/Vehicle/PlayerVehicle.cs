@@ -32,6 +32,7 @@ public class PlayerVehicle : MonoBehaviour
     private readonly Vector3[] _smoothedNormals = new Vector3[VehicleModel.WheelCount];
     private readonly VehicleStepOutput _output = new VehicleStepOutput();
     private readonly Dictionary<Collider, SurfaceProperties> _surfaceCache = new Dictionary<Collider, SurfaceProperties>();
+    private readonly ImpactSeverity.StepMax _stepImpact = new ImpactSeverity.StepMax();
     private Vector3 _rawWind;
     private Vector3 _pendingKnockback;
     private float _knockbackTimer;
@@ -140,6 +141,7 @@ public class PlayerVehicle : MonoBehaviour
     private void FixedUpdate()
     {
         float dt = Time.fixedDeltaTime;
+        ResolveImpact(); // contacts from the previous simulation step, plus its landing (E12: one per step)
         QueryWheels();
         _rawWind = DisasterEntity.TotalWindAt(_rb.position);
 
@@ -255,7 +257,12 @@ public class PlayerVehicle : MonoBehaviour
             _rb.AddForce(_output.TossVelocity, ForceMode.VelocityChange);
             GameEvents.RaiseTossed();
         }
-        if (_output.Landed) GameEvents.RaiseLanded(_output.LandedSpeed);
+        if (_output.Landed)
+        {
+            GameEvents.RaiseLanded(_output.LandedSpeed);
+            OfferImpact(VehicleModel.LandingSeverity(_output.LandedSpeed, _values.LandingThresholdMul),
+                        ImpactKind.World, _rb.position);
+        }
         if (_output.AutoRight) AutoRight();
 
         if (_model.GroundedWheels >= 2 && _model.State != VehicleState.Upended)
@@ -263,6 +270,42 @@ public class PlayerVehicle : MonoBehaviour
             _lastGroundedPosition = _rb.position;
             _lastGroundedRotation = Quaternion.Euler(0f, _rb.rotation.eulerAngles.y, 0f);
         }
+    }
+
+    // F10: impact speed along the contact normal, scaled by the other body's mass (E13).
+    private void OnCollisionEnter(Collision collision)
+    {
+        float best = 0f;
+        Vector3 point = _rb.position;
+        for (int i = 0; i < collision.contactCount; i++)
+        {
+            ContactPoint contact = collision.GetContact(i);
+            float s = ImpactSeverity.CollisionSpeed(collision.relativeVelocity, contact.normal);
+            if (s <= best) continue;
+            best = s;
+            point = contact.point;
+        }
+        Rigidbody other = collision.rigidbody;
+        bool isStatic = other == null || other.isKinematic;
+        float severity = best * ImpactSeverity.MassScale(isStatic ? 0f : other.mass, _rb.mass, isStatic);
+        ImpactSurface surface = collision.collider.GetComponentInParent<ImpactSurface>();
+        OfferImpact(severity, surface != null ? surface.Kind : ImpactKind.World, point);
+    }
+
+    private void OfferImpact(float severity, ImpactKind kind, Vector3 point)
+    {
+        if (severity >= _values.ImpactReportMin) _stepImpact.Offer(severity, kind, point);
+    }
+
+    // E12: one impact per physics step, the most severe. HP is applied only when ImpactsCostHp (S8-C2 pending).
+    private void ResolveImpact()
+    {
+        if (!_stepImpact.Has) return;
+        ArchetypeParams p = _model.Params;
+        int hpLoss = ImpactSeverity.HpLoss(_stepImpact.Speed, p.LightImpact, p.SevereImpact, _stepImpact.Kind);
+        if (_values.ImpactsCostHp && _health != null) _health.ApplyImpactDamage(hpLoss);
+        GameEvents.RaiseVehicleImpact(new ImpactInfo(_stepImpact.Speed, hpLoss, _stepImpact.Kind, _stepImpact.Point));
+        _stepImpact.Clear();
     }
 
     /// <summary>E5: flip back onto the wheels, keeping heading. A documented teleport path (ADR-0005).</summary>
@@ -293,6 +336,7 @@ public class PlayerVehicle : MonoBehaviour
     {
         _rb.linearVelocity = Vector3.zero;
         _rb.angularVelocity = Vector3.zero;
+        _stepImpact.Clear();
         _rb.position = position;
         _rb.rotation = rotation;
         transform.SetPositionAndRotation(position, rotation);

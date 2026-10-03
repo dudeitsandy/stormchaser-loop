@@ -48,7 +48,10 @@ public struct WheelContact
     public float SurfaceDrag;
 }
 
-/// <summary>A collision as reported to VehicleHealth and presentation.</summary>
+/// <summary>
+/// One impact per physics step (vehicle-feel.md F10, E12). Speed is the severity after E13 mass scaling;
+/// HpLoss is what F10 says the hit is worth, applied to HP only while <c>ImpactsCostHp</c> is on.
+/// </summary>
 public readonly struct ImpactInfo
 {
     public readonly float Speed;

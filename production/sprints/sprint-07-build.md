@@ -132,6 +132,6 @@ Sprint 7 change. Two Sprint 8 candidates, kept separate:
 | ID | Candidate | Scope | Notes |
 |----|-----------|-------|-------|
 | S8-C1 | **Durability tuning** within the current model | S (config + GDD values) | e.g. Pickup Max HP above 3, or a `VehicleImpact` severity threshold so light bumps cost 0 HP |
-| S8-C2 | **Per-truck HP redesign** | M–L (`vehicle-damage.md` revision + `/design-review`, code) | Larger HP pool per truck, damage scaled by impact severity; capacities and rules undecided |
+| S8-C2 | **Per-truck HP redesign** (Andy 2026-10-03: do the full review, not just tuning) | M–L (`vehicle-damage.md` revision + `/design-review`, code) | Direction: a full health bar (100 %) or a numeric HP value per vehicle, with roguelite durability enhancements earned during a run. Damage scaled by impact severity. Capacities and rules undecided. Until then F10 collision HP cost ships **off** (impacts are detected and raised for VFX/audio only) |
 
 Tracked as an Open Question in `design/gdd/vehicle-damage.md`.

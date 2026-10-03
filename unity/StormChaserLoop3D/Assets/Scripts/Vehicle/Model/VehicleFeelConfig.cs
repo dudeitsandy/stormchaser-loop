@@ -49,6 +49,10 @@ public struct VehicleFeelValues
 
     [Header("Impacts (F10)")]
     public float LandingThresholdMul;
+    [Tooltip("Impacts slower than this (m/s, after E13 mass scaling) are not reported: resting contact and scrapes.")]
+    public float ImpactReportMin;
+    [Tooltip("F10 collision/landing HP cost. Off until the vehicle-damage.md HP redesign (S8-C2); impacts still raise VehicleImpact.")]
+    public bool ImpactsCostHp;
 
     [Header("Knockback & recovery")]
     public float KnockbackSpreadSeconds, KnockbackGripScale;
@@ -96,6 +100,8 @@ public struct VehicleFeelValues
         LiftCoefficient = 1.35f, TossThreshold = 0.7f, TossUpSpeed = 8f, TossSwirlFraction = 0.5f,
 
         LandingThresholdMul = 1.5f,
+        ImpactReportMin = 3f,
+        ImpactsCostHp = false,
 
         KnockbackSpreadSeconds = 0.15f, KnockbackGripScale = 0.35f,
         StuckSeconds = 2f,
