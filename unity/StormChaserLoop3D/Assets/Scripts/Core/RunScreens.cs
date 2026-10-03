@@ -84,7 +84,7 @@ public class RunScreens : MonoBehaviour
     /// </summary>
     private void AddRadio()
     {
-        Label station = MakeLabel(">> KTVR STORM RADIO  —  LIVE <<", 18, Alarm, bold: true, letterSpacing: 4);
+        Label station = MakeLabel(">> KTVR STORM RADIO  ·  LIVE <<", 18, Alarm, bold: true, letterSpacing: 4);
         _overlay.Add(station);
         _overlay.Add(Spacer(10));
         if (_radioLines == null || _radioLines.Length == 0) return;

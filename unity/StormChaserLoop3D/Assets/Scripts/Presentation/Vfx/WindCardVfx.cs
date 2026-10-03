@@ -28,6 +28,8 @@ public sealed class WindCardVfx : MonoBehaviour
     private Vector3 _wind;
     private float _emissionRemainder;
     private int _cursor;
+    private bool _stressPool;
+    private float _nextStressReport;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Register() => SceneInstaller.EveryScene(Install); // AfterSceneLoad alone skips reloads
@@ -54,7 +56,16 @@ public sealed class WindCardVfx : MonoBehaviour
         _assets.SetColor(CardVfxAssets.Shape.Dust, _dustColor);
         _assets.SetColor(CardVfxAssets.Shape.Debris, new Color(0.5f, 0.32f, 0.15f, 0.9f));
     }
-    private void Start() => _vehicle = FindAnyObjectByType<PlayerVehicle>();
+    private void Start()
+    {
+        _vehicle = FindAnyObjectByType<PlayerVehicle>();
+        // Explicit diagnostic only. Never changes the vehicle's wind, physics or input.
+        foreach (string token in Application.absoluteURL.Split('?', '&', '#'))
+            if (token == "windVisualStress=max") _stressPool = true;
+        foreach (string argument in System.Environment.GetCommandLineArgs())
+            if (argument == "-windVisualStress=max") _stressPool = true;
+        if (_stressPool) Debug.Log("[WindCardVfx] VISUAL POOL STRESS enabled; gameplay wind is unchanged.");
+    }
     private void OnEnable() => RenderPipelineManager.beginCameraRendering += OnCamera;
     private void OnDisable()
     {
@@ -76,7 +87,7 @@ public sealed class WindCardVfx : MonoBehaviour
     {
         using var sample = UpdateMarker.Auto();
         if (_vehicle == null || !_vehicle.InputEnabled) { Clear(); return; }
-        _wind = _vehicle.CurrentWind;
+        _wind = _stressPool ? Vector3.left * Mathf.Max(1f, _fullWindSpeed) : _vehicle.CurrentWind;
         float dt = Time.deltaTime;
         for (int i = 0; i < _cards.Length; i++)
         {
@@ -101,6 +112,20 @@ public sealed class WindCardVfx : MonoBehaviour
         int emissions = WindVfxEmission.Advance(_wind.magnitude, dt, _fullWindSpeed, _cardsPerSecond, ref _emissionRemainder);
         // Consume excess requests instead of allocating or accumulating a later burst.
         for (int i = 0; i < Mathf.Min(emissions, _cards.Length); i++) Spawn();
+        if (_stressPool)
+        {
+            // Normal full-wind emission cannot keep every slot occupied. Refill only unused slots.
+            int missing = 0;
+            foreach (var card in _cards) if (!card.Active) missing++;
+            for (int i = 0; i < missing; i++) Spawn();
+            if (Time.unscaledTime >= _nextStressReport)
+            {
+                int active = 0;
+                foreach (var card in _cards) if (card.Active) active++;
+                Debug.Log($"[WindCardVfx] VISUAL POOL STRESS active={active}/{_cards.Length}; this is pool occupancy, not visible draws or gameplay wind.");
+                _nextStressReport = Time.unscaledTime + 5f;
+            }
+        }
     }
     private void Spawn()
     {
@@ -117,13 +142,17 @@ public sealed class WindCardVfx : MonoBehaviour
             position.y = card.Shape == CardVfxAssets.Shape.Dust ? _groundHeight + 0.25f : _groundHeight + 0.5f + Random01() * 3.5f;
             card.Transform.position = position;
             card.Transform.localScale = Vector3.zero;
-            card.Age = 0;
             card.Lifetime = 0.7f + Random01() * 0.8f;
+            card.Age = _stressPool ? card.Lifetime * 0.2f : 0f;
             card.Size = card.Shape == CardVfxAssets.Shape.Streak ? 0.5f + Random01() :
                 card.Shape == CardVfxAssets.Shape.Dust ? 1f + Random01() : 0.12f + Random01() * 0.18f;
             card.Roll = Random01() * 360;
             card.Active = true;
             card.Transform.gameObject.SetActive(true);
+            // Populate stress slots visibly on their first frame instead of measuring zero-scale cards.
+            if (_stressPool)
+                card.Transform.localScale = card.Shape == CardVfxAssets.Shape.Streak
+                    ? new Vector3(card.Size * 3f, card.Size * 0.35f, 1) : new Vector3(card.Size, card.Size * 0.7f, 1);
             return;
         }
     }
