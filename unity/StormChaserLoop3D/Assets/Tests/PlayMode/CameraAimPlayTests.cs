@@ -47,7 +47,7 @@ public class CameraAimPlayTests
             // Assert
             Debug.Log($"[CameraAim] aim={aim:F3} tier={tier}");
             Assert.AreEqual(ShotTier.Perfect, tier, "Aim follows the camera: centered on the funnel is PERFECT");
-            Assert.Greater(aim, 0.95f);
+            Assert.Greater(aim, 0.9f, "the roof camcorder aims along the camera's yaw");
         }
         finally
         {

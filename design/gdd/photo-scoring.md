@@ -35,6 +35,10 @@ Dot product of the **camera's** forward vector (flattened to the ground plane) a
 the tornado. *Changed 2026-10-01 by `vehicle-feel.md` Core Rule 8: aim follows the chase camera /
 Storm Cam, not the truck, so drifting and airborne shots can be framed. Until the Vehicle Feel pass
 ships, the 0.4 implementation still uses truck-forward.*
+*Measured from the roof camcorder (2026-10-03):* θ is taken at `CamcorderMount`'s position, along the main
+camera's flattened yaw; the viewfinder's 30° horizontal FOV spans exactly the 0-score edges, so a subject
+visible in the viewfinder scores and a centered one is PERFECT.
+
 **Framing curve** (decided 2026-10-01, ships with the Vehicle Feel pass):
 `AimScore = clamp01(1 − θ / AimHalfAngle)`, where θ = angle between camera forward (flattened) and the
 direction to the tornado; `AimHalfAngle` = 15°.

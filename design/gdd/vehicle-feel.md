@@ -134,7 +134,11 @@ unstoppable (more mass, terrain immunity, slower to commit).
   League ball-cam analogue); the truck drives freely while the funnel stays in view. It frames with a
   **drifting offset** (F14, up to ±8°), so the player still nudges the shot to center for PERFECT.
   Storm Cam keeps the storm in view; it doesn't take the photo for you (decided 2026-10-01).
-- **Viewfinder and photo AimScore use the camera's forward**, not the truck's.
+- **Viewfinder and photo AimScore use the camera's forward**, not the truck's. *(Refined 2026-10-03, Andy:
+  "cab cam, zoomed".)* The camcorder is roof-mounted (`CamcorderMount`), aims along the main camera's flattened
+  yaw, never pitches or rolls with the truck, and has a 30° horizontal FOV (= the ±15° AimScore cone). Photos
+  are scored from that pose and the viewfinder renders it, so the PiP is a zoomed shot, not a copy of the
+  main screen.
 
 **9. Damage-stage hooks** (implements `vehicle-damage.md`)
 - **Damaged:** max steer angle × 0.75. **Critical:** limp mode — throttle and reverse at

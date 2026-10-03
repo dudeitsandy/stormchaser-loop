@@ -16,8 +16,6 @@ public class PhotoTrigger : MonoBehaviour
     [SerializeField] private float _maxRange = 60f;
     [Tooltip("Minimum seconds between shots.")]
     [SerializeField] private float _cooldown = 0.35f;
-    [Tooltip("Camera whose forward is the aim (photo-scoring.md). Empty = the main camera, found once in Start.")]
-    [SerializeField] private Transform _aimCamera;
 
     [Header("Film")]
     [Tooltip("Frames per run. Misses use a frame too.")]
@@ -36,6 +34,7 @@ public class PhotoTrigger : MonoBehaviour
     [SerializeField] private float _windBonusMax = 1f;
 
     private StormChaserControls _controls;
+    private CamcorderMount _mount;
     private RepeatPenalty _repeatPenalty;
     private float _nextShotTime;
 
@@ -52,6 +51,9 @@ public class PhotoTrigger : MonoBehaviour
     private void Awake()
     {
         _controls = new StormChaserControls();
+        // Self-installs on the truck so scenes need no wiring; the viewfinder renders from the same mount.
+        _mount = GetComponent<CamcorderMount>();
+        if (_mount == null) _mount = gameObject.AddComponent<CamcorderMount>();
         _repeatPenalty = new RepeatPenalty(_repeatDecay, _repeatRecoverySeconds);
         FilmRemaining = _filmPerRun;
     }
@@ -72,11 +74,7 @@ public class PhotoTrigger : MonoBehaviour
 
     private void OnDestroy() => _controls.Dispose();
 
-    private void Start()
-    {
-        if (_aimCamera == null && Camera.main != null) _aimCamera = Camera.main.transform;
-        GameEvents.RaiseFilmChanged(FilmRemaining, _filmPerRun);
-    }
+    private void Start() => GameEvents.RaiseFilmChanged(FilmRemaining, _filmPerRun);
 
     private void OnRunStarted()
     {
@@ -143,14 +141,14 @@ public class PhotoTrigger : MonoBehaviour
     }
 
     /// <summary>
-    /// Framing curve on the camera's view: angle between the camera's flattened forward and the flattened
-    /// camera→subject direction (vehicle-feel.md Rule 8: aim is camera-forward, so the viewfinder shows
-    /// what is scored). Falls back to the truck's forward when there is no camera.
+    /// Framing curve from the roof camcorder: angle between its flattened forward and the flattened
+    /// camcorder→subject direction. The camcorder aims along the main camera's yaw (vehicle-feel.md Rule 8)
+    /// and the viewfinder renders from the same pose, so what the viewfinder shows is what is scored.
     /// </summary>
     private float CalcAimScore(Transform target)
     {
-        Transform aim = _aimCamera != null ? _aimCamera : transform;
-        float angle = ChaseCameraMath.FlatAngle(aim.forward, target.position - aim.position);
+        _mount.GetPose(out Vector3 position, out Quaternion rotation);
+        float angle = ChaseCameraMath.FlatAngle(rotation * Vector3.forward, target.position - position);
         return ScoringSystem.AimScore(angle);
     }
 
