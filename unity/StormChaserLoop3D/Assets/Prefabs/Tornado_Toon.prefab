@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1714542254328380215}
   - component: {fileID: -1055285207744113352}
   - component: {fileID: -1829454591269490847}
-  - component: {fileID: 4256212852594486819}
+  - component: {fileID: 1512729293777948718}
   m_Layer: 0
   m_Name: Tornado_Toon
   m_TagString: Untagged
@@ -161,7 +161,7 @@ MonoBehaviour:
   _segments: 16
   _baseTopRadius: 2
   _baseHeight: 6
---- !u!114 &4256212852594486819
+--- !u!114 &1512729293777948718
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
