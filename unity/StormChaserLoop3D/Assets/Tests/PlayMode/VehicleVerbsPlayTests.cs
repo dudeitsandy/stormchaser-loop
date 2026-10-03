@@ -61,7 +61,7 @@ public class VehicleVerbsPlayTests
             yield return new WaitForFixedUpdate();
             apex = Mathf.Max(apex, truck.transform.position.y);
         }
-        // Assert: F8 apex v²/2g ≈ 1.54 m (suspension rebound adds a little).
+        // Assert: F8 apex v²/(2·1.5g) ≈ 1.5 m with arcade air gravity (suspension rebound adds a little).
         float rise = apex - restY;
         Debug.Log($"[Verbs] jump rise={rise:F2} m");
         Assert.That(rise, Is.InRange(1.2f, 1.9f));
@@ -98,6 +98,37 @@ public class VehicleVerbsPlayTests
     }
 
     private static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z).normalized;
+
+    /// <summary>
+    /// Regression (playtest 2026-10-03): a steep landing left the truck wedged at an angle with two wheels
+    /// down, and the player had to jump out. Holding throttle must recover. Before the fix, tail-first 60°
+    /// ended at 16° tilt on 2 wheels and nose-first 75° drove only 2.3 m in 3 s.
+    /// </summary>
+    [UnityTest]
+    public IEnumerator NoseFirstLanding_HoldingThrottle_RecoversAndDrivesAway(
+        [Values(55f, 75f, -60f)] float pitch, [Values(0f, 40f)] float roll, [Values(-6f, -10f)] float fallSpeed)
+    {
+        // Arrange: tilted, 1.2 m up, coming in fast and steep.
+        SpawnGround();
+        var input = new ScriptedInput();
+        PlayerVehicle truck = SpawnTruck(input);
+        yield return new WaitForFixedUpdate();
+        truck.Teleport(new Vector3(0f, 1.2f, -60f), Quaternion.Euler(pitch, 0f, roll));
+        truck.GetComponent<Rigidbody>().linearVelocity = new Vector3(0f, fallSpeed, 6f);
+        input.Frame.Throttle = 1f;
+
+        // Act: 3 s with throttle held
+        for (int i = 0; i < Mathf.RoundToInt(3f / Time.fixedDeltaTime); i++) yield return new WaitForFixedUpdate();
+
+        // Assert
+        float tilt = Vector3.Angle(truck.transform.up, Vector3.up);
+        Vector3 moved = truck.transform.position - new Vector3(0f, 1.2f, -60f);
+        float travelled = new Vector2(moved.x, moved.z).magnitude; // auto-right may leave it facing either way
+        Debug.Log($"[Verbs] landing p{pitch} r{roll} v{fallSpeed}: tilt {tilt:F1} deg, wheels {truck.GroundedWheels}, travelled {travelled:F1} m");
+        Assert.Less(tilt, 10f, "truck should be back on its wheels, not wedged at an angle");
+        Assert.GreaterOrEqual(truck.GroundedWheels, 3);
+        Assert.Greater(travelled, 4f, "truck should drive away under throttle");
+    }
 
     private IEnumerator Drive(bool boost, float seconds, System.Action<float, float> report)
     {

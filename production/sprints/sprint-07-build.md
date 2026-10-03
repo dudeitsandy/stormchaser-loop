@@ -158,3 +158,13 @@ Tracked as an Open Question in `design/gdd/vehicle-damage.md`.
 | More worlds | 2 km streamed world (ADR-0004) + Arcade scenarios; biomes undesigned | 0.8+ |
 | Professional title screen, game over, quit | Basic results screen + Esc quit (Windows only) exist; needs `/ux-design` title, pause/quit menu, game-over | Sprint 8 polish |
 | Story mode with quests (Fortnite × THPS career: levels with goal lists — rescues, pets, tricks, shots) | New mode alongside Arcade / Epic; builds on run goals + Storm Director | `/brainstorm` → `session-modes.md` revision |
+
+## Playtest Notes — 0.7.1 (Andy, 2026-10-03)
+| Finding | Triage | Where |
+|---|---|---|
+| Truck sometimes lands at an angle "in the ground" and you have to jump out | **Defect.** Wheel sphere casts started at the axle; with the body resting on a corner, the low wheels' spheres began inside the ground and Unity casts skip those, so two springs went dead and the truck sat at ≈ 15° on two wheels. Fix: casts start 0.4 m higher (nearest non-self hit), frictionless body shell, pitch levelling beyond 30°, stuck recovery also when tilted > 35° (1 s). Regression: `VehicleVerbsPlayTests.NoseFirstLanding_*` (12 cases; 6 failed before the fix) | Fixed, Claude |
+| Jump a little floaty | Tuning: air gravity × 1.5 rising / × 2 falling, jump 6.65 m/s, same 1.5 m apex | Fixed, Claude (vehicle-feel F8) |
+| Driving still a little loose | Minor; revisit with G3 feel playtest | G3 |
+| Tornadoes sprout from and shrink into the ground; real ones come down from the sky | Presentation: funnel descends from a cloud base while Forming, retracts up on rope-out (matches `storm-director.md` Lifecycle) | Codex, AGENTS.md request 2026-10-03 |
+| Title tagline and rules text "so AI"; wants Burnout / Crazy Taxi energy | Rewritten: KTVR STORM RADIO DJ shouting rotating lines, "PRESS ANYTHING. GO GO GO." | Done, Claude |
+

@@ -242,6 +242,10 @@ and inertia, so long/heavy archetypes rotate comparably); AirAccel = 20 rad/s²;
 
 **F8. Jump**
 Impulse `J = M · v_jump`; `v_jump` = 5.5 m/s → apex `v²/2g` ≈ **1.5 m** (clears fences/debris, no float).
+*Revised 2026-10-03 (playtest: "the jump is a little floaty"):* arcade air gravity while airborne and not
+Tossed, `AirGravityMul` 1.5 rising and `FallGravityMul` 2.0 falling; `v_jump` = 6.65 m/s keeps the apex
+`v² / (2 · 1.5g)` ≈ 1.5 m, with hang time down from 1.12 s to ≈ 0.84 s. Tosses keep plain gravity so F12b's
+3–4 m throws are unchanged.
 
 **F9. Boost**
 `F_boost = M · A_boost · (1 − (v / BoostMaxSpeed)²)`, A_boost = 9 m/s², `BoostMaxSpeed = 1.35 · v_top`

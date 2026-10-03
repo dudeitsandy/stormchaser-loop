@@ -20,11 +20,11 @@ public class VehicleVerbsTests
         var output = new VehicleStepOutput();
         // Act
         model.Step(input, Grounded(Vector3.zero), output);
-        // Assert: 5.5 m/s → apex v²/2g ≈ 1.5 m.
+        // Assert: apex v² / (2 · g · AirGravityMul) ≈ 1.5 m (6.65 m/s against 1.5 g rising, 2026-10-03).
         Assert.IsTrue(output.Jumped);
         Assert.AreEqual(V.JumpSpeed, output.JumpVelocity.magnitude, 1e-4f);
         Assert.AreEqual(1f, Vector3.Dot(output.JumpVelocity.normalized, Vector3.up), 1e-4f);
-        Assert.AreEqual(1.54f, V.JumpSpeed * V.JumpSpeed / (2f * 9.81f), 0.01f);
+        Assert.AreEqual(1.5f, V.JumpSpeed * V.JumpSpeed / (2f * 9.81f * V.AirGravityMul), 0.01f);
     }
 
     [Test]

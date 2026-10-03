@@ -54,6 +54,10 @@ public struct VehicleFeelValues
     public float JumpSpeed, JumpCooldown;
     [Tooltip("Jump direction: 0 = vehicle up, 1 = world up.")]
     public float JumpWorldUpBlend;
+    [Tooltip("Gravity multiplier while airborne and rising (not Tossed). Playtest 2026-10-03: jump too floaty.")]
+    public float AirGravityMul;
+    [Tooltip("Gravity multiplier while airborne and falling (not Tossed).")]
+    public float FallGravityMul;
 
     [Header("Boost (F9) and style refills")]
     public float BoostAccel, BoostMaxSpeedRatio;          // F_boost = M·A·(1 − (v/(ratio·v_top))²)
@@ -77,6 +81,10 @@ public struct VehicleFeelValues
     [Header("Knockback & recovery")]
     public float KnockbackSpreadSeconds, KnockbackGripScale;
     public float StuckSeconds;
+    [Tooltip("Body tilt (degrees from upright) that counts as wedged for stuck recovery, even with wheels down.")]
+    public float StuckTiltDeg;
+    [Tooltip("Pitch beyond this (degrees) is levelled while any wheel touches (nose-first landings).")]
+    public float PitchStabilizeAngleDeg;
     [Tooltip("Critical damage stage: engine power multiplier (limp mode). Boost and jump stay disabled.")]
     public float CriticalPowerScale;
 
@@ -123,7 +131,9 @@ public struct VehicleFeelValues
         LiftCoefficient = 1.35f, TossThreshold = 0.7f, TossUpSpeed = 8f, TossSwirlFraction = 0.5f,
 
         AirAccel = 20f, AirMaxRate = 4.5f,
-        JumpSpeed = 5.5f, JumpCooldown = 0.8f, JumpWorldUpBlend = 0.5f,
+        // Playtest 2026-10-03 ("jump is a little floaty"): heavier air, same 1.5 m apex (v = √(2·1.5g·1.5)).
+        JumpSpeed = 6.65f, JumpCooldown = 0.8f, JumpWorldUpBlend = 0.5f,
+        AirGravityMul = 1.5f, FallGravityMul = 2f,
 
         BoostAccel = 9f, BoostMaxSpeedRatio = 1.35f,
         BoostDrain = 33f, BoostPassiveRegen = 4f, BoostMinStart = 5f,
@@ -137,7 +147,8 @@ public struct VehicleFeelValues
         ImpactsCostHp = false,
 
         KnockbackSpreadSeconds = 0.15f, KnockbackGripScale = 0.35f,
-        StuckSeconds = 2f,
+        // Playtest 2026-10-03: nose-first landings wedged the truck with rear wheels down; you had to jump out.
+        StuckSeconds = 1f, StuckTiltDeg = 35f, PitchStabilizeAngleDeg = 30f,
         // Playtest 2026-10-01: momentum-only Critical soft-locked a stopped truck for the rest of the run.
         CriticalPowerScale = 0.4f,
 

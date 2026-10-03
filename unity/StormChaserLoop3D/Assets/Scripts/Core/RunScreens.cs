@@ -12,10 +12,22 @@ public class RunScreens : MonoBehaviour
     [SerializeField] private string _title = "DOOMSDAY";
     [Tooltip("Shown before the build version, e.g. STORM SEASON · PROTOTYPE 0.5.0.")]
     [SerializeField] private string _seasonName = "STORM SEASON";
-    [SerializeField] private string _tagline = "Chase the storm. Get the shot. Don't get caught.";
+    [Tooltip("Title attract-mode DJ (Andy 2026-10-03: Crazy Taxi energy). Rotates one line at a time.")]
+    [SerializeField] private string[] _radioLines =
+    {
+        "IT'S A BIG ONE, PEOPLE!",
+        "GET IN THE TRUCK!",
+        "THAT FUNNEL WON'T FILM ITSELF!",
+        "WHO NEEDS A ROOF ANYWAY?!",
+        "24 FRAMES! MAKE 'EM COUNT!",
+        "GET IN THE WIND! DOUBLE THE MONEY!",
+    };
+    [Tooltip("Milliseconds each DJ line stays up.")]
+    [SerializeField] private long _radioLineMs = 1700;
 
     private VisualElement _overlay;
     private IVisualElementScheduledItem _blink;
+    private IVisualElementScheduledItem _ticker;
 
     private void Awake()
     {
@@ -49,24 +61,57 @@ public class RunScreens : MonoBehaviour
         // Version comes from PlayerSettings.bundleVersion (set by BuildScript), never a scene-saved string.
         _overlay.Add(MakeLabel($"{_seasonName}  ·  PROTOTYPE {Application.version}", 22, Bone, letterSpacing: 6));
         _overlay.Add(Spacer(28));
-        _overlay.Add(MakeLabel(_tagline, 20, Dim));
-        _overlay.Add(Spacer(36));
+        AddRadio();
+        _overlay.Add(Spacer(32));
         // vehicle-feel.md Core Rule 10 bindings (keyboard / gamepad).
         _overlay.Add(MakeLabel("DRIVE  WASD  /  RT LT + LEFT STICK", 18, Bone, letterSpacing: 2));
         _overlay.Add(MakeLabel("SHOOT  LEFT MOUSE  /  RB", 18, Bone, letterSpacing: 2));
         _overlay.Add(MakeLabel("SLIDE  CTRL / X   |   JUMP  SPACE / A   |   BOOST  SHIFT / B", 18, Bone, letterSpacing: 2));
         _overlay.Add(MakeLabel("CAMERA  MOUSE / RIGHT STICK   |   STORM CAM  TAB / Y", 18, Bone, letterSpacing: 2));
-        _overlay.Add(Spacer(12));
-        _overlay.Add(MakeLabel("24 frames of film. Centered at ~20m scores best. Shoot from inside the wind for a bonus.", 16, Dim));
-        _overlay.Add(MakeLabel("Same storm twice in a row is worth less. Touch the funnel and it scores you.", 16, Dim));
         if (bestScore > 0f)
         {
             _overlay.Add(Spacer(24));
             _overlay.Add(MakeLabel($"BEST  {bestScore:N0}", 22, Amber, letterSpacing: 4));
         }
         _overlay.Add(Spacer(48));
-        AddPrompt("PRESS ANY BUTTON");
+        AddPrompt("PRESS ANYTHING. GO GO GO.");
         _overlay.style.display = DisplayStyle.Flex;
+    }
+
+    /// <summary>
+    /// "KTVR STORM RADIO — LIVE" plus one shouted line at a time. Each new line slams in oversized and
+    /// tilted, alternating sides, then settles (UI Toolkit scheduler: real time, runs while paused).
+    /// </summary>
+    private void AddRadio()
+    {
+        Label station = MakeLabel(">> KTVR STORM RADIO  —  LIVE <<", 18, Alarm, bold: true, letterSpacing: 4);
+        _overlay.Add(station);
+        _overlay.Add(Spacer(10));
+        if (_radioLines == null || _radioLines.Length == 0) return;
+
+        Label line = MakeLabel(_radioLines[0], 40, Amber, bold: true, letterSpacing: 2);
+        line.style.height = 56;
+        _overlay.Add(line);
+        int index = 0;
+        Slam(line, index);
+        _ticker = line.schedule.Execute(() =>
+        {
+            index = (index + 1) % _radioLines.Length;
+            line.text = _radioLines[index];
+            Slam(line, index);
+        }).Every(_radioLineMs);
+    }
+
+    private static void Slam(Label line, int index)
+    {
+        float tilt = index % 2 == 0 ? -4f : 3f;
+        line.style.scale = new Scale(Vector3.one * 1.35f);
+        line.style.rotate = new Rotate(new Angle(tilt * 2f));
+        line.schedule.Execute(() =>
+        {
+            line.style.scale = new Scale(Vector3.one);
+            line.style.rotate = new Rotate(new Angle(tilt));
+        }).StartingIn(90);
     }
 
     /// <summary>Shows the end-of-run tally.</summary>
@@ -100,6 +145,8 @@ public class RunScreens : MonoBehaviour
     {
         _blink?.Pause();
         _blink = null;
+        _ticker?.Pause();
+        _ticker = null;
         _overlay.Clear();
     }
 

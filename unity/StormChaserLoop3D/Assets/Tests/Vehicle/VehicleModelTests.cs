@@ -249,6 +249,59 @@ public class VehicleModelTests
         Assert.AreNotEqual(VehicleState.Airborne, model.State);
     }
 
+    [TestCase(-5f, 2f)]
+    [TestCase(5f, 1.5f)]
+    public void Airborne_AddsArcadeGravity_FallingHarderThanRising(float verticalSpeed, float expectedMul)
+    {
+        // Arrange: same airborne step with and without the multipliers (playtest 2026-10-03: floaty jump).
+        VehicleFeelValues plain = V;
+        plain.AirGravityMul = 1f;
+        plain.FallGravityMul = 1f;
+        ArchetypeParams p = ArchetypeParams.Derive(Stars.Pickup, V);
+        var arcade = new VehicleModel(p, V, WheelLayout.Pickup);
+        var baseline = new VehicleModel(p, plain, WheelLayout.Pickup);
+        var air = new WheelContact[VehicleModel.WheelCount];
+        var input = Input(new Vector3(0f, verticalSpeed, 5f));
+        var withMul = new VehicleStepOutput();
+        var without = new VehicleStepOutput();
+
+        // Act: past the 0.1 s airborne grace
+        for (int i = 0; i < 7; i++)
+        {
+            arcade.Step(input, air, withMul);
+            baseline.Step(input, air, without);
+        }
+
+        // Assert
+        Assert.AreEqual(VehicleState.Airborne, arcade.State);
+        float extra = withMul.CenterAcceleration.y - without.CenterAcceleration.y;
+        Assert.AreEqual(-ArchetypeParams.Gravity * (expectedMul - 1f), extra, 1e-3f);
+    }
+
+    [Test]
+    public void NoseDownOnRearWheels_PitchIsLevelledBeyondLimit_NotWithin()
+    {
+        // Arrange: rear wheels down, nose pitched into the ground (playtest 2026-10-03: wedged after landing).
+        var output = new VehicleStepOutput();
+        WheelContact[] contacts = Contacts(V.RestLength - 0.12f, Vector3.zero);
+        contacts[0].Grounded = false;
+        contacts[1].Grounded = false;
+        var steep = Input(Vector3.zero);
+        steep.Rotation = Quaternion.Euler(45f, 0f, 0f);
+        var shallow = Input(Vector3.zero);
+        shallow.Rotation = Quaternion.Euler(10f, 0f, 0f);
+
+        // Act
+        NewPickup(out _).Step(steep, contacts, output);
+        float steepPitch = Vector3.Dot(output.AngularAcceleration, steep.Rotation * Vector3.right);
+        NewPickup(out _).Step(shallow, contacts, output);
+        float shallowPitch = Vector3.Dot(output.AngularAcceleration, shallow.Rotation * Vector3.right);
+
+        // Assert: nose-up correction at 45°, nothing inside the 30° limit
+        Assert.Less(steepPitch, -1f);
+        Assert.AreEqual(0f, shallowPitch, 1e-3f);
+    }
+
     [Test]
     public void OneWheelGrounded_KeepsPreviousState()
     {

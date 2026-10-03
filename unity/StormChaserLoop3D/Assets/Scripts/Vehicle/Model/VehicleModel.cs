@@ -334,17 +334,18 @@ public sealed class VehicleModel
         }
 
         // ---- Roll stabilization (playtest 2026-10-01: tornado knockbacks rolled the truck) ----
+        // ---- and pitch (playtest 2026-10-03: nose-first landings wedged the truck on its bumper) ----
         if (groundedCount >= 1 && State != VehicleState.Upended && _v.RollStabilization > 0f)
         {
-            float rollDeg = Vector3.SignedAngle(Vector3.ProjectOnPlane(Vector3.up, fwd), up, fwd);
-            float excessDeg = Mathf.Abs(rollDeg) - _v.RollStabilizeAngleDeg;
-            if (excessDeg > 0f)
-            {
-                float rollRate = Vector3.Dot(input.AngularVelocity, fwd);
-                float correction = -Mathf.Sign(rollDeg) * excessDeg * Mathf.Deg2Rad * _v.RollStabilization * 40f
-                                   - rollRate * _v.RollStabilization * 4f;
-                output.AngularAcceleration += fwd * correction;
-            }
+            output.AngularAcceleration += fwd * TiltCorrection(up, fwd, input.AngularVelocity, _v.RollStabilizeAngleDeg);
+            output.AngularAcceleration += right * TiltCorrection(up, right, input.AngularVelocity, _v.PitchStabilizeAngleDeg);
+        }
+
+        // ---- Arcade air gravity (playtest 2026-10-03: "jump is a little floaty"). Tosses keep F12b's arc ----
+        if (groundedCount == 0 && State != VehicleState.Tossed && State != VehicleState.Upended)
+        {
+            float mul = input.Velocity.y > 0f ? _v.AirGravityMul : _v.FallGravityMul;
+            if (mul > 1f) output.CenterAcceleration += Vector3.down * G * (mul - 1f);
         }
 
         // ---- Lift (F12) and toss (F12b) ----
@@ -370,6 +371,20 @@ public sealed class VehicleModel
         // ---- Wind (F11, as implemented): push along the wind until the body matches its speed ----
         output.WindAcceleration = WindAcceleration(input.Wind, input.Velocity, _p.Exposure, _v.WindResponse, _v.WindForceCapG);
         output.WindPoint = input.CenterOfMassWorld + up * _v.WindLeverHeight;
+    }
+
+    /// <summary>
+    /// Angular acceleration about <paramref name="axis"/> that pulls the tilt around that axis back inside
+    /// <paramref name="limitDeg"/>, with rate damping. Zero while within the limit.
+    /// </summary>
+    private float TiltCorrection(Vector3 up, Vector3 axis, Vector3 angularVelocity, float limitDeg)
+    {
+        float tiltDeg = Vector3.SignedAngle(Vector3.ProjectOnPlane(Vector3.up, axis), up, axis);
+        float excessDeg = Mathf.Abs(tiltDeg) - limitDeg;
+        if (excessDeg <= 0f) return 0f;
+        float rate = Vector3.Dot(angularVelocity, axis);
+        return -Mathf.Sign(tiltDeg) * excessDeg * Mathf.Deg2Rad * _v.RollStabilization * 40f
+               - rate * _v.RollStabilization * 4f;
     }
 
     private void UpdateState(in VehicleStepInput input, Vector3 up, int groundedCount, float dt, VehicleStepOutput output)

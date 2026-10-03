@@ -137,10 +137,24 @@ public class PlayerVehicle : MonoBehaviour
         {
             box.size = _layout.BodySize;
             box.center = _layout.BodyCenter;
+            // Frictionless shell (playtest 2026-10-03): a nose-first landing slides onto the wheels instead
+            // of digging in and pivoting. Grip comes only from the wheel model (F3), never the body.
+            box.sharedMaterial = BodyMaterial;
         }
     }
 
     private void OnDestroy() => _ownedInput?.Dispose();
+
+    private static PhysicsMaterial _bodyMaterial;
+    private static PhysicsMaterial BodyMaterial => _bodyMaterial != null ? _bodyMaterial : _bodyMaterial =
+        new PhysicsMaterial("VehicleBody")
+        {
+            dynamicFriction = 0f,
+            staticFriction = 0f,
+            bounciness = 0f,
+            frictionCombine = PhysicsMaterialCombine.Minimum,
+            bounceCombine = PhysicsMaterialCombine.Minimum,
+        };
 
     private void FixedUpdate()
     {
@@ -214,11 +228,13 @@ public class PlayerVehicle : MonoBehaviour
         _knockbackTimer -= dt;
     }
 
-    // High-centered or wedged with no wheels down while the player is trying to drive → hop free.
+    // High-centered, or wedged nose/tail-down at a steep angle (rear wheels can still touch), while the
+    // player is trying to drive → hop free.
     private void HandleStuck(VehicleInputFrame inp, float dt)
     {
         bool trying = inp.Throttle > 0.5f || inp.Brake > 0.5f;
-        bool stuck = trying && _model.GroundedWheels < 2 && _rb.linearVelocity.magnitude < 0.5f
+        bool wedged = _model.GroundedWheels < 2 || Vector3.Angle(transform.up, Vector3.up) > _values.StuckTiltDeg;
+        bool stuck = trying && wedged && _rb.linearVelocity.magnitude < 0.5f
                      && _model.State != VehicleState.Upended;
         _stuckTimer = stuck ? _stuckTimer + dt : 0f;
         if (_stuckTimer < _values.StuckSeconds) return;
@@ -226,17 +242,22 @@ public class PlayerVehicle : MonoBehaviour
         AutoRight();
     }
 
+    // Casts start CastLift above the anchor: a sphere that begins inside the ground never reports it, so with
+    // the body resting on a corner the low wheels read airborne and the truck stayed wedged at ~15° on two
+    // wheels (playtest 2026-10-03). GroundDistance stays measured from the anchor and may go negative
+    // (bump stop: the model clamps compression to Travel).
+    private const float CastLift = 0.4f;
+    private readonly RaycastHit[] _castHits = new RaycastHit[8];
+
     private void QueryWheels()
     {
         Vector3 down = -transform.up;
         float maxDistance = _values.RestLength + 0.5f;
         for (int i = 0; i < VehicleModel.WheelCount; i++)
         {
-            Vector3 origin = transform.TransformPoint(_anchors[i]);
+            Vector3 anchor = transform.TransformPoint(_anchors[i]);
             ref WheelContact c = ref _contacts[i];
-            bool hit = Physics.SphereCast(origin, _layout.CastRadius, down, out RaycastHit h, maxDistance,
-                                          _groundMask, QueryTriggerInteraction.Ignore);
-            if (hit && h.rigidbody == _rb) hit = false; // never stand on ourselves
+            bool hit = NearestGroundHit(anchor - down * CastLift, down, maxDistance + CastLift, out RaycastHit h);
 
             if (!hit)
             {
@@ -249,11 +270,11 @@ public class PlayerVehicle : MonoBehaviour
             {
                 // Cast started overlapping (tile seams, debris): fully compressed, keep last normal (ADR-0005).
                 c.GroundDistance = _values.RestLength - _values.Travel;
-                c.Point = origin + down * _layout.CastRadius;
+                c.Point = anchor + down * _layout.CastRadius;
             }
             else
             {
-                c.GroundDistance = h.distance + _layout.CastRadius;
+                c.GroundDistance = h.distance + _layout.CastRadius - CastLift;
                 c.Point = h.point;
                 // Triangle normals jump at MeshCollider edges: smooth and rate-limit per wheel.
                 _smoothedNormals[i] = Vector3.RotateTowards(_smoothedNormals[i], h.normal, 0.35f, 0f);
@@ -265,6 +286,23 @@ public class PlayerVehicle : MonoBehaviour
             c.SurfaceGrip = surface.Grip;
             c.SurfaceDrag = surface.Drag;
         }
+    }
+
+    /// <summary>Nearest sphere-cast hit that isn't this vehicle (the lifted origin can sit inside our body).</summary>
+    private bool NearestGroundHit(Vector3 origin, Vector3 direction, float distance, out RaycastHit nearest)
+    {
+        int count = Physics.SphereCastNonAlloc(origin, _layout.CastRadius, direction, _castHits, distance,
+                                               _groundMask, QueryTriggerInteraction.Ignore);
+        nearest = default;
+        bool found = false;
+        for (int i = 0; i < count; i++)
+        {
+            RaycastHit h = _castHits[i];
+            if (h.rigidbody == _rb || (found && h.distance >= nearest.distance)) continue;
+            nearest = h;
+            found = true;
+        }
+        return found;
     }
 
     private SurfaceProperties SurfaceOf(Collider col)
