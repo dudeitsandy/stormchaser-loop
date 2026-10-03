@@ -52,6 +52,10 @@ public class PlayerVehicle : MonoBehaviour
     public VehicleState State => _model != null ? _model.State : VehicleState.Grounded;
     public float SlipAngle => _model != null ? _model.SlipAngleDeg : 0f;
     public int GroundedWheels => _model != null ? _model.GroundedWheels : 0;
+    /// <summary>Applied engine effort 0..1 this physics step (read-only, for presentation).</summary>
+    public float EngineLoad => _model != null ? _model.EngineLoad : 0f;
+    /// <summary>True while boost is actually applied (read-only, for presentation). False until S7-04 boost.</summary>
+    public bool BoostActive => _model != null && _model.BoostActive;
     /// <summary>The underlying model (read-only use: tests, presentation).</summary>
     public VehicleModel Model => _model;
 

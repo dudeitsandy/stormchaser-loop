@@ -103,6 +103,13 @@ public sealed class VehicleModel
     public float SteerAngleDeg { get; private set; }
     /// <summary>Steering added by wind this step (−1..1 units of steer).</summary>
     public float WindSteerBias { get; private set; }
+    /// <summary>
+    /// Applied engine effort this step, 0..1: drive force over full-throttle force at zero speed. Includes
+    /// pedal, torque falloff near top speed and limp-mode power; 0 while braking or coasting.
+    /// </summary>
+    public float EngineLoad { get; private set; }
+    /// <summary>True while boost is actually applied (after fuel/damage/input gating). Always false until the S7-04 boost verb lands.</summary>
+    public bool BoostActive { get; private set; }
 
     /// <summary>Advances one fixed step. <paramref name="contacts"/> holds 4 wheel queries; output is overwritten.</summary>
     public void Step(in VehicleStepInput input, WheelContact[] contacts, VehicleStepOutput output)
@@ -149,6 +156,8 @@ public sealed class VehicleModel
         else if (inp.Brake > 0.01f)
             driveTotal = -_p.Mass * _p.EngineAccel * power * inp.Brake * TorqueCurve(-ForwardSpeed, _p.ReverseSpeed);
         bool coasting = Mathf.Abs(inp.Throttle) < 0.01f && Mathf.Abs(inp.Brake) < 0.01f;
+        EngineLoad = Mathf.Clamp01(Mathf.Abs(driveTotal) / Mathf.Max(1e-3f, _p.Mass * _p.EngineAccel));
+        BoostActive = false;
 
         // ---- Wind steer: the wind tugs the wheel toward its direction (playtest: small tornadoes pull) ----
         Vector3 windExposed = input.Wind * _p.Exposure;

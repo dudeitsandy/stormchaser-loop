@@ -46,6 +46,12 @@ public class TornadoController : DisasterEntity
     private Vector3 _baseScale = Vector3.one;
 
     private TornadoData TornadoData => _data as TornadoData;
+
+    /// <summary>
+    /// Capture harness only (<see cref="StormCaptureHarness"/>): pins the tornado at the start of Mature and
+    /// stops it moving, so a 60 s performance capture is never cut short by the lifecycle.
+    /// </summary>
+    public bool HoldMature { get; set; }
     public float ConeScale => TornadoData != null ? TornadoData.ConeScale : 1f;
     public string EFRating => TornadoData != null ? TornadoData.EFRating : "EF?";
     /// <summary>0–1 lifecycle strength.</summary>
@@ -93,14 +99,14 @@ public class TornadoController : DisasterEntity
 
     private void Update()
     {
-        _age += Time.deltaTime;
+        _age = HoldMature ? _lifecycle.FormSeconds : _age + Time.deltaTime;
         if (_lifecycle.GetPhase(_age) == TornadoLifecycle.Phase.Done)
         {
             Destroy(gameObject);
             return;
         }
 
-        Move(Time.deltaTime);
+        if (!HoldMature) Move(Time.deltaTime);
         ApplyScale();
         transform.Rotate(0f, _spinDegreesPerSecond * Time.deltaTime, 0f, Space.Self);
     }

@@ -30,11 +30,17 @@ public static class BuildScript
     public static void BuildWebGL() =>
         Build(BuildTarget.WebGL, Path.Combine(OutputRoot, "webgl"));
 
+    /// <summary>Development WebGL of the shipping scene (profiler markers on) for perf captures; never shipped.</summary>
+    [MenuItem("StormChaser/Build/WebGL (Development)")]
+    public static void BuildWebGLDevelopment() =>
+        Build(BuildTarget.WebGL, Path.Combine(OutputRoot, "webgl-dev"), ShippingScene, BuildOptions.Development);
+
     [MenuItem("StormChaser/Spike/Build Spike WebGL")]
     public static void BuildSpikeWebGL() =>
         Build(BuildTarget.WebGL, Path.Combine(OutputRoot, "spike-webgl"), SpikeScene);
 
-    private static void Build(BuildTarget target, string locationPath, string scene = ShippingScene)
+    private static void Build(BuildTarget target, string locationPath, string scene = ShippingScene,
+                              BuildOptions buildOptions = BuildOptions.None)
     {
         // Ship exactly one scene. VerificationScene (the 0.4 look) stays in Build Settings for editor A/B only.
         if (!EditorBuildSettings.scenes.Any(s => s.path == scene))
@@ -53,7 +59,7 @@ public static class BuildScript
             scenes = scenes,
             locationPathName = locationPath,
             target = target,
-            options = BuildOptions.None,
+            options = buildOptions,
         };
 
         BuildReport report = BuildPipeline.BuildPlayer(options);

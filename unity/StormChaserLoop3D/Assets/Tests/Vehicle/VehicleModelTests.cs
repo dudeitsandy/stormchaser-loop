@@ -106,6 +106,52 @@ public class VehicleModelTests
     }
 
     [Test]
+    public void EngineLoad_TracksAppliedDriveEffort()
+    {
+        // Arrange: grounded truck; load for a given speed, pedal and damage stage.
+        float Load(float speed, float throttle, float brake, DamageStage stage)
+        {
+            var model = NewPickup(out _);
+            WheelContact[] contacts = Contacts(V.RestLength - V.SagFraction * V.Travel, Vector3.zero);
+            var input = Input(new Vector3(0f, 0f, speed));
+            input.Damage = stage;
+            input.Input.Throttle = throttle;
+            input.Input.Brake = brake;
+            model.Step(input, contacts, new VehicleStepOutput());
+            return model.EngineLoad;
+        }
+        ArchetypeParams p = ArchetypeParams.Derive(Stars.Pickup, V);
+        // Act
+        float fullAtRest = Load(0f, 1f, 0f, DamageStage.Healthy);
+        float halfPedal = Load(0f, 0.5f, 0f, DamageStage.Healthy);
+        float nearTop = Load(0.9f * p.TopSpeed, 1f, 0f, DamageStage.Healthy);
+        float limp = Load(0f, 1f, 0f, DamageStage.Critical);
+        float coasting = Load(10f, 0f, 0f, DamageStage.Healthy);
+        float braking = Load(10f, 0f, 1f, DamageStage.Healthy);
+        // Assert
+        Assert.AreEqual(1f, fullAtRest, 1e-4f);
+        Assert.AreEqual(0.5f, halfPedal, 1e-4f);
+        Assert.AreEqual(VehicleModel.TorqueCurve(0.9f * p.TopSpeed, p.TopSpeed), nearTop, 1e-4f);
+        Assert.AreEqual(V.CriticalPowerScale, limp, 1e-4f);
+        Assert.AreEqual(0f, coasting);
+        Assert.AreEqual(0f, braking);
+    }
+
+    [Test]
+    public void BoostActive_IsFalseUntilBoostVerbExists()
+    {
+        // Arrange
+        var model = NewPickup(out _);
+        var input = Input(Vector3.zero);
+        input.Input.Throttle = 1f;
+        input.Input.Boost = true;
+        // Act
+        model.Step(input, Contacts(V.RestLength - V.SagFraction * V.Travel, Vector3.zero), new VehicleStepOutput());
+        // Assert: pressing boost alone never reports boost (presentation must not read raw input).
+        Assert.IsFalse(model.BoostActive);
+    }
+
+    [Test]
     public void CriticalDamage_ThrottleDrivesAtLimpPower()
     {
         // Arrange: grounded at rest, full throttle, Healthy vs Critical.

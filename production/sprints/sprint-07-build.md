@@ -120,3 +120,18 @@ forward: lift coefficient 0.8→1.35 (EF3 lifts only, EF4 tosses at ≈ its 3.5 
 toss impulse scales with EF (≈ 3 m / 4 m apex), no added spin; lift acts only while grounded (≤ 0.9 g);
 toss latch requires leaving the ground (1 s pinned timeout). New wind steer: wind biases steering toward its
 direction, ≤ 0.5 steer, so weak tornadoes tug the wheel. GDD vehicle-feel F12 coefficient to be updated.
+
+## Playtest Notes — Codex presentation pass (Andy, 2026-10-02, via AGENTS.md)
+"This looks and feels good." The implemented presentation pass is accepted. Not included: boost
+visuals and audio (waiting on `PlayerVehicle.BoostActive` / `EngineLoad`), gameplay events not yet
+raised, and the X7-06 performance gate.
+
+Gameplay feedback: "the HP system ... is too fragile"; wants "a full HP system per truck." Not a
+Sprint 7 change. Two Sprint 8 candidates, kept separate:
+
+| ID | Candidate | Scope | Notes |
+|----|-----------|-------|-------|
+| S8-C1 | **Durability tuning** within the current model | S (config + GDD values) | e.g. Pickup Max HP above 3, or a `VehicleImpact` severity threshold so light bumps cost 0 HP |
+| S8-C2 | **Per-truck HP redesign** | M–L (`vehicle-damage.md` revision + `/design-review`, code) | Larger HP pool per truck, damage scaled by impact severity; capacities and rules undecided |
+
+Tracked as an Open Question in `design/gdd/vehicle-damage.md`.
