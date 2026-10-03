@@ -90,6 +90,11 @@ the start so players see the new look while the feel work happens.
 - [ ] G3 feel playtest run; findings logged for Sprint 8
 
 ## Release Log
+- 2026-10-03 — **0.7.0 pushed** (html5 + windows): S7-04 verbs (jump, boost + style refills, air control,
+  RT/LT/A/B/X/RB map), S7-06 impacts (VehicleImpact raised, HP cost off pending S8-C2), Codex boost
+  flame/roar, sparks/crunch, DRIFT/AIR/NEAR MISS pops, HUD boost meter. Evidence: EditMode 138/138, PlayMode
+  7/8 (EF3 wind test fails deterministically, 0.47 m vs 0.5 m, pending Storm Director F3), WebGL verified in
+  Chrome on real GPU, 0 errors (`production/qa/evidence/v070_*.png`).
 - 2026-10-01 — **0.6.0 pushed** (html5 + windows): new raycast vehicle (S7-03 + feel passes 1–2), tornado
   lift/toss, wind steer, heading-only camera, handbrake slide on title. Evidence: EditMode 96/96 pass;
   WebGL headless run 0 console errors, title 0.6.0, drive + handbrake slide verified
@@ -135,3 +140,16 @@ Sprint 7 change. Two Sprint 8 candidates, kept separate:
 | S8-C2 | **Per-truck HP redesign** (Andy 2026-10-03: do the full review, not just tuning) | M–L (`vehicle-damage.md` revision + `/design-review`, code) | Direction: a full health bar (100 %) or a numeric HP value per vehicle, with roguelite durability enhancements earned during a run. Damage scaled by impact severity. Capacities and rules undecided. Until then F10 collision HP cost ships **off** (impacts are detected and raised for VFX/audio only) |
 
 Tracked as an Open Question in `design/gdd/vehicle-damage.md`.
+
+## Playtest Notes — 0.7.0 (Andy + son, 2026-10-03)
+"Looks and feels pretty good"; son: "the driving is good." Findings and where they land:
+
+| Finding | Triage | Where |
+|---|---|---|
+| Truck drives through trees, barns, silos | **Defect**: `EnvironmentScatter` strips prop colliders. Solid trunks/barns/silos/poles; fences as light destructibles (E13) | 0.7.1 — Codex (Environment lane), requested in AGENTS.md |
+| Braking should feel like Rocket League: stops too slowly | Tuning: raise `BrakeDecel` (14 m/s² now) within the GDD safe range | 0.7.1 — Claude |
+| Boost should crash through big props | Already designed: Ram & Unblock ≥ 50 MPH; Tier A knock-loose (S7-08), Tier B barn/silo fracture (S7-10) | S7-08 / S7-10 → Sprint 8 |
+| Score pops only for photos | Design gap: style moves refill boost but don't score. THPS-style run goals in `event-system.md` | Sprint 8 design |
+| More worlds | 2 km streamed world (ADR-0004) + Arcade scenarios; biomes undesigned | 0.8+ |
+| Professional title screen, game over, quit | Basic results screen + Esc quit (Windows only) exist; needs `/ux-design` title, pause/quit menu, game-over | Sprint 8 polish |
+| Story mode with quests (Fortnite × THPS career: levels with goal lists — rescues, pets, tricks, shots) | New mode alongside Arcade / Epic; builds on run goals + Storm Director | `/brainstorm` → `session-modes.md` revision |
