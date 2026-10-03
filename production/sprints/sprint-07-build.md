@@ -90,6 +90,11 @@ the start so players see the new look while the feel work happens.
 - [ ] G3 feel playtest run; findings logged for Sprint 8
 
 ## Release Log
+- 2026-10-03 — **0.7.1 pushed** (html5 + windows): solid scenery (Codex: trunks, barns, silos, poles block;
+  45 kg fences knock loose as E13 destructibles) and arcade brake assist (full-speed stop ≈ 1.1 s). Evidence:
+  PlayMode 11/12 (new ScenerySolidityTests 3/3: trunk/barn block with impact and no HP loss, canopy not solid,
+  fence flies while truck keeps ~16 m/s; EscapeTurn 150° in 1.10 s); known EF3 wind failure unchanged. WebGL
+  verified on real GPU, 0 errors (`production/qa/evidence/v071_*.png`).
 - 2026-10-03 — **0.7.0 pushed** (html5 + windows): S7-04 verbs (jump, boost + style refills, air control,
   RT/LT/A/B/X/RB map), S7-06 impacts (VehicleImpact raised, HP cost off pending S8-C2), Codex boost
   flame/roar, sparks/crunch, DRIFT/AIR/NEAR MISS pops, HUD boost meter. Evidence: EditMode 138/138, PlayMode

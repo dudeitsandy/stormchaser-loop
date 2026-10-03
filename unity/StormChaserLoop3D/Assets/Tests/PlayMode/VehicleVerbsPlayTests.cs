@@ -67,6 +67,38 @@ public class VehicleVerbsPlayTests
         Assert.That(rise, Is.InRange(1.2f, 1.9f));
     }
 
+    [UnityTest]
+    public IEnumerator EscapeTurn_BrakeHandbrakeSteer_TurnsAroundQuickly()
+    {
+        // Arrange: the "oh no, it's coming" move (Andy, 2026-10-03): at 18 m/s, slam brake + handbrake +
+        // full steer, then floor it back the way you came. Proposed bar: heading reversed (≥ 150°) within 2.5 s.
+        SpawnGround();
+        var input = new ScriptedInput();
+        PlayerVehicle truck = SpawnTruck(input);
+        truck.transform.position = new Vector3(0f, 0.8f, -60f);
+        for (int i = 0; i < 30; i++) yield return new WaitForFixedUpdate();
+        input.Frame.Throttle = 1f;
+        while (truck.CurrentSpeed < 18f) yield return new WaitForFixedUpdate();
+        Vector3 startFwd = Flat(truck.transform.forward);
+        // Act
+        input.Frame = new VehicleInputFrame { Brake = 1f, Handbrake = true, Steer = 1f };
+        float t = 0f, turnedAt = -1f;
+        while (t < 4f && turnedAt < 0f)
+        {
+            yield return new WaitForFixedUpdate();
+            t += Time.fixedDeltaTime;
+            float angle = Vector3.Angle(startFwd, Flat(truck.transform.forward));
+            if (angle >= 150f) turnedAt = t;
+            if (t > 0.6f) input.Frame = new VehicleInputFrame { Throttle = 1f, Steer = 1f }; // power out of it
+        }
+        // Assert
+        Debug.Log($"[Verbs] escape turn: 150 deg at {turnedAt:F2} s, speed then {truck.CurrentSpeed:F1} m/s, state {truck.State}");
+        Assert.Greater(turnedAt, 0f, "the truck never turned around");
+        Assert.LessOrEqual(turnedAt, 2.5f);
+    }
+
+    private static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z).normalized;
+
     private IEnumerator Drive(bool boost, float seconds, System.Action<float, float> report)
     {
         SpawnGround();
