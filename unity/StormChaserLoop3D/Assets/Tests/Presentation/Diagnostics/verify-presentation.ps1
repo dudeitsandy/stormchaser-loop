@@ -26,6 +26,9 @@ try {
     }
     $testArgs += '-out:"' + (Join-Path $checkDirectory 'StormChaser.Tests.dll') + '"'
     $testArgs += Get-ChildItem Assets/Tests/Presentation -Filter '*.cs' | ForEach-Object { '"' + $_.FullName + '"' }
+    if (Test-Path Assets/Tests/Environment) {
+        $testArgs += Get-ChildItem Assets/Tests/Environment -Filter '*.cs' | ForEach-Object { '"' + $_.FullName + '"' }
+    }
     $testRsp = Join-Path $checkDirectory 'PresentationTests.rsp'
     Set-Content -Encoding UTF8 $testRsp $testArgs
     & $dotnet $compiler ('@' + $testRsp)
@@ -38,7 +41,7 @@ public static class PresentationChecks {
     public static int Main() {
         int passed = 0;
         try {
-            foreach (var type in new[] { typeof(IndicatorGeometryTests), typeof(WindVfxEmissionTests), typeof(FunnelSurfaceGeometryTests), typeof(VehicleFeedbackLevelsTests) }) {
+            foreach (var type in new[] { typeof(IndicatorGeometryTests), typeof(WindVfxEmissionTests), typeof(FunnelSurfaceGeometryTests), typeof(VehicleFeedbackLevelsTests), typeof(FunnelLifecycleVisualTests) }) {
                 var fixture = Activator.CreateInstance(type);
                 foreach (var method in type.GetMethods()) {
                     foreach (TestCaseAttribute test in method.GetCustomAttributes(typeof(TestCaseAttribute), true)) {

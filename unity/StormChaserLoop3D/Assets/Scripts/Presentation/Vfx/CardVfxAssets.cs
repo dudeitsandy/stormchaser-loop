@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 /// <summary>Owned, lazily generated illustrated card textures and transparent URP materials.</summary>
 internal sealed class CardVfxAssets : IDisposable
 {
-    internal enum Shape { Band, Dust, Streak, Debris, Funnel, Flame }
+    internal enum Shape { Band, Dust, Streak, Debris, Funnel, Flame, Cloud }
     private readonly Dictionary<Shape, Material> _materials = new Dictionary<Shape, Material>();
     private readonly List<UnityEngine.Object> _owned = new List<UnityEngine.Object>();
     private Mesh _quad;
@@ -127,6 +127,7 @@ internal sealed class CardVfxAssets : IDisposable
                     tone = 0.7f + 0.07f * Mathf.Sin(swirl) + 0.025f * Mathf.Sin(swirl * 2f);
                     break;
                 case Shape.Dust:
+                case Shape.Cloud:
                     float radius = Mathf.Sqrt(u * u + v * v);
                     alpha = Mathf.Clamp01((0.9f + 0.07f * Mathf.Sin(Mathf.Atan2(v, u) * 7f) - radius) * 7f);
                     tone = radius < 0.5f ? 0.84f : 0.6f;

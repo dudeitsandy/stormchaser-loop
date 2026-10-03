@@ -1,17 +1,19 @@
 using UnityEngine;
+using System.Collections.Generic;
 using Unity.Profiling;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 
-/// <summary>Low-resolution forward-facing photo preview matching the truck's scoring direction.</summary>
+/// <summary>Low-resolution photo preview sharing the rendered gameplay camera's pose.</summary>
 public sealed class PipViewfinder : MonoBehaviour
 {
     private static readonly ProfilerMarker UpdateMarker = new ProfilerMarker("Presentation.Pip.Update");
     [SerializeField] private int _textureWidth = 320;
     [SerializeField] private int _textureHeight = 240;
     [SerializeField] private float _fieldOfView = 60f;
-    [SerializeField] private float _cameraHeight = 2.2f;
     private PlayerVehicle _vehicle;
+    private Camera _main;
     private Camera _camera;
     private RenderTexture _texture;
     private VisualElement _frame;
@@ -28,6 +30,7 @@ public sealed class PipViewfinder : MonoBehaviour
     {
         _vehicle = FindAnyObjectByType<PlayerVehicle>();
         var main = Camera.main;
+        _main = main;
         var root = PresentationOverlay.Create(transform, "ViewfinderUI", 10);
         if (root == null || _vehicle == null || main == null) return;
         _texture = new RenderTexture(Mathf.Max(32, _textureWidth), Mathf.Max(32, _textureHeight), 24)
@@ -41,8 +44,6 @@ public sealed class PipViewfinder : MonoBehaviour
         _camera.rect = new Rect(0, 0, 1, 1);
         _camera.usePhysicalProperties = false;
         _camera.fieldOfView = _fieldOfView;
-        _camera.nearClipPlane = 0.1f;
-        _camera.farClipPlane = Mathf.Min(main.farClipPlane, 180f);
         _camera.allowHDR = false;
         _camera.allowMSAA = false;
         _camera.enabled = false;
@@ -57,7 +58,7 @@ public sealed class PipViewfinder : MonoBehaviour
         _frame.style.width = 256;
         _frame.style.maxWidth = Length.Percent(30);
         _frame.style.backgroundColor = new Color(0.02f, 0.03f, 0.04f, 0.9f);
-        _frame.Add(PresentationOverlay.Label("VIEWFINDER · FORWARD", 12, Color.white));
+        _frame.Add(PresentationOverlay.Label("VIEWFINDER", 12, Color.white));
         var preview = new Image { image = _texture, scaleMode = ScaleMode.ScaleToFit, pickingMode = PickingMode.Ignore };
         var footage = new VisualElement { pickingMode = PickingMode.Ignore };
         footage.style.position = Position.Relative;
@@ -87,8 +88,24 @@ public sealed class PipViewfinder : MonoBehaviour
         bool active = _vehicle.InputEnabled;
         _camera.enabled = active;
         _frame.style.display = active ? DisplayStyle.Flex : DisplayStyle.None;
-        _camera.transform.SetPositionAndRotation(_vehicle.transform.position + Vector3.up * _cameraHeight,
-            Quaternion.LookRotation(_vehicle.transform.forward, Vector3.up));
+        SyncPose();
+    }
+    private void OnEnable() => RenderPipelineManager.beginContextRendering += BeforeFrame;
+    private void OnDisable()
+    {
+        RenderPipelineManager.beginContextRendering -= BeforeFrame;
+        if (_camera != null) _camera.enabled = false;
+        if (_frame != null) _frame.style.display = DisplayStyle.None;
+    }
+    // Sample after all LateUpdates, including Cinemachine, before either camera is rendered.
+    private void BeforeFrame(ScriptableRenderContext context, List<Camera> cameras) => SyncPose();
+    private void SyncPose()
+    {
+        if (_camera == null || _main == null) return;
+        _camera.transform.SetPositionAndRotation(_main.transform.position, _main.transform.rotation);
+        _camera.nearClipPlane = _main.nearClipPlane;
+        _camera.farClipPlane = _main.farClipPlane;
+        _camera.cullingMask = _main.cullingMask;
     }
     private void OnDestroy()
     {
