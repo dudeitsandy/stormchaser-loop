@@ -1,8 +1,8 @@
 # Storm Director
 
-> **Status**: In Review (revised 2026-10-02 after fourth /design-review)
+> **Status**: In Review (revised 2026-10-03 after the 2026-10-03 /design-review)
 > **Author**: Andy Styx + Claude
-> **Last Updated**: 2026-10-02
+> **Last Updated**: 2026-10-03
 > **Last Verified**: 2026-10-02
 > **Implements Pillar**: 2 — Disaster Stacking & "Disaster Alchemy" (game-concept.md); serves Pillar 1 (Kinetic Chaos) via tension, and the anti-pillar "NOT scripted spectacle" (set pieces come from rules)
 
@@ -64,9 +64,10 @@ choice to drive at it.
    Intensity I ramps linearly 0 → 1 over Forming, holds at 1 through Mature, and falls linearly 1 → 0
    over Roping Out. **In Roping Out, wind, lift and damage radius all scale with I** (Andy, 2026-10-02):
    a fresh rope-out is still dangerous and its end is harmless (F3). In Epic the anchor is reachable
-   *from the plan origin*: its Form + Mature time ≥ its distance from P0 ÷ (0.7 × v_top). A player who
-   drives away from P0 can still miss it; that is a choice (Edge Cases). Arcade scenarios use short
-   forming times.
+   *from the plan origin* even if its track runs straight away: its spawn distance from P0 is at most
+   d_reach = (Form + Mature) × (0.7 × v_top − k_H × v_track) (F2). The 30 % throttle margin covers
+   steering and late-life jogs. A player who drives away from P0 can still miss it; that is a choice
+   (Edge Cases). Arcade scenarios use short forming times.
 5. **Tracks.** A cell moves along its own heading and speed with wander. **No homing:** the track ignores
    the player. Late in a cell's life it makes erratic jogs, so a storm is dangerous to *loiter near*, not
    to flee. A cell that leaves the world ends.
@@ -80,10 +81,14 @@ choice to drive at it.
    - a **forecast** on the HUD lists each cell's bearing, estimated EF, distance and "peak in N s". The
      EF estimate can be off by ±1 and gets more accurate as the player gets close (F4), which is
      deliberate uncertainty;
-   - a **siren / radio cue** on forming EF3+ and on the anchor's peak;
-   - **environmental cues** (sky darkening, gust amplitude, debris) rise monotonically with the total
-     wind at the player, W_player = |`TotalWindAt`(player)| (all cells summed, as in Edge Cases), and are
-     at maximum when W_player ≥ 20 m/s. A weak cell nearby never masks a strong one farther out.
+   - a **siren / radio cue** on forming EF3+ and on the anchor's peak. The siren keys on the **true** EF
+     (like a warning system detecting rotation), but its caption never states an EF ("severe cell
+     forming"), so it says a cell is dangerous, not how dangerous, and the forecast's ±1 still matters
+     (Andy, 2026-10-03);
+   - **environmental cues** (sky darkening, gust amplitude, debris) rise monotonically with the wind
+     strength at the player, W_player = Σ_i |W_i(player)|, the **sum of each cell's wind magnitude**,
+     and are at maximum when W_player ≥ 20 m/s. Magnitudes add without cancelling, so a weak cell nearby
+     never masks a strong one farther out. Physics still uses the vector sum (`TotalWindAt`, Edge Cases).
 8. **Concurrency and budget.** Active cells are capped (Epic and Arcade each have a cap). Only cells
    inside the streaming ring (ADR-0004) run full wind and damage; farther cells skip wind and damage and
    show the far-field visual. **Track motion (F5) is identical in both tiers**, so the ring, which follows
@@ -110,7 +115,7 @@ choice to drive at it.
       or RopeOut.
 
     The director holds no references to downstream systems; it only raises `GameEvents`.
-12. **Compact mode (provisional).** Until the 2 km world is integrated (S7-06+), the director runs in
+12. **Compact mode (provisional).** Until the 2 km world (ADR-0004) replaces today's arena, the director runs in
     compact mode, a **mini-Epic** on today's arena (Andy, 2026-10-02): it draws a regime (F1, Heat
     applies) and builds a plan exactly as Epic does, but with a fixed T = 180 s, compact spawn
     distances, compact lifecycle times, smaller satellite counts and a cap of 2 (F2, F3). Arcade scenarios played on the compact
@@ -209,7 +214,8 @@ The cell schedule formula is defined as:
   Outbreak: it is an extra cell that spawns at `t_a + U(−15, 15)` within 120 m of the anchor and counts
   toward N_cells. It counts toward the caps in both.
 - **Compact mode (Rule 12):** T = 180 s fixed (no N_cells term). Δ = U(17, 28) s; Sequence S = 1–3;
-  Outbreak S = 1–2; Chaos N = U{3..5}; satellites spawn 40–90 m from P0; CapTotal = 2. At Heat 5 the anchor
+  Outbreak S = 1–2; Chaos N = U{3..5}; anchors spawn 60–85 m and satellites 40–85 m from P0, inside the
+  arena's ±85 m spawn square; CapTotal = 2. At Heat 5 the anchor
   and co-anchor fill the cap, so any satellite still live when they spawn ropes out early. Every other rule
   is the same.
 
@@ -220,8 +226,8 @@ The cell schedule formula is defined as:
 | T | float | 315–450 s (compact 180 s) | calculated | Epic session length (`session-modes.md` Chase formula); compact mode fixes it at 180 s |
 | t_peak | float | 0.40T–0.65T | calculated | When the anchor reaches Mature |
 | Form(EF) | float | 20–45 s | data file (F3) | Forming time of the cell's EF |
-| SpawnDist (Epic) | float | anchor 350–700 m, satellites 200–600 m | data file | From plan origin P0 (player start); first satellite ≥ 40° from the anchor bearing; ≥ 100 m inside the world edge |
-| SpawnDist (compact) | float | anchor 70–110 m, satellites 40–90 m | data file | Compact mode (pre-2 km world) |
+| SpawnDist (Epic) | float | anchor 350 m to min(700 m, d_reach), satellites 200–600 m | data file | From plan origin P0 (player start); first satellite ≥ 40° from the anchor bearing; ≥ 100 m inside the world edge. d_reach = (Form + Mature) × (15.05 − k_H × v_track) for the anchor's EF (Rule 4): Heat 0 EF0–5 = 603 / 718 / 804 / 812 / 811 / 952 m; Heat 1+ = 565 / 653 / 704 / 658 / 581 / 682 m. Never below 350 m, so the range is never empty |
+| SpawnDist (compact) | float | anchor 60–85 m, satellites 40–85 m | data file | Compact mode (pre-2 km world). Spawn square ±85 m (`DisasterSpawner`); tornado edge steer-back at ±90 m. With P0 near the arena centre every bearing is valid, so rerolls don't pull spawns toward the corners |
 | CapRing / CapTotal | int | Epic 3 / 5 (Chaos 6); Arcade 3; compact 2 | data file | Concurrency caps |
 | CapDelay | float | 10 s steps, 30 s max | data file | Over-cap spawns wait in 10 s steps; a cell that has waited 30 s and still has no slot is dropped (when several reach 30 s on the same step, the lowest-EF one goes first). **Resolved against CapTotal at plan time**, using each cell's Form + Mature + Rope lifetime (a cell that leaves the world early only frees its slot early, which is safe), so the plan never depends on the player. CapRing only decides which cells run full simulation, never when they spawn. **Anchors never wait:** when an anchor or co-anchor would exceed the cap, the lowest-EF live satellite ropes out early instead, so the `T − 30` Mature clamp always holds. An early rope-out starts from the cell's current I (F3) |
 
@@ -276,7 +282,9 @@ possible from outside the core (AC-32). Toss radius: EF3 never
 within ≈ 15.7 m**. **Compact mode allows EF5 at full size** (Andy 2026-10-01): an EF5 covers most of the
 ≈ 180 m arena, a deliberate survival moment.
 **Example (locked checks):** EF3 Mature, truck parked at 15 m → W = 26 × (1 − 15/34)² = 8.1 m/s → wind
-accel ≈ 7.6 m/s² → ≈ 3.8 m moved in 1 s (> 0.5 ✓); lift at 15 m ≈ 0.008 → not Tossed ✓. EF5 Mature,
+accel ≈ 7.6 m/s² → ≈ 3.8 m in 1 s **with no tire grip**, an upper bound. With grip the pre-director scale
+(≈ 4.45 m/s at 15 m) moves the truck 0.47 m, so 8.1 m/s should clear 0.5 m with margin; AC-11 verifies
+it in PlayMode. Lift at 15 m ≈ 0.008 → not Tossed ✓. EF5 Mature,
 5 m → lift = 0.85 × 2.7 × (1 − 5/35)² = 1.69 ≥ 0.7 → Tossed on the first Mature frame ✓.
 **Implementation note:** replaces `TornadoController`'s sqrt EF wind scale, which cannot exceed ≈ 2×
 EF0 (this table needs 7.75×). Remove `_windScaleBase`, `_windScalePerSqrtEF`, the radius-per-ConeScale
@@ -332,7 +340,8 @@ are discarded.
 
 **Output Range:** heading unbounded; speed 0.4 v_track to 15.05 m/s during jogs (12 m/s at Heat 0), always
 below v_top. Epic: a cell that leaves
-the world ends. Compact keeps today's edge steer-back.
+the world ends. Compact keeps today's edge steer-back at ±90 m, evaluated inside the same 0.05 s
+substeps (Edge Cases, Timing) so it stays frame-rate independent.
 **Example:** EF4, ω = 9°/s, noise 0.2 → turns 1.8°/s. At u = 0.75, λ = 0.083 × 0.375 = 0.031/s, about one
 jog per 32 s; a +75° jog at 8–12 m/s for 3 s moves the funnel ≈ 30 m off its expected path.
 
@@ -422,6 +431,7 @@ jog per 32 s; a +75° jog at 8–12 m/s for 3 s moves the funnel ≈ 30 m off it
 | HUD / Off-Screen Indicators | Soft | Forecast list and bearings | No GDD yet |
 | Procedural Audio | Soft | Siren, radio and wind-intensity cues | No GDD yet |
 | Save & Profile (`save-profile.md`) | Soft | Seed, build version and regime, optionally stored with run results | Added 2026-10-02 |
+| Story / Career mode (`story-career-mode-concept.md`, concept) | Soft | Anchor, phases and regime odds for storm-relative goals; storms are dealt, never authored | Concept already cites the director; no GDD yet |
 
 **Code impact:** replaces `DisasterSpawner`'s timer and roster weights, and `TornadoController`'s sqrt
 wind scale, player pull (`_playerPull` → 0) and radius-per-ConeScale fields.
@@ -440,14 +450,14 @@ column.
 | Peak wind P_EF | 8 / 12 / 17 / 26 / 40 / 62 m/s | strictly increasing; EF3+ > 21.5 | Danger at range; AC-10/11 |
 | Wind radius R_EF | 12 / 18 / 26 / 34 / 52 / 70 m | strictly increasing; EF5 ≤ 0.45 × compact arena | Reach of the wind; toss radius via F12 |
 | Damage radius D_EF | 1.5 / 2.2 / 3.2 / 5 / 6.5 / 12 m | strictly increasing; ≤ 0.25 R | Core size and visual width |
-| Form / Mature / Rope (s) | F3 table | Form ≥ 20 s Epic; Form + Mature ≥ 700 m ÷ 15.05 m/s = 47 s | Reachability (Rule 4) and the notice step |
+| Form / Mature / Rope (s) | F3 table | Form ≥ 20 s Epic; (Form + Mature) × (15.05 − 1.25 × v_track) ≥ 350 m | Reachability (Rule 4): d_reach must not fall below the 350 m anchor minimum; and the notice step |
 | Track speed v_track | 3–8 m/s | ≤ 0.4 v_top (8.6 m/s) | Fleeing guarantee (AC-32) |
 | k_H (Heat rank 1) | 1.25 | 1.0–1.25 | Keeps jog speed ≤ v_cap (8 × 1.25 × 1.5 = 15.0 m/s) |
 | λ0 (jog rate) | 1/12 s | 1/20–1/8 s | Late-life loiter danger |
 | Jog turn / burst | ±40–110°, × 1.5 for 3 s | burst ≤ × 1.5 | Jog stays below v_cap |
 | σ max (forecast EF error) | 0.7 | 0.4–0.9 | P(wrong EF) far away: 47.5 % at 0.7, ≈ 58 % at 0.9; AC-15 must be recomputed if changed |
 | Forecast exact / max-error range | 150 / 800 m | exact 100–200 m; max-error ≥ exact + 400 m | Where the forecast becomes trustworthy |
-| Caps (CapRing / CapTotal) | Epic 3 / 5 (Chaos 6); Arcade 3; compact 2 | CapTotal ≥ 2 (anchor + co-anchor) | Perf (AC-28/29) vs. Outbreak density |
+| Caps (CapRing / CapTotal) | Epic 3 / 5 (Chaos 6); Arcade CapTotal 3; compact CapTotal 2 (no ring: all cells run full simulation) | CapTotal ≥ 2 (anchor + co-anchor) | Perf (AC-28/29) vs. Outbreak density |
 | Compact T | 180 s | 150–240 s | Compact run length; anchor peak window 0.40–0.65 T |
 | Compact multipliers | Form × 0.25 (≥ 4 s), Mature / Rope × 0.5 | Form ≥ 4 s | Compact pacing |
 | Environmental-cue full scale | 20 m/s | 15–30 m/s | When the sky reaches maximum dread |
@@ -491,7 +501,7 @@ column.
   a dust puff kicks up on the leading side. The lean always points where the storm will go.
 
 **Environmental cues**
-- One normalised value `e = clamp01(W_player / 20 m/s)` (total wind at the player, Rule 7) drives every cue so they rise together: sky
+- One normalised value `e = clamp01(W_player / 20 m/s)` (summed per-cell wind magnitude at the player, Rule 7) drives every cue so they rise together: sky
   gradient and sun intensity drop by up to 60 % with a green-teal shift; gust streak density and length;
   grass and tree sway; pooled ambient debris (leaves, paper).
 - World-grade only: no grain or CRT on the world as storms rise.
@@ -538,8 +548,9 @@ arrive, risk and escape.
   and "peak in ~N s" or "roping out". The anchor and the Heat 5 co-anchor always get a row and are
   highlighted. Shares the off-screen indicator's
   bearing logic.
-- **Radio caption:** a one-line caption when the siren or radio cue plays ("Tornado warning: EF3+ forming,
-  bearing NW"), so the audio is also readable on screen (accessibility).
+- **Radio caption:** a one-line caption when the siren or radio cue plays ("Tornado warning: severe cell
+  forming, bearing NW"; never an EF number, Rule 7), so the audio is also readable on screen
+  (accessibility).
 - **Results screen:** the seed and build version, the regime name ("Outbreak"), and "The big one got away
   (EF5)" when the anchor never peaked.
 - **Arcade setup:** shows each setting after clamping before the run starts, with clamped values marked.
@@ -595,8 +606,8 @@ arrive, risk and escape.
 
 **Schedule (Rule 8, F2)**
 - **AC-8 [Unit]** For all Epic plans (compact: AC-21): T ∈ [315, 450] s; the anchor's Mature start ∈ [0.40T, 0.65T] and ≤ T − 30;
-  anchor spawn ≥ 15 s; no Sequence satellite spawns before 5 s; in Epic, anchor Form + Mature ≥ distance
-  from P0 ÷ (0.7 × 21.5 m/s).
+  anchor spawn ≥ 15 s; no Sequence satellite spawns before 5 s; in Epic, the anchor's distance from P0 ≤
+  (Form + Mature) × (0.7 × 21.5 − k_H × v_track) for its EF and the run's Heat.
 - **AC-9 [Unit]** GIVEN an Outbreak plan with S = 5 and CapTotal 5, WHEN the schedule is resolved, THEN live
   cells never exceed the cap, over-cap spawns wait in 10 s steps, and the lowest-EF waiting cell drops
   after 30 s. Across 10,000 plans (Heat 0 and Heat 5) the anchor and co-anchor never wait and are never
@@ -631,8 +642,8 @@ arrive, risk and escape.
 - **AC-17 [PlayMode]** GIVEN seed 777 run twice, once idle and once driving a scripted loop, THEN every
   cell's position sampled every 0.5 s matches within 0.01 m. Companion [Unit]: the track model API takes
   no player or transform parameter.
-- **AC-18 [Unit]** Jogs only start at u ≥ 0.6; each jog's tilt telegraph begins 1.0 s ±1 frame before the
-  turn; no two jog starts are < 4.5 s apart; jog speed ≤ 12 m/s at Heat 0 and ≤ 15.05 m/s at Heat 1+.
+- **AC-18 [Unit]** Jogs only start at u ≥ 0.6; each jog's tilt telegraph begins 1.0 s ±0.05 s (one substep)
+  before the turn; no two jog starts are < 4.5 s apart; jog speed ≤ 12 m/s at Heat 0 and ≤ 15.05 m/s at Heat 1+.
 - **AC-19 [PlayMode]** GIVEN the player inside an EF5's core while it is Forming, THEN no damage is taken
   and the truck is not Tossed.
 
@@ -644,7 +655,7 @@ arrive, risk and escape.
   for each and nothing else. A cell dropped by the cap raises nothing. Every payload carries the cell's
   CellId, EF and Role. The director assembly holds no references to downstream systems.
 - **AC-21 [Unit]** Compact mode: a regime is drawn; T = 180 s; anchor Mature start ∈ [72, 117] s; anchors
-  spawn 70–110 m and satellites 40–90 m from P0; Form = max(4 s, 0.25 × table); Mature and Rope-out =
+  spawn 60–85 m and satellites 40–85 m from P0; Form = max(4 s, 0.25 × table); Mature and Rope-out =
   0.5 × table; Sequence S ∈ 1..3, Outbreak S ∈ 1..2, Chaos N ∈ 3..5; live cells never exceed 2.
 - **AC-22 [PlayMode]** Pausing for 10 s leaves every cell's age and position unchanged. [WebGL]: same with
   the browser tab hidden for 10 s.
@@ -658,7 +669,9 @@ arrive, risk and escape.
   away" with its EF.
 - **AC-26 [WebGL]** GIVEN an anchor Forming 800 m away in Epic, THEN its far-field cell is visible on
   screen; environmental cues are at maximum when W_player ≥ 20 m/s. Companion [Unit]: with an EF0 5 m
-  away and an EF5 Mature 30 m away, `e` = 1. Screenshot retained.
+  away and an EF5 Mature 30 m away, `e` = 1 **at every relative bearing of the two cells** (magnitudes
+  2.72 + 20.24 m/s; a vector sum could drop to 17.5). Companion [Unit]: the siren caption string for a
+  true EF5 contains no EF number. Screenshot retained.
 
 **Performance**
 - **AC-27 [Unit / WebGL]** Plan generation ≤ 2 ms desktop, ≤ 8 ms WebGL (median of 100 runs).
@@ -689,8 +702,9 @@ arrive, risk and escape.
 | ~~Back-links from `disaster-entity-framework.md` and `save-profile.md`~~ Resolved: DEF in 3c8254d, save-profile 2026-10-02 | — | — |
 | ~~Heat ranks 1 and 5 contradicted Rule 3 and no-homing~~ Resolved 2026-10-02: rank 1 → k_H 1.25, rank 5 → EF4 co-anchor | — | — |
 | Does Heat 3 "Blackout" (night) break the far-field read? A near-black EF5 against a black sky | art-director | Before Heat ships |
-| Compact-mode EF5 at full size: fair, or just brutal? | Andy, playtest | First 0.7 playtest |
+| Compact-mode EF5 at full size: fair, or just brutal? | Andy, playtest | First director build playtest |
+| Story / Career: does a region set its own regime weights or Heat, or use Epic's (Rule 9 has only Epic and Arcade authority)? | game-designer | Story mode GDD |
 | Fog-exempt far-field rendering under URP Render Graph (main technical unknown) | technical-artist / Codex | Before the Epic world integrates |
-| A compact-mode EF5 wedge can hide the truck: camera pull-back or translucency near the core? | art-director / Camera (S7-05) | First 0.7 playtest |
+| A compact-mode EF5 wedge can hide the truck: camera pull-back or translucency near the core? | art-director / Camera (S7-05) | First director build playtest |
 | EF5 wedge overdraw on WebGL; profile EF5 Mature up close first | technical-artist / Codex (X7-06) | Before EF5 ships |
 | Readability at maximum darkening (`e` = 1) with a near-black EF5: check outline contrast | art-director | First EF5 capture |

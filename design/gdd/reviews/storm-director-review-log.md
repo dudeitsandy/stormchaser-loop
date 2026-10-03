@@ -62,3 +62,21 @@ Findings:
 - [NICE] F2: T − 30 clamp never binds → noted as safety net
 Reviewed-Content-Hash: design/gdd/storm-director.md bf40ab6 (short form; pre-revision version reviewed this pass)
 Reviewed-Content-Hash: design/registry/entities.yaml bc9e31499be46bbb1ff18c57deeeb74b6416bacc
+
+## Review — 2026-10-03 — Verdict: NEEDS REVISION
+Scope signal: L (compact mode); XL once Epic integrates
+Specialists: none (lean mode)
+Blocking items: 2 | Recommended: 5
+Summary: All prior fixes hold; F1 (4.39 % / 13.85 %, Heat 3 example), F3 (W at 15 m, toss radii, AC-13 lifts, rope-out thresholds), F2, F4 and F5 re-derived exactly. Both blockers were in the telegraph rules: vector-summed wind let a weak cell cancel a strong one in the environmental cues (AC-26 failed by geometry), and the siren's EF source was unspecified. Resolved the same session with Andy's decisions; awaiting a light re-review.
+Prior verdict resolved: Yes
+Findings:
+- [BLOCKING] Rule 7 / AC-26: cue W_player was the vector sum, so opposing cells could drop an EF5-at-30 m reading from 20.24 to 17.5 m/s → cues use Σ|W_i|; physics keeps the vector sum
+- [BLOCKING] Rule 7: siren EF source unspecified, true EF leaks what F4 hides → keys on true EF3+, caption never states an EF (Andy)
+- [RECOMMENDED] Rule 4 / F2 / AC-8: reachability ignored track motion (EF0 at 700 m needs 58 s vs 50 s) → anchor distance ≤ d_reach = (Form + Mature)(15.05 − k_H·v_track)
+- [RECOMMENDED] F3 example: 3.8 m ignored tire grip → labelled an upper bound, 0.47 m measured baseline cited
+- [RECOMMENDED] F2 / AC-21: compact 70–110 m mostly outside the ±85 m square → anchors 60–85 m, satellites 40–85 m (Andy)
+- [RECOMMENDED] Dependencies: Story/Career concept missing → soft dependent + Open Question
+- [RECOMMENDED] Rule 12 / Open Questions: stale S7-06 and "0.7 playtest" references → fixed
+- [NICE] AC-18 ±1 frame → ±0.05 s; caps row; compact steer-back inside substeps; status header
+Reviewed-Content-Hash: design/gdd/storm-director.md ca647c66ed0d9286b9923c65347a93e6bbee08b6
+Reviewed-Content-Hash: design/registry/entities.yaml bc9e31499be46bbb1ff18c57deeeb74b6416bacc

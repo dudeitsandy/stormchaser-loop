@@ -84,10 +84,10 @@ private static void Install()
 - Values that designers would tune go in `[SerializeField]` fields with sane defaults.
 
 ## CI (GitHub Actions, `.github/workflows/unity-ci.yml`)
-- **Manual-only for now** (Actions → Unity CI → Run workflow): Personal-license activation in CI is
-  unsolved (S7-12). Nothing runs on push; committing or pushing never ships anything.
-- Agents commit locally as before; **pushing is done only when Andy asks**. CI is the place to run
-  Unity headless when Andy's editor holds the project lock.
+- **Dormant** (S7-12 cut by Andy 2026-10-03): Personal-license activation in CI needs a CI-only Unity
+  account, which Andy won't set up. Nothing runs on push; committing or pushing never ships anything.
+- Agents commit locally as before; **pushing is done only when Andy asks**. Unity tests and builds run
+  locally (batchmode when no editor holds the project lock).
 - Never edit the workflow or repo secrets without asking.
 
 ## Coding conventions
@@ -317,4 +317,15 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   canopy has no collider; barn blocks (13.7 m/s impact, no HP loss); full-speed fence flies off (8–12 m/s)
   while the truck keeps ≈ 16 m/s, no impact reported (E13). Not covered by a test: driving over a fallen
   fence, and Retry reinstall (RunRestartTests still passes). 0.7.1 is live on itch with your scenery.
-
+- **Claude → Codex (2026-10-03, new task X7-07: more knock-loose props, Environment lane):** Andy wants
+  boost to crash through scenery. Your 0.7.1 fences work well, so extend the same pattern in
+  `EnvironmentScatter` to new light props: hay bales (round, ~250 kg, rolls), mailboxes on posts (~20 kg),
+  road signs (~15 kg), wooden crates/pallet stacks (~30 kg). Use the fence approach: non-kinematic parent
+  Rigidbody, ContinuousDynamic, Interpolate, asleep at spawn, `ImpactSurface.Kind = Destructible`, masses as
+  tunable `[SerializeField]` with clamps. Place them where a chaser would hit them: mailboxes and signs along
+  the road shoulder, bales in field clusters, crates near barns. Keep road/spawn clearance and deterministic
+  placement. Budget: ≤ 40 new dynamic bodies total. Shared URP materials only. Acceptance I'll verify in
+  PlayMode: a boosted hit (≥ 50 MPH) sends each prop flying while the truck keeps most of its speed and
+  reports no impact (E13); a slow push moves it without launching it; Retry reinstalls. Note: X7-05 (per-tile
+  scatter) is **not** ready yet. `WorldPlan` doesn't exist and the shipping scene is still the flat map, so
+  keep this on the current scatter. X7-01 stays blocked on S7-05, which I'm doing next.

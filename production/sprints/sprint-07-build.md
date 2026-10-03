@@ -50,7 +50,7 @@ the start so players see the new look while the feel work happens.
 ### Added mid-sprint
 | ID | Owner | Task | Status |
 |----|-------|------|--------|
-| S7-12 | Claude | **CI** (first run failed: GameCI test-runner v4.3.2 has no Personal-license path — Unity removed .ulf for free seats; GameCI CLI v0.1.70 `personal` mode is the candidate, needs a CI-only Unity account w/o 2FA): GitHub Actions + GameCI 6000.6.0f1 — tests on push, WebGL/Windows builds + butler release on demand. Added 2026-10-01 after Windows Smart App Control blocked local WebGL builds (`WebGLPlayerBuildProgram.Data.dll`, unsigned, policy {0283ac0f…}) | Workflow written; needs secrets + first run |
+| S7-12 | Claude | **CI** (first run failed: GameCI test-runner v4.3.2 has no Personal-license path — Unity removed .ulf for free seats; GameCI CLI v0.1.70 `personal` mode is the candidate, needs a CI-only Unity account w/o 2FA): GitHub Actions + GameCI 6000.6.0f1 — tests on push, WebGL/Windows builds + butler release on demand. Added 2026-10-01 after Windows Smart App Control blocked local WebGL builds (`WebGLPlayerBuildProgram.Data.dll`, unsigned, policy {0283ac0f…}) | **Cut** (Andy 2026-10-03): a CI-only Unity account isn't worth it. Workflow stays in repo, manual-only and dormant; tests and builds run locally |
 
 ### Nice to Have (cut first)
 | ID | Owner | Task | Est. |
