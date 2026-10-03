@@ -47,6 +47,24 @@ public struct VehicleFeelValues
     [Header("Lift & toss (F12, F12b)")]
     public float LiftCoefficient, TossThreshold, TossUpSpeed, TossSwirlFraction;
 
+    [Header("Air control & jump (F7, F8)")]
+    public float AirAccel, AirMaxRate;
+    public float JumpSpeed, JumpCooldown;
+    [Tooltip("Jump direction: 0 = vehicle up, 1 = world up.")]
+    public float JumpWorldUpBlend;
+
+    [Header("Boost (F9) and style refills")]
+    public float BoostAccel, BoostMaxSpeedRatio;          // F_boost = M·A·(1 − (v/(ratio·v_top))²)
+    public float BoostDrain, BoostPassiveRegen, BoostMinStart;
+    public float RefillSlide, RefillAir, RefillNearMiss;  // × StyleRefillScale
+    [Header("Exploit gates (E1–E3)")]
+    public float MinSlideRefillSpeed, MinAirtimeHeight;
+    public float NearMissCooldown, NearMissMinSpeed;
+    [Tooltip("Near-miss band: from the funnel's damage radius out to damage radius + this (m).")]
+    public float NearMissMargin;
+    [Tooltip("Shortest slide / counted airtime (s) that raises a StyleEvent.")]
+    public float MinStyleSeconds;
+
     [Header("Impacts (F10)")]
     public float LandingThresholdMul;
     [Tooltip("Impacts slower than this (m/s, after E13 mass scaling) are not reported: resting contact and scrapes.")]
@@ -98,6 +116,16 @@ public struct VehicleFeelValues
         // Playtest 2026-10-01: "more powerful tornadoes should throw". GDD coefficient 0.8 only let EF5 toss;
         // 1.35 → EF3 lifts (never tosses), EF4 tosses at ≈ its damage-radius edge, EF5 from ≈ 8.5 m.
         LiftCoefficient = 1.35f, TossThreshold = 0.7f, TossUpSpeed = 8f, TossSwirlFraction = 0.5f,
+
+        AirAccel = 20f, AirMaxRate = 4.5f,
+        JumpSpeed = 5.5f, JumpCooldown = 0.8f, JumpWorldUpBlend = 0.5f,
+
+        BoostAccel = 9f, BoostMaxSpeedRatio = 1.35f,
+        BoostDrain = 33f, BoostPassiveRegen = 4f, BoostMinStart = 5f,
+        RefillSlide = 18f, RefillAir = 14f, RefillNearMiss = 25f,
+        MinSlideRefillSpeed = 6f, MinAirtimeHeight = 1.8f,
+        NearMissCooldown = 3f, NearMissMinSpeed = 8f, NearMissMargin = 6f,
+        MinStyleSeconds = 0.5f,
 
         LandingThresholdMul = 1.5f,
         ImpactReportMin = 3f,

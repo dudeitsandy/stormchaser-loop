@@ -138,16 +138,17 @@ public class VehicleModelTests
     }
 
     [Test]
-    public void BoostActive_IsFalseUntilBoostVerbExists()
+    public void BoostActive_ReportsAppliedBoostNotRawInput()
     {
-        // Arrange
+        // Arrange: boost pressed while Critical (boost disabled, vehicle-feel.md E10).
         var model = NewPickup(out _);
         var input = Input(Vector3.zero);
         input.Input.Throttle = 1f;
         input.Input.Boost = true;
+        input.Damage = DamageStage.Critical;
         // Act
         model.Step(input, Contacts(V.RestLength - V.SagFraction * V.Travel, Vector3.zero), new VehicleStepOutput());
-        // Assert: pressing boost alone never reports boost (presentation must not read raw input).
+        // Assert: the button alone never reports boost (presentation must not read raw input).
         Assert.IsFalse(model.BoostActive);
     }
 

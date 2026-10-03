@@ -33,6 +33,7 @@ public class PlayerVehicle : MonoBehaviour
     private readonly VehicleStepOutput _output = new VehicleStepOutput();
     private readonly Dictionary<Collider, SurfaceProperties> _surfaceCache = new Dictionary<Collider, SurfaceProperties>();
     private readonly ImpactSeverity.StepMax _stepImpact = new ImpactSeverity.StepMax();
+    private NearMissTracker _nearMiss;
     private Vector3 _rawWind;
     private Vector3 _pendingKnockback;
     private float _knockbackTimer;
@@ -55,8 +56,10 @@ public class PlayerVehicle : MonoBehaviour
     public int GroundedWheels => _model != null ? _model.GroundedWheels : 0;
     /// <summary>Applied engine effort 0..1 this physics step (read-only, for presentation).</summary>
     public float EngineLoad => _model != null ? _model.EngineLoad : 0f;
-    /// <summary>True while boost is actually applied (read-only, for presentation). False until S7-04 boost.</summary>
+    /// <summary>True while boost is actually applied (read-only, for presentation).</summary>
     public bool BoostActive => _model != null && _model.BoostActive;
+    /// <summary>Boost meter 0-100 (F9), for the HUD.</summary>
+    public float BoostMeter => _model != null ? _model.BoostMeter : 0f;
     /// <summary>The underlying model (read-only use: tests, presentation).</summary>
     public VehicleModel Model => _model;
 
@@ -91,6 +94,7 @@ public class PlayerVehicle : MonoBehaviour
         _layout = _data.Layout;
         ArchetypeParams p = ArchetypeParams.Derive(_data.Stars, _values);
         _model = new VehicleModel(p, _values, _layout);
+        _nearMiss = new NearMissTracker(_values.NearMissMargin, _values.NearMissMinSpeed, _values.NearMissCooldown);
         if (_input == null) _input = EnsureOwnedInput();
 
         _anchors[0] = new Vector3(-_layout.HalfTrack, _layout.AnchorY, _layout.FrontAxleZ);
@@ -156,14 +160,48 @@ public class PlayerVehicle : MonoBehaviour
             Damage = _health != null ? _health.Stage : DamageStage.Healthy,
             Input = InputEnabled ? _input.Read() : default,
             GripScale = _knockbackTimer > 0f ? _values.KnockbackGripScale : 1f,
+            GroundClearance = MeasureClearance(),
         };
         input.LiftFraction = DisasterEntity.MaxLiftFractionAt(_rb.position, _model.Params.Exposure,
                                                               _values.LiftCoefficient, out input.LiftEFStrength);
         _model.Step(input, _contacts, _output);
         Apply();
+        TrackNearMisses();
         ApplyKnockbackStep(dt);
         HandleStuck(input.Input, dt);
         HandleBoundary();
+    }
+
+    // E2: wheel height above the ground while airborne (one downward ray, only when no wheel touches).
+    private float MeasureClearance()
+    {
+        if (_model.GroundedWheels > 0) return 0f;
+        Vector3 origin = transform.TransformPoint(new Vector3(0f, _layout.AnchorY, 0f));
+        float restGap = _values.RestLength - _values.SagFraction * _values.Travel;
+        const float maxProbe = 20f;
+        if (!Physics.Raycast(origin, Vector3.down, out RaycastHit hit, maxProbe, _groundMask, QueryTriggerInteraction.Ignore))
+            return maxProbe;
+        return Mathf.Max(0f, hit.distance - restGap);
+    }
+
+    // E3: pass close to a funnel without touching it, fast enough, once per funnel per cooldown.
+    private void TrackNearMisses()
+    {
+        _nearMiss.BeginStep();
+        Vector3 pos = _rb.position;
+        Vector3 v = _rb.linearVelocity;
+        float speed = new Vector2(v.x, v.z).magnitude;
+        IReadOnlyList<DisasterEntity> active = DisasterEntity.Active;
+        for (int i = 0; i < active.Count; i++) // index loop: foreach over the interface would allocate
+        {
+            DisasterEntity e = active[i];
+            Vector3 d = e.transform.position - pos;
+            d.y = 0f;
+            if (!_nearMiss.Observe(e.GetHashCode(), d.magnitude, e.DamageRadius, speed, Time.time)) continue;
+            _model.AddNearMiss();
+            GameEvents.RaiseStyleEvent(StyleKind.NearMiss, 1f);
+        }
+        _nearMiss.EndStep();
     }
 
     // Funnel knockback is spread over a short window with reduced tire grip, so the truck is shoved and
@@ -257,6 +295,8 @@ public class PlayerVehicle : MonoBehaviour
             _rb.AddForce(_output.TossVelocity, ForceMode.VelocityChange);
             GameEvents.RaiseTossed();
         }
+        if (_output.Jumped) _rb.AddForce(_output.JumpVelocity, ForceMode.VelocityChange);
+        if (_output.HasStyle) GameEvents.RaiseStyleEvent(_output.StyleKind, _output.StyleAmount);
         if (_output.Landed)
         {
             GameEvents.RaiseLanded(_output.LandedSpeed);

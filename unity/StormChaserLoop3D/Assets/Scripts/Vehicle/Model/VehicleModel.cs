@@ -18,6 +18,8 @@ public struct VehicleStepInput
     public float LiftFraction;
     /// <summary>EF strength of the disaster producing LiftFraction (scales the toss).</summary>
     public float LiftEFStrength;
+    /// <summary>Height of the wheels above the ground while airborne (m); 0 when grounded or unknown (E2).</summary>
+    public float GroundClearance;
 }
 
 /// <summary>Forces the adapter applies after a step. Preallocated and reused (no per-step allocation).</summary>
@@ -40,6 +42,13 @@ public sealed class VehicleStepOutput
     public bool Landed;
     /// <summary>Vertical touchdown speed when Landed (m/s, positive).</summary>
     public float LandedSpeed;
+    /// <summary>F8: apply JumpVelocity once as a velocity change.</summary>
+    public bool Jumped;
+    public Vector3 JumpVelocity;
+    /// <summary>A style moment ended this step (drift or counted airtime), for GameEvents.StyleEvent.</summary>
+    public bool HasStyle;
+    public StyleKind StyleKind;
+    public float StyleAmount;
 
     public void Clear()
     {
@@ -49,17 +58,17 @@ public sealed class VehicleStepOutput
             WheelPoint[i] = Vector3.zero;
         }
         CenterAcceleration = WindAcceleration = WindPoint = AngularAcceleration = Vector3.zero;
-        AutoRight = Landed = Toss = false;
-        TossVelocity = Vector3.zero;
-        LandedSpeed = 0f;
+        AutoRight = Landed = Toss = Jumped = HasStyle = false;
+        TossVelocity = JumpVelocity = Vector3.zero;
+        LandedSpeed = StyleAmount = 0f;
     }
 }
 
 /// <summary>
 /// vehicle-feel.md driving model (ADR-0005): suspension (F1), drive/brake/coast/reverse (F2/F2b),
-/// combined friction-circle grip (F3), steering (F4), slip angle (F5), downforce (F6), wind force (F11),
-/// state machine, auto-right (E5). Pure C# — never touches Rigidbody, Time, Physics, or UnityEngine.Object.
-/// Wheel order: 0 FL, 1 FR, 2 RL, 3 RR. Verbs (jump, boost, air control) and lift/toss arrive in S7-04/06.
+/// combined friction-circle grip (F3), steering (F4), slip angle (F5), downforce (F6), air control (F7),
+/// wind force (F11), state machine, auto-right (E5), Pure C# — never touches Rigidbody, Time, Physics, or UnityEngine.Object.
+/// jump (F8), boost and style refills (F9, E1-E2), lift/toss (F12). Wheel order: 0 FL, 1 FR, 2 RL, 3 RR.
 /// </summary>
 public sealed class VehicleModel
 {
@@ -80,6 +89,9 @@ public sealed class VehicleModel
     private bool _tossLatched;
     private bool _tossLeftGround;
     private float _tossGroundTimer;
+    private float _jumpTimer;
+    private float _slideSeconds;
+    private float _countedAirSeconds;
 
     public VehicleModel(ArchetypeParams parameters, VehicleFeelValues values, WheelLayout layout)
     {
@@ -108,8 +120,17 @@ public sealed class VehicleModel
     /// pedal, torque falloff near top speed and limp-mode power; 0 while braking or coasting.
     /// </summary>
     public float EngineLoad { get; private set; }
-    /// <summary>True while boost is actually applied (after fuel/damage/input gating). Always false until the S7-04 boost verb lands.</summary>
+    /// <summary>True while boost is actually applied (after meter, damage and input gating).</summary>
     public bool BoostActive { get; private set; }
+    /// <summary>Boost meter 0-100 (F9). Starts full.</summary>
+    public float BoostMeter { get; private set; } = 100f;
+    /// <summary>Speed at which boost force reaches zero (BoostMaxSpeedRatio x v_top).</summary>
+    public float BoostMaxSpeed => _v.BoostMaxSpeedRatio * _p.TopSpeed;
+
+    /// <summary>E3 near-miss refill (+RefillNearMiss x StyleRefillScale). The adapter decides what counts.</summary>
+    public void AddNearMiss() => AddBoost(_v.RefillNearMiss * _p.StyleRefillScale);
+
+    private void AddBoost(float amount) => BoostMeter = Mathf.Clamp(BoostMeter + amount, 0f, 100f);
 
     /// <summary>Advances one fixed step. <paramref name="contacts"/> holds 4 wheel queries; output is overwritten.</summary>
     public void Step(in VehicleStepInput input, WheelContact[] contacts, VehicleStepOutput output)
@@ -157,7 +178,16 @@ public sealed class VehicleModel
             driveTotal = -_p.Mass * _p.EngineAccel * power * inp.Brake * TorqueCurve(-ForwardSpeed, _p.ReverseSpeed);
         bool coasting = Mathf.Abs(inp.Throttle) < 0.01f && Mathf.Abs(inp.Brake) < 0.01f;
         EngineLoad = Mathf.Clamp01(Mathf.Abs(driveTotal) / Mathf.Max(1e-3f, _p.Mass * _p.EngineAccel));
-        BoostActive = false;
+
+        // ---- Jump (F8, E14): >= 2 wheels, not Upended or Critical, off cooldown ----
+        _jumpTimer = Mathf.Max(0f, _jumpTimer - dt);
+        if (inp.JumpPressed && groundedCount >= 2 && !Disabled && State != VehicleState.Upended && _jumpTimer <= 0f)
+        {
+            Vector3 dir = Vector3.Lerp(up, Vector3.up, Mathf.Clamp01(_v.JumpWorldUpBlend)).normalized;
+            output.Jumped = true;
+            output.JumpVelocity = dir * _v.JumpSpeed;
+            _jumpTimer = _v.JumpCooldown;
+        }
 
         // ---- Wind steer: the wind tugs the wheel toward its direction (playtest: small tornadoes pull) ----
         Vector3 windExposed = input.Wind * _p.Exposure;
@@ -255,6 +285,36 @@ public sealed class VehicleModel
             output.CenterAcceleration = -up * G * _v.DownforceCoeff * t * t;
         }
 
+        // ---- Boost (F9): fades to zero at BoostMaxSpeed; works airborne; never while Critical ----
+        bool wantBoost = inp.Boost && !Disabled;
+        BoostActive = wantBoost && (BoostActive ? BoostMeter > 0f : BoostMeter >= _v.BoostMinStart);
+        if (BoostActive)
+        {
+            BoostMeter = Mathf.Max(0f, BoostMeter - _v.BoostDrain * dt);
+            output.CenterAcceleration += fwd * BoostAcceleration(ForwardSpeed, BoostMaxSpeed, _v.BoostAccel);
+        }
+
+        // ---- Style refills (F9) with exploit gates E1 (slide speed) and E2 (airtime height) ----
+        float refill = BoostActive ? 0f : _v.BoostPassiveRegen; // no trickle while boosting, or a held boost never empties
+        if (State == VehicleState.Sliding && planarSpeed > _v.MinSlideRefillSpeed) refill += _v.RefillSlide * _p.StyleRefillScale;
+        bool flying = State == VehicleState.Airborne || State == VehicleState.Tossed; // tosses count, bunny-hops don't
+        if (flying && input.GroundClearance > _v.MinAirtimeHeight) refill += _v.RefillAir * _p.StyleRefillScale;
+        AddBoost(refill * dt);
+
+        // ---- Air control (F7): pitch + yaw, handbrake turns yaw into roll; rate-capped while steering ----
+        if (groundedCount == 0 && State != VehicleState.Upended)
+        {
+            Vector2 air = Vector2.ClampMagnitude(inp.Air, 1f);
+            Vector3 axisInput = right * air.y + (inp.Handbrake ? -fwd * air.x : up * air.x);
+            if (axisInput.sqrMagnitude > 1e-4f)
+            {
+                Vector3 alpha = axisInput * (_v.AirAccel * _p.TrickScale);
+                Vector3 next = input.AngularVelocity + alpha * dt;
+                if (next.magnitude > _v.AirMaxRate) alpha = (next.normalized * _v.AirMaxRate - input.AngularVelocity) / dt;
+                output.AngularAcceleration += alpha;
+            }
+        }
+
         // ---- Yaw stability (Core Rule 2 assists) ----
         if (groundedCount >= 2 && !inp.Handbrake && State != VehicleState.Upended)
         {
@@ -326,6 +386,8 @@ public sealed class VehicleModel
         if (groundedCount == 0)
         {
             if (previous == VehicleState.Tossed) _tossLeftGround = true;
+            EndSlide(output);
+            if (input.GroundClearance > _v.MinAirtimeHeight) _countedAirSeconds += dt; // E2: bunny-hops never count
             _airTimer += dt;
             _airMaxFallSpeed = Mathf.Max(_airMaxFallSpeed, -input.Velocity.y);
             if (_airTimer > _v.AirborneGrace && previous != VehicleState.Tossed) State = VehicleState.Airborne;
@@ -353,6 +415,8 @@ public sealed class VehicleModel
             output.Landed = true;
             output.LandedSpeed = Mathf.Max(_airMaxFallSpeed, -input.Velocity.y);
             _airMaxFallSpeed = 0f;
+            if (_countedAirSeconds >= _v.MinStyleSeconds) SetStyle(output, StyleKind.Airtime, _countedAirSeconds);
+            _countedAirSeconds = 0f;
             State = VehicleState.Grounded;
         }
 
@@ -360,7 +424,12 @@ public sealed class VehicleModel
         bool hb = input.Input.Handbrake;
         if (State == VehicleState.Sliding)
         {
-            if ((SlipAngleDeg < _v.SlideExitDeg && !hb) || speed < _v.SlideExitSpeed) State = VehicleState.Grounded;
+            if (speed > _v.MinSlideRefillSpeed) _slideSeconds += dt; // E1: donuts never count
+            if ((SlipAngleDeg < _v.SlideExitDeg && !hb) || speed < _v.SlideExitSpeed)
+            {
+                EndSlide(output);
+                State = VehicleState.Grounded;
+            }
         }
         else if (speed > _v.SlideMinSpeed && (hb || SlipAngleDeg > _v.SlideEnterDeg))
         {
@@ -370,6 +439,27 @@ public sealed class VehicleModel
         {
             State = VehicleState.Grounded;
         }
+    }
+
+    // A slide that ends (exit, or leaving the ground) raises a Drift style moment if long enough.
+    private void EndSlide(VehicleStepOutput output)
+    {
+        if (_slideSeconds >= _v.MinStyleSeconds) SetStyle(output, StyleKind.Drift, _slideSeconds);
+        _slideSeconds = 0f;
+    }
+
+    private static void SetStyle(VehicleStepOutput output, StyleKind kind, float amount)
+    {
+        output.HasStyle = true;
+        output.StyleKind = kind;
+        output.StyleAmount = amount;
+    }
+
+    /// <summary>F9 boost acceleration: A x (1 - (v / vMax)^2), never negative (no boost braking above vMax).</summary>
+    public static float BoostAcceleration(float forwardSpeed, float boostMaxSpeed, float boostAccel)
+    {
+        float u = Mathf.Max(0f, forwardSpeed) / Mathf.Max(0.1f, boostMaxSpeed);
+        return boostAccel * Mathf.Max(0f, 1f - u * u);
     }
 
     /// <summary>F2 torque curve: 1 − (v/vMax)^2.5, clamped to 0..1 (v ≤ 0 → full torque).</summary>

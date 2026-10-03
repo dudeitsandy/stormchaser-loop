@@ -2,13 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-/// <summary>In-run HUD: time and score top-right, truck HP top-left.</summary>
+/// <summary>In-run HUD: time and score top-right, truck HP and boost meter top-left.</summary>
 [RequireComponent(typeof(UIDocument))]
 public class HudController : MonoBehaviour
 {
     private static readonly Color HpFull = new Color(1f, 0.69f, 0f);
     private static readonly Color HpEmpty = new Color(1f, 1f, 1f, 0.15f);
     private static readonly Color HpHit = new Color(0.95f, 0.22f, 0.18f);
+    private static readonly Color BoostOff = new Color(0.55f, 0.55f, 0.55f);
+    private const float BoostBarWidth = 96f;
 
     [SerializeField] private SessionTimer _sessionTimer;
     [SerializeField] private ScoreAccumulator _scoreAccumulator;
@@ -23,6 +25,10 @@ public class HudController : MonoBehaviour
     private Label _filmLabel;
     private Label _windLabel;
     private Label _hpTitle;
+    private VisualElement _boostFill;
+    private PlayerVehicle _vehicle;
+    private float _lastBoostShown = -1f;
+    private bool _boostDisabledShown;
     private PhotoTrigger _photo;
     private float _lastWindShown = -1f;
     private readonly List<VisualElement> _hpPips = new List<VisualElement>();
@@ -32,6 +38,7 @@ public class HudController : MonoBehaviour
     private void Awake()
     {
         if (_vehicleHealth == null) _vehicleHealth = FindAnyObjectByType<VehicleHealth>();
+        if (_vehicleHealth != null) _vehicle = _vehicleHealth.GetComponent<PlayerVehicle>();
     }
 
     private void OnEnable()
@@ -100,6 +107,35 @@ public class HudController : MonoBehaviour
         }
         root.Add(left);
 
+        // vehicle-feel.md UI: boost meter under truck HP; amber fill, grey while Critical disables boost.
+        var boostRow = new VisualElement { pickingMode = PickingMode.Ignore };
+        boostRow.style.position = Position.Absolute;
+        boostRow.style.top = 52;
+        boostRow.style.left = 16;
+        boostRow.style.flexDirection = FlexDirection.Row;
+        boostRow.style.alignItems = Align.Center;
+        boostRow.style.backgroundColor = new Color(0, 0, 0, 0.5f);
+        boostRow.style.paddingLeft = 8;
+        boostRow.style.paddingRight = 8;
+        boostRow.style.paddingTop = 4;
+        boostRow.style.paddingBottom = 4;
+        var boostTitle = new Label("BOOST");
+        boostTitle.style.color = Color.white;
+        boostTitle.style.fontSize = 12;
+        boostTitle.style.marginRight = 8;
+        boostRow.Add(boostTitle);
+        var track = new VisualElement();
+        track.style.width = BoostBarWidth;
+        track.style.height = 8;
+        track.style.backgroundColor = HpEmpty;
+        _boostFill = new VisualElement();
+        _boostFill.style.height = 8;
+        _boostFill.style.width = BoostBarWidth;
+        _boostFill.style.backgroundColor = HpFull;
+        track.Add(_boostFill);
+        boostRow.Add(track);
+        root.Add(boostRow);
+
         // Top-center risk/reward meter: shows the live bonus a shot would get from here.
         var center = new VisualElement { pickingMode = PickingMode.Ignore };
         center.style.position = Position.Absolute;
@@ -129,6 +165,7 @@ public class HudController : MonoBehaviour
         }
 
         UpdateWindMeter();
+        UpdateBoostMeter();
 
         if (!Mathf.Approximately(_scoreAccumulator.TotalScore, _lastScore))
         {
@@ -154,6 +191,18 @@ public class HudController : MonoBehaviour
             lost.style.backgroundColor = HpHit;
             lost.schedule.Execute(() => lost.style.backgroundColor = HpEmpty).StartingIn(350);
         }
+    }
+
+    private void UpdateBoostMeter()
+    {
+        if (_vehicle == null || _boostFill == null) return;
+        float shown = Mathf.Round(_vehicle.BoostMeter);
+        bool disabled = _vehicleHealth != null && _vehicleHealth.Stage == DamageStage.Critical;
+        if (shown == _lastBoostShown && disabled == _boostDisabledShown) return;
+        _lastBoostShown = shown;
+        _boostDisabledShown = disabled;
+        _boostFill.style.width = BoostBarWidth * shown / 100f;
+        _boostFill.style.backgroundColor = disabled ? BoostOff : HpFull;
     }
 
     private void UpdateWindMeter()

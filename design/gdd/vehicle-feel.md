@@ -99,7 +99,11 @@ unstoppable (more mass, terrain immunity, slower to commit).
   `BoostMaxSpeed` (F9); works airborne (air-boost recovery). Boost is the only way the Pickup reaches
   Ram & Unblock speed (50 MPH) — a deliberate route-clearing use (decided 2026-10-01).
 - **Refills from style**: per second of sliding, per second of airtime, per near-miss — plus a slow
-  passive trickle. Cannot start below 5.
+  passive trickle. Cannot start below 5. *(S7-04, 2026-10-03:)* the passive trickle pauses while boost
+  is active (otherwise a held boost never empties); style refills still apply.
+- **Near-miss** *(defined S7-04, 2026-10-03)*: passing through the band from a funnel's damage radius out
+  to damage radius + `NearMissMargin` (6 m) and leaving it at > 8 m/s without entering the damage
+  radius. A still-forming funnel (damage radius 0) never counts. Cooldown 3 s per funnel (E3).
 
 **6. Impacts**
 - On any collision, impact speed = relative velocity along the contact normal.
@@ -418,6 +422,7 @@ All live on `VehicleData` (per archetype) or a shared vehicle-feel config. Defau
 | `MinSlideRefillSpeed` | 6 m/s | 4–10 | Boost hard to earn | Donut farming |
 | `MinAirtimeHeight` | 1.8 m | 1.6–3 | Only big ramps count | Bunny-hop farming |
 | `NearMissCooldown` | 3 s | 2–6 | Near-misses rare | Orbit farming |
+| `NearMissMargin` | 6 m | 3–10 | Near-misses trivial | Near-misses need a touch |
 
 **Ownership:** F13's star coefficients are knobs owned by F13. Change an archetype's feel through its
 stars, not per-vehicle overrides, so archetypes stay comparable (and `economy-progression.md` Tree 1

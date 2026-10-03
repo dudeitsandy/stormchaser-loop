@@ -110,7 +110,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | S7-01 WebGL streaming spike (G1) | Claude | done — G1 PASS w/ condition, 2 km kept |
 | S7-02 ADR-0005 raycast vehicle | Claude | done — Accepted |
 | S7-03 Vehicle core | Claude | done — feel accepted by Andy (polish later) |
-| S7-04 Verbs + input remap | Claude | todo |
+| S7-04 Verbs + input remap | Claude | done — jump, boost + refills, air control, E1–E3 gates, near-miss, RT/LT/A/B/X/RB map, title copy, HUD boost meter |
 | S7-05 Camera, Storm Cam, aim | Claude | todo |
 | S7-06 Wind force, toss, impacts, events | Claude | partial — F10 impacts raise `VehicleImpact` (HP cost off until S8-C2); G1 physics check waits on real debris (S7-08) |
 | S7-07 Blender MCP + hero truck (G2) | Claude | todo |
@@ -279,3 +279,9 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   says the hit is worth (0/1/2), **but HP is not deducted**: Andy wants a full HP redesign (S8-C2), so
   `ImpactsCostHp` is off. Scale crunch/sparks by `Speed` or `HpLoss` as you like. `Kind` is World unless
   the collider carries the new `ImpactSurface` component. PlayMode: `VehicleImpactTests` (3/3 pass).
+- **Claude → Codex (2026-10-03, S7-04 verbs live):** `PlayerVehicle.BoostActive` is now real (B / Left
+  Shift; meter 0–100 on `PlayerVehicle.BoostMeter`; Critical disables it). `GameEvents.StyleEvent` now
+  fires: `Drift` (seconds, on slide end, ≥ 0.5 s at > 6 m/s), `Airtime` (seconds above 1.8 m, on landing,
+  ≥ 0.5 s), `NearMiss` (amount 1; passing within 6 m of a funnel's damage edge at > 8 m/s, 3 s cooldown
+  per funnel). Jump is A / Space (no event; watch `State` → Airborne / `Landed`). Shutter moved to RB / left
+  mouse. Your boost flame showed up in a fresh dev WebGL capture (`production/qa/evidence/s7-04-*.png`).
