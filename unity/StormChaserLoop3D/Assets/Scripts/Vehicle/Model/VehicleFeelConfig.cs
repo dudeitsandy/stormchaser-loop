@@ -25,6 +25,8 @@ public struct VehicleFeelValues
     public float EngineCoefficient;      // A_engine = coef · v_top / AccelTime (≈1.28 per GDD)
     public float TorqueFalloffExponent;  // 2.5
     public float BrakeDecel, CoastDecel, ReverseSpeedFraction;
+    [Tooltip("Arcade brake assist (m/s²) applied to the body while braking on >= 2 wheels, outside the tire friction budget (Rocket League feel).")]
+    public float BrakeAssistDecel;
     public float GripStiffness, GripMu;
     public float MaxSteerDeg, HighSpeedSteerFactor;
     public float DownforceCoeff;
@@ -98,6 +100,9 @@ public struct VehicleFeelValues
 
         EngineCoefficient = 1.28f, TorqueFalloffExponent = 2.5f,
         BrakeDecel = 14f, CoastDecel = 2.5f, ReverseSpeedFraction = 0.35f,
+        // Playtest 0.7.0 (2026-10-03): "stops too slowly" vs Rocket League. Tire braking is grip-limited to
+        // ≈ GripMu·g ≈ 11.3 m/s², so the assist adds 8 on top: full-speed stop ≈ 1.1 s / 12 m.
+        BrakeAssistDecel = 8f,
         // Playtest 2026-10-01: GDD 1.5 / 1.1 / yaw 0.5 "a little too loose"; pass 1 2.0 / 1.25 / 0.7 "too stiff".
         GripStiffness = 1.7f, GripMu = 1.15f,
         MaxSteerDeg = 32f, HighSpeedSteerFactor = 0.45f,

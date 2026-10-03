@@ -205,6 +205,10 @@ launches can spin the wheels.
 
 **F2b. Brake, coast, reverse**
 Brake `F_brake = M · BrakeDecel` (14 m/s²) opposing velocity, within the friction budget.
+*Brake assist (added 2026-10-03, playtest 0.7.0: "braking should feel like Rocket League"):* tire braking is
+grip-limited to ≈ `GripMu · g` ≈ 11.3 m/s², so while braking on ≥ 2 wheels the body also gets
+`a_assist = min(BrakeAssistDecel, |v| / dt)` (8 m/s²) opposing forward motion, outside the friction circle.
+Pickup full-speed stop ≈ 1.1 s / 12 m (was ≈ 1.9 s / 20 m). Never reverses the truck.
 Coast `F_roll = M · CoastDecel` (2.5 m/s²) with no throttle or brake.
 Reverse below 1 m/s with brake held: drive force reversed, speed capped at `ReverseSpeed` = 0.35 · v_top.
 
@@ -391,6 +395,7 @@ All live on `VehicleData` (per archetype) or a shared vehicle-feel config. Defau
 | `HighSpeedSteerFactor` | 0.45 | 0.3–0.8 | Unstable at top speed | Can't corner fast |
 | `DownforceCoeff` | 0.25 (× g at top speed) | 0–0.6 | Glued down, ramps lose air | Floaty, rolls easily |
 | `BrakeDecel` / `CoastDecel` | 14 / 2.5 m/s² | 10–20 / 1–5 | Stoppies, nose-dives / truck stops dead | Can't stop / coasts forever |
+| `BrakeAssistDecel` | 8 m/s² | 0–12 | Stops dead, no braking skill | Grip-limited, sluggish stops |
 | `AntiRoll` / `YawStability` | 0.6 / 0.5 | 0–1 | Feels assisted/scripted | Spin-outs, rollovers |
 | **Handbrake** | | | | |
 | `HandbrakeGrip` (base, Trick-scaled per F13) | 0.45 | 0.2–0.6 | Barely slides | Uncontrollable spin |

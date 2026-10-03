@@ -153,6 +153,37 @@ public class VehicleVerbsTests
         Assert.AreEqual(100f, model.BoostMeter, 0.5f);
     }
 
+    // ---------- F2b brake assist ----------
+
+    [Test]
+    public void Braking_AddsAssistOutsideFrictionBudget()
+    {
+        // Arrange: grounded at 15 m/s, brake held.
+        var model = NewPickup(out _);
+        var input = Input(new Vector3(0f, 0f, 15f));
+        input.Input.Brake = 1f;
+        var output = new VehicleStepOutput();
+        // Act
+        model.Step(input, Grounded(new Vector3(0f, 0f, 15f)), output);
+        // Assert: body deceleration along -forward equals the assist (downforce acts along -up only).
+        Assert.AreEqual(V.BrakeAssistDecel, Vector3.Dot(output.CenterAcceleration, Vector3.back), 1e-3f);
+    }
+
+    [Test]
+    public void BrakeAssist_NeverReversesTheTruck()
+    {
+        // Arrange: nearly stopped (1.5 m/s, just above the 1 m/s reverse switch) with the brake held.
+        var model = NewPickup(out _);
+        var input = Input(new Vector3(0f, 0f, 1.5f));
+        input.Input.Brake = 1f;
+        var output = new VehicleStepOutput();
+        // Act
+        model.Step(input, Grounded(new Vector3(0f, 0f, 1.5f)), output);
+        float assist = Vector3.Dot(output.CenterAcceleration, Vector3.back);
+        // Assert: at most the speed it can remove in one step.
+        Assert.LessOrEqual(assist * Dt, 1.5f + 1e-4f);
+    }
+
     // ---------- E1 / E2 refill gates ----------
 
     [Test]

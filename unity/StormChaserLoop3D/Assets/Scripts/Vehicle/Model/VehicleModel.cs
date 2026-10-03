@@ -285,6 +285,13 @@ public sealed class VehicleModel
             output.CenterAcceleration = -up * G * _v.DownforceCoeff * t * t;
         }
 
+        // ---- Brake assist (F2b): arcade bite outside the friction circle; never pushes past a stop ----
+        if (braking && groundedCount >= 2 && _v.BrakeAssistDecel > 0f && Mathf.Abs(ForwardSpeed) > 1e-3f)
+        {
+            float assist = Mathf.Min(_v.BrakeAssistDecel, Mathf.Abs(ForwardSpeed) / dt);
+            output.CenterAcceleration += -fwd * Mathf.Sign(ForwardSpeed) * assist;
+        }
+
         // ---- Boost (F9): fades to zero at BoostMaxSpeed; works airborne; never while Critical ----
         bool wantBoost = inp.Boost && !Disabled;
         BoostActive = wantBoost && (BoostActive ? BoostMeter > 0f : BoostMeter >= _v.BoostMinStart);
