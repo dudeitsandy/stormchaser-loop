@@ -245,6 +245,10 @@ video; Nero — "Doomsday" as trailer audio reference.
 - Protect and Push objectives: spec or drop (systems-index #19).
 - Leaderboard backend: Supabase or Steam leaderboards (needs an ADR).
 - Push-off-map bounds: fixed or dynamic edge detection (vision-1.0, Season 3).
+- Story / Career mode (2026-10-03): a third mode next to Arcade and Epic, with authored regions, 10-goal
+  contract lists and a county map that remembers cosmetically. Concept in
+  `design/gdd/story-career-mode-concept.md`; it also decides that style moves score in every mode. Needs the
+  `session-modes.md` revision before a GDD.
 
 ---
 
