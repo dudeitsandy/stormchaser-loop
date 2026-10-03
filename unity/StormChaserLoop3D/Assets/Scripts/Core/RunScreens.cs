@@ -10,6 +10,10 @@ public class RunScreens : MonoBehaviour
     private static readonly Color Alarm = new Color(0.95f, 0.22f, 0.18f);
 
     [SerializeField] private string _title = "DOOMSDAY";
+    [Tooltip("Title key art (Resources path). Falls back to the text title when missing.")]
+    [SerializeField] private string _bannerResource = "UI/TitleBanner";
+    [Tooltip("Banner width in panel units (reference 1200 wide); height follows the image's aspect.")]
+    [SerializeField] private float _bannerWidth = 640f;
     [Tooltip("Shown before the build version, e.g. STORM SEASON · PROTOTYPE 0.5.0.")]
     [SerializeField] private string _seasonName = "STORM SEASON";
     [Tooltip("Title attract-mode DJ (Andy 2026-10-03: Crazy Taxi energy). Rotates one line at a time.")]
@@ -57,12 +61,12 @@ public class RunScreens : MonoBehaviour
     public void ShowTitle(float bestScore)
     {
         ClearOverlay();
-        _overlay.Add(MakeLabel(_title, 112, Amber, bold: true, letterSpacing: 18));
+        AddTitleArt();
         // Version comes from PlayerSettings.bundleVersion (set by BuildScript), never a scene-saved string.
         _overlay.Add(MakeLabel($"{_seasonName}  ·  PROTOTYPE {Application.version}", 22, Bone, letterSpacing: 6));
-        _overlay.Add(Spacer(28));
+        _overlay.Add(Spacer(16));
         AddRadio();
-        _overlay.Add(Spacer(32));
+        _overlay.Add(Spacer(20));
         // vehicle-feel.md Core Rule 10 bindings (keyboard / gamepad).
         _overlay.Add(MakeLabel("DRIVE  WASD  /  RT LT + LEFT STICK", 18, Bone, letterSpacing: 2));
         _overlay.Add(MakeLabel("SHOOT  LEFT MOUSE  /  RB", 18, Bone, letterSpacing: 2));
@@ -73,9 +77,26 @@ public class RunScreens : MonoBehaviour
             _overlay.Add(Spacer(24));
             _overlay.Add(MakeLabel($"BEST  {bestScore:N0}", 22, Amber, letterSpacing: 4));
         }
-        _overlay.Add(Spacer(48));
+        _overlay.Add(Spacer(28));
         AddPrompt("PRESS ANYTHING. GO GO GO.");
         _overlay.style.display = DisplayStyle.Flex;
+    }
+
+    /// <summary>Key art banner (docs/visual-targets "Doomsday Tornado Highway"), or the text title without it.</summary>
+    private void AddTitleArt()
+    {
+        var art = Resources.Load<Texture2D>(_bannerResource);
+        if (art == null)
+        {
+            _overlay.Add(MakeLabel(_title, 112, Amber, bold: true, letterSpacing: 18));
+            return;
+        }
+        var banner = new VisualElement { name = "TitleBanner", pickingMode = PickingMode.Ignore };
+        banner.style.backgroundImage = new StyleBackground(art);
+        banner.style.width = _bannerWidth;
+        banner.style.height = _bannerWidth * art.height / art.width;
+        banner.style.marginBottom = 6;
+        _overlay.Add(banner);
     }
 
     /// <summary>
