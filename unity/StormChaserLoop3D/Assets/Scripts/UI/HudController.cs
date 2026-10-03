@@ -2,7 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-/// <summary>In-run HUD: time and score top-right, truck HP and boost meter top-left.</summary>
+/// <summary>
+/// In-run HUD: time and score top-right, truck HP and boost meter top-left, IN THE WIND and the Storm Cam
+/// indicator top-centre.
+/// </summary>
 [RequireComponent(typeof(UIDocument))]
 public class HudController : MonoBehaviour
 {
@@ -26,6 +29,9 @@ public class HudController : MonoBehaviour
     private Label _scoreLabel;
     private Label _filmLabel;
     private Label _windLabel;
+    private Label _stormCamLabel;
+    private ChaseCameraRig _cameraRig;
+    private string _stormCamShown;
     private Label _hpTitle;
     private VisualElement _boostFill;
     private PlayerVehicle _vehicle;
@@ -41,6 +47,7 @@ public class HudController : MonoBehaviour
     {
         if (_vehicleHealth == null) _vehicleHealth = FindAnyObjectByType<VehicleHealth>();
         if (_vehicleHealth != null) _vehicle = _vehicleHealth.GetComponent<PlayerVehicle>();
+        _cameraRig = FindAnyObjectByType<ChaseCameraRig>();
     }
 
     private void OnEnable()
@@ -156,6 +163,12 @@ public class HudController : MonoBehaviour
         _windLabel.style.letterSpacing = 4;
         _windLabel.style.display = DisplayStyle.None;
         center.Add(_windLabel);
+        // vehicle-feel.md UI: Storm Cam lock + target EF, or NO TARGET while toggled with nothing in range.
+        _stormCamLabel = MakePanelLabel("", 16);
+        _stormCamLabel.style.letterSpacing = 3;
+        _stormCamLabel.style.marginTop = 6;
+        _stormCamLabel.style.display = DisplayStyle.None;
+        center.Add(_stormCamLabel);
         root.Add(center);
     }
 
@@ -172,6 +185,7 @@ public class HudController : MonoBehaviour
         }
 
         UpdateWindMeter();
+        UpdateStormCam();
         UpdateBoostMeter();
 
         if (!Mathf.Approximately(_scoreAccumulator.TotalScore, _lastScore))
@@ -254,6 +268,27 @@ public class HudController : MonoBehaviour
         _windLabel.style.color = Color.Lerp(HpFull, HpHit, t);
         _windLabel.style.opacity = Mathf.Lerp(0.75f, 1f, pulse);
         _windLabel.style.scale = new Scale(Vector3.one * Mathf.Lerp(1f, 1.25f, t));
+    }
+
+    private void UpdateStormCam()
+    {
+        string text = null;
+        if (_cameraRig != null && _cameraRig.StormCamEnabled)
+        {
+            DisasterEntity target = _cameraRig.StormCamTarget;
+            text = target == null ? "STORM CAM  ·  NO TARGET"
+                : target is TornadoController tornado ? $"STORM CAM  ·  {tornado.EFRating}" : "STORM CAM  ·  LOCKED";
+        }
+        if (text == _stormCamShown) return;
+        _stormCamShown = text;
+        if (text == null)
+        {
+            _stormCamLabel.style.display = DisplayStyle.None;
+            return;
+        }
+        _stormCamLabel.text = text;
+        _stormCamLabel.style.color = _cameraRig.StormCamTarget != null ? HpFull : BoostOff;
+        _stormCamLabel.style.display = DisplayStyle.Flex;
     }
 
     // Start() builds the labels, but FilmChanged can fire before that (PhotoTrigger.Start); the label reads the count itself then.

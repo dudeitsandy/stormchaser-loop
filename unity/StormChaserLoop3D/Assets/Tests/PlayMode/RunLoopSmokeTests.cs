@@ -52,6 +52,10 @@ public class RunLoopSmokeTests
             Vector3 t = tornado.transform.position;
             Place(truck, t + new Vector3(0f, 0f, -20f), Quaternion.LookRotation(Vector3.forward));
             yield return new WaitForFixedUpdate();
+            // Aim is camera-forward (S7-05): let the chase camera settle behind the truck before shooting.
+            Object.FindAnyObjectByType<ChaseCameraRig>().SnapToRest();
+            yield return null;
+            yield return null;
             photo.Shoot();
             Assert.AreEqual(1, photosSeen, "Photo event should fire");
             Assert.AreEqual(1, score.PhotoCount);

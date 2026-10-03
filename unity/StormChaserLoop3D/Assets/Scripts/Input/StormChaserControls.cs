@@ -181,6 +181,26 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""OrbitMouse"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""280cde98-463f-4962-a200-152b17f420f5"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""StormCam"",
+                    ""type"": ""Button"",
+                    ""id"": ""9fea42da-267e-48bd-8d0b-6884638ca004"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -403,6 +423,50 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
                     ""action"": ""Boost"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9231b58e-4869-49b3-b17a-31db0bb0854f"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""OrbitMouse"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c41bc51c-05a5-4927-9ff2-e6ad73086d6d"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""StormCam"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""86e466e3-a04d-466a-91c1-e2bb1560b9e0"",
+                    ""path"": ""<Mouse>/middleButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""StormCam"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a1e21a4c-e71a-41e0-ad1e-4bcd454c8102"",
+                    ""path"": ""<Keyboard>/tab"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""StormCam"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -420,6 +484,8 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
         m_Driving_Handbrake = m_Driving.FindAction("Handbrake", throwIfNotFound: true);
         m_Driving_Jump = m_Driving.FindAction("Jump", throwIfNotFound: true);
         m_Driving_Boost = m_Driving.FindAction("Boost", throwIfNotFound: true);
+        m_Driving_OrbitMouse = m_Driving.FindAction("OrbitMouse", throwIfNotFound: true);
+        m_Driving_StormCam = m_Driving.FindAction("StormCam", throwIfNotFound: true);
     }
 
     ~@StormChaserControls()
@@ -509,6 +575,8 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Driving_Handbrake;
     private readonly InputAction m_Driving_Jump;
     private readonly InputAction m_Driving_Boost;
+    private readonly InputAction m_Driving_OrbitMouse;
+    private readonly InputAction m_Driving_StormCam;
     /// <summary>
     /// Provides access to input actions defined in input action map "Driving".
     /// </summary>
@@ -556,6 +624,14 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Driving/Boost".
         /// </summary>
         public InputAction @Boost => m_Wrapper.m_Driving_Boost;
+        /// <summary>
+        /// Provides access to the underlying input action "Driving/OrbitMouse".
+        /// </summary>
+        public InputAction @OrbitMouse => m_Wrapper.m_Driving_OrbitMouse;
+        /// <summary>
+        /// Provides access to the underlying input action "Driving/StormCam".
+        /// </summary>
+        public InputAction @StormCam => m_Wrapper.m_Driving_StormCam;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -609,6 +685,12 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
             @Boost.started += instance.OnBoost;
             @Boost.performed += instance.OnBoost;
             @Boost.canceled += instance.OnBoost;
+            @OrbitMouse.started += instance.OnOrbitMouse;
+            @OrbitMouse.performed += instance.OnOrbitMouse;
+            @OrbitMouse.canceled += instance.OnOrbitMouse;
+            @StormCam.started += instance.OnStormCam;
+            @StormCam.performed += instance.OnStormCam;
+            @StormCam.canceled += instance.OnStormCam;
         }
 
         /// <summary>
@@ -647,6 +729,12 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
             @Boost.started -= instance.OnBoost;
             @Boost.performed -= instance.OnBoost;
             @Boost.canceled -= instance.OnBoost;
+            @OrbitMouse.started -= instance.OnOrbitMouse;
+            @OrbitMouse.performed -= instance.OnOrbitMouse;
+            @OrbitMouse.canceled -= instance.OnOrbitMouse;
+            @StormCam.started -= instance.OnStormCam;
+            @StormCam.performed -= instance.OnStormCam;
+            @StormCam.canceled -= instance.OnStormCam;
         }
 
         /// <summary>
@@ -750,5 +838,19 @@ public partial class @StormChaserControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnBoost(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "OrbitMouse" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnOrbitMouse(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "StormCam" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnStormCam(InputAction.CallbackContext context);
     }
 }

@@ -1,21 +1,61 @@
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Unity.Cinemachine;
 
 /// <summary>
 /// Scene-level fixes shared by SceneWiring and ArtTestBuilder (playtest 2026-10-01, ADR-0005 vehicle):
-/// a solid ground slab under the zero-thickness Plane ground, and a heading-only follow camera so
-/// suspension pitch/roll and tornado flips don't swing the view.
+/// a solid ground slab under the zero-thickness Plane ground, and the S7-05 chase camera rig
+/// (<see cref="ChaseCameraRig"/>: orbit, recenter, Storm Cam), which replaces CinemachineFollow + HardLookAt.
 /// </summary>
 public static class GameplaySceneFixups
 {
     private const string SlabName = "GroundSlab";
     private const int LockToTargetWithWorldUp = 1; // Cinemachine BindingMode: tilt and roll zeroed
+    private static readonly string[] GameplayScenes =
+    {
+        "Assets/Scenes/VerificationScene.unity",
+        "Assets/Scenes/ArtTest.unity",
+    };
 
     public static void Apply()
     {
         EnsureGroundSlab();
         ConfigureFollowCamera();
+        EnsureChaseCameraRig();
+    }
+
+    /// <summary>Applies the fixups to both gameplay scenes in place (no ArtTest rebuild). Batchmode-safe.</summary>
+    [MenuItem("StormChaser/Apply Scene Fixups (Verification + ArtTest)")]
+    public static void ApplyToGameplayScenes()
+    {
+        foreach (string path in GameplayScenes)
+        {
+            var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+            Apply();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log($"[SceneFixups] Applied to {path}");
+        }
+    }
+
+    /// <summary>Adds the chase rig to the follow camera and disables the Body/Aim components it replaces.</summary>
+    private static void EnsureChaseCameraRig()
+    {
+        var vcam = Object.FindAnyObjectByType<CinemachineCamera>();
+        if (vcam == null)
+        {
+            Debug.LogWarning("[SceneFixups] No CinemachineCamera found; chase rig not added.");
+            return;
+        }
+        if (vcam.GetComponent<ChaseCameraRig>() == null) vcam.gameObject.AddComponent<ChaseCameraRig>();
+        foreach (CinemachineComponentBase c in vcam.GetComponents<CinemachineComponentBase>())
+        {
+            if (c.Stage != CinemachineCore.Stage.Body && c.Stage != CinemachineCore.Stage.Aim) continue;
+            c.enabled = false;
+            EditorUtility.SetDirty(c);
+        }
+        EditorUtility.SetDirty(vcam.gameObject);
     }
 
     /// <summary>2 m-thick box under y = 0 so the truck can't end up beneath the single-sided Plane collider.</summary>

@@ -6,6 +6,18 @@ public static class ScoringSystem
     public const float PerfectQuality = 0.85f;
     /// <summary>Framing quality at or above which a shot is GOOD.</summary>
     public const float GoodQuality = 0.5f;
+    /// <summary>Angle off center at which AimScore reaches 0 (photo-scoring.md framing curve).</summary>
+    public const float AimHalfAngle = 15f;
+
+    /// <summary>
+    /// Framing curve: AimScore = clamp01(1 − θ / AimHalfAngle), where θ is the angle in degrees between the
+    /// camera's flattened forward and the flattened direction to the subject.
+    /// </summary>
+    public static float AimScore(float angleDegrees, float halfAngle = AimHalfAngle)
+    {
+        if (halfAngle <= 0f) return angleDegrees <= 0f ? 1f : 0f;
+        return Mathf.Clamp01(1f - Mathf.Abs(angleDegrees) / halfAngle);
+    }
 
     /// <summary>
     /// Framing quality, 0–1, independent of disaster strength.

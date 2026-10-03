@@ -55,6 +55,7 @@ public class RunScreens : MonoBehaviour
         _overlay.Add(MakeLabel("DRIVE  WASD  /  RT LT + LEFT STICK", 18, Bone, letterSpacing: 2));
         _overlay.Add(MakeLabel("SHOOT  LEFT MOUSE  /  RB", 18, Bone, letterSpacing: 2));
         _overlay.Add(MakeLabel("SLIDE  CTRL / X   |   JUMP  SPACE / A   |   BOOST  SHIFT / B", 18, Bone, letterSpacing: 2));
+        _overlay.Add(MakeLabel("CAMERA  MOUSE / RIGHT STICK   |   STORM CAM  TAB / Y", 18, Bone, letterSpacing: 2));
         _overlay.Add(Spacer(12));
         _overlay.Add(MakeLabel("24 frames of film. Centered at ~20m scores best. Shoot from inside the wind for a bonus.", 16, Dim));
         _overlay.Add(MakeLabel("Same storm twice in a row is worth less. Touch the funnel and it scores you.", 16, Dim));

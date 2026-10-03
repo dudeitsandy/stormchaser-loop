@@ -493,9 +493,10 @@ HUD = Claude lane; style pops = Codex lane.
 - [ ] Full-throttle launch from rest shows wheelspin (driven-wheel longitudinal force capped by the
       friction circle) for ≥ 0.2 s.
 - [ ] Upside-down on flat ground: auto-rights within 1.5 s, including with wind acting on it.
-- [ ] Storm Cam on, tornado in range: camera-to-tornado angle stays < 5° while the truck drives a full
-      circle around it.
-- [ ] Camera-forward aim: truck facing 90° away, camera centered on funnel at 20 m → PERFECT tier.
+- [x] Storm Cam on, tornado in range: camera-to-tornado angle stays ≤ 10° (F14's 8° max offset + 2° damping)
+      while the truck drives a full circle around it. *(Was < 5°, which contradicted F14; fixed 2026-10-03,
+      S7-05. Measured 7.88° at 8 m/s, r = 30 m: `CameraAimPlayTests`.)*
+- [x] Camera-forward aim: truck facing 90° away, camera centered on funnel at 20 m → PERFECT tier.
 - [ ] Damage hooks: Damaged → max steer = 0.75 × normal; Critical → throttle/reverse drive at
       `CriticalPowerScale` × normal force; boost/jump produce none.
 - [ ] Regression: updated `RunLoopSmokeTests` pass with the new vehicle.

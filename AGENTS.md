@@ -111,10 +111,10 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | S7-02 ADR-0005 raycast vehicle | Claude | done — Accepted |
 | S7-03 Vehicle core | Claude | done — feel accepted by Andy (polish later) |
 | S7-04 Verbs + input remap | Claude | done — jump, boost + refills, air control, E1–E3 gates, near-miss, RT/LT/A/B/X/RB map, title copy, HUD boost meter |
-| S7-05 Camera, Storm Cam, aim | Claude | todo |
+| S7-05 Camera, Storm Cam, aim | Claude | done — `ChaseCameraRig` (orbit/recenter, Storm Cam F14), camera-forward framing-curve AimScore, HUD lock label |
 | S7-06 Wind force, toss, impacts, events | Claude | partial — F10 impacts raise `VehicleImpact` (HP cost off until S8-C2); G1 physics check waits on real debris (S7-08) |
 | S7-07 Blender MCP + hero truck (G2) | Claude | todo |
-| X7-01 PiP follows camera | Codex | blocked on S7-05 |
+| X7-01 PiP follows camera | Codex | **unblocked** (S7-05 done, see Requests) |
 | 0.7.1 Scenery collision | Codex | implemented — static barns/silos/poles/tree trunks; 45 kg knock-loose fences; full source compiles; live collision/wheel acceptance pending |
 | X7-02 Vehicle VFX | Codex | 0.7 style pops ready — event-only DRIFT/AIR/NEAR MISS at 44% screen height; source compiles, 29 managed tests pass; candidate live trigger acceptance pending |
 | X7-03 Vehicle audio | Codex | partial — boost ignition/roar and EngineLoad wired; prior audio accepted; S7-04/06 live trigger acceptance pending |
@@ -329,3 +329,20 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   reports no impact (E13); a slow push moves it without launching it; Retry reinstalls. Note: X7-05 (per-tile
   scatter) is **not** ready yet. `WorldPlan` doesn't exist and the shipping scene is still the flat map, so
   keep this on the current scatter. X7-01 stays blocked on S7-05, which I'm doing next.
+- **Claude → Codex (2026-10-03, S7-05 done → X7-01 unblocked; plus a tornado look request):**
+  1. **X7-01:** aim is now the rendered main camera. `PhotoTrigger` scores
+     `AimScore = clamp01(1 − θ / 15°)`, θ = flattened angle between `Camera.main` forward and camera→subject.
+     The PiP should render from `Camera.main`'s pose (same position/rotation, its own FOV), not truck-forward;
+     then the "VIEWFINDER · FORWARD" label can go. Read-only rig state on the follow camera's
+     `ChaseCameraRig` (`Scripts/Camera`): `StormCamEnabled`, `StormCamTarget` (DisasterEntity or null),
+     `StormCamOffset` (degrees), `AimYaw`. Inputs: OrbitMouse (mouse delta) / AimCamera (right stick),
+     StormCam (Y / Tab / middle mouse). HUD shows "STORM CAM · EF2" / "NO TARGET" top-centre under IN THE WIND.
+  2. **Tornadoes should come down from the sky (Andy playtest 2026-10-03):** "the tornadoes currently sprout
+     and shrink from the ground, but tornados come down from the sky." Today `TornadoCardVisual` grows the
+     funnel up from the ground while Forming and shrinks it into the ground on rope-out. Please invert it to
+     match `storm-director.md` Visual/Audio → Lifecycle: **Forming** = a dark base/wall cloud at the funnel top
+     appears first, the condensation funnel extends **downward** from it (≈ 60 % height, no ground contact, no
+     dust while damage is zero); **Mature** = touchdown (dust skirt + debris on); **Roping Out** = thins to
+     ≈ 0.25 width and bends/tilts, debris drops, then retracts **up** into the lightening base. Drive it from
+     `TornadoController.Intensity` and `Phase` as now; no gameplay change needed. Until clouds exist, a small
+     dark base card/disc at funnel-top height is enough to read as "from the sky".

@@ -289,6 +289,59 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!1 &392915586
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 392915588}
+  - component: {fileID: 392915587}
+  m_Layer: 0
+  m_Name: GroundSlab
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &392915587
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 392915586}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 240, y: 2, z: 240}
+  m_Center: {x: 0, y: -1, z: 0}
+--- !u!4 &392915588
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 392915586}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -500,6 +553,7 @@ MonoBehaviour:
   _scoreAccumulator: {fileID: 1705244361}
   _vehicleHealth: {fileID: 2137005999}
   _lowTimeWarning: 10
+  _windMeterThreshold: 1.05
 --- !u!114 &640469158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -663,7 +717,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: StormChaser::RunScreens
   _title: DOOMSDAY
-  _subtitle: "STORM SEASON  \xB7  PROTOTYPE 0.4"
+  _seasonName: STORM SEASON
   _tagline: Chase the storm. Get the shot. Don't get caught.
 --- !u!114 &1705244363
 MonoBehaviour:
@@ -699,6 +753,7 @@ GameObject:
   - component: {fileID: 1794890105}
   - component: {fileID: 1794890104}
   - component: {fileID: 1794890108}
+  - component: {fileID: 1794890109}
   m_Layer: 0
   m_Name: FollowCam
   m_TagString: Untagged
@@ -713,7 +768,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1794890103}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e8b78ac948f05a46a6d8339a503172b, type: 3}
   m_Name: 
@@ -726,16 +781,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1794890103}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
   TrackerSettings:
-    BindingMode: 3
+    BindingMode: 1
     PositionDamping: {x: 1, y: 1, z: 1}
     AngularDampingMode: 0
-    RotationDamping: {x: 1, y: 1, z: 1}
+    RotationDamping: {x: 1, y: 1.6, z: 1}
     QuaternionDamping: 1
   FollowOffset: {x: 0, y: 4, z: -8}
 --- !u!114 &1794890106
@@ -811,6 +866,46 @@ MonoBehaviour:
   _maxFovBoost: 5
   _triggerDistance: 40
   _lerpSpeed: 3
+  _fullShakeWind: 14
+  _maxShakeOffset: 0.35
+  _maxShakeRoll: 3
+  _shakeFrequency: 9
+--- !u!114 &1794890109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1794890103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb9f11713cb236842867db3e85abdc6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: StormChaser::ChaseCameraRig
+  _distance: 8.944
+  _defaultPitch: 26.57
+  _pivotHeight: 0
+  _minPitch: 5
+  _maxPitch: 50
+  _restMinSpeed: 3
+  _yawDamping: 1.6
+  _heightDamping: 0.5
+  _teleportSnapDistance: 10
+  _stickYawSpeed: 180
+  _stickPitchSpeed: 90
+  _mouseSensitivity: 0.15
+  _stickDeadzone: 0.15
+  _recenterTime: 0.6
+  _mouseRecenterDelay: 1
+  _stormCamRange: 60
+  _switchRatio: 0.75
+  _stormCamMaxOffset: 8
+  _stormCamLag: 10
+  _stormCamSway: 3
+  _stormCamDamping: 0.35
+  _stormCamLookPitch: 12
+  _nudgeMax: 15
+  _fallbackTopSpeed: 21.5
 --- !u!1 &2061329027
 GameObject:
   m_ObjectHideFlags: 0
@@ -1014,8 +1109,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVehicle
   _data: {fileID: 11400000, guid: 3818a23d3d518c344be60d4c06f38537, type: 2}
+  _config: {fileID: 0}
+  _groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   _worldHalfExtent: 95
-  _knockbackDecay: 30
+  _boundaryPush: 25
+  _respawnBelowY: -10
 --- !u!54 &2137005997
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1058,6 +1158,12 @@ MonoBehaviour:
   _scoreAccumulator: {fileID: 1705244361}
   _maxRange: 60
   _cooldown: 0.35
+  _aimCamera: {fileID: 0}
+  _filmPerRun: 24
+  _repeatDecay: 0.5
+  _repeatRecoverySeconds: 4
+  _windBonusFullAt: 15
+  _windBonusMax: 1
 --- !u!114 &2137005999
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1087,3 +1193,4 @@ SceneRoots:
   - {fileID: 640469159}
   - {fileID: 2061329029}
   - {fileID: 561619281}
+  - {fileID: 392915588}
