@@ -10,6 +10,8 @@ public class HudController : MonoBehaviour
     private static readonly Color HpEmpty = new Color(1f, 1f, 1f, 0.15f);
     private static readonly Color HpHit = new Color(0.95f, 0.22f, 0.18f);
     private static readonly Color BoostOff = new Color(0.55f, 0.55f, 0.55f);
+    private static readonly Color BoostFlash = new Color(1f, 0.95f, 0.7f);
+    private const long BoostFlashMs = 250;
     private const float BoostBarWidth = 96f;
 
     [SerializeField] private SessionTimer _sessionTimer;
@@ -44,6 +46,7 @@ public class HudController : MonoBehaviour
     private void OnEnable()
     {
         GameEvents.PlayerDamaged += OnPlayerDamaged;
+        GameEvents.StyleEvent += OnStyleEvent;
         GameEvents.FilmChanged += OnFilmChanged;
         GameEvents.OutOfFilm += OnOutOfFilm;
     }
@@ -51,6 +54,7 @@ public class HudController : MonoBehaviour
     private void OnDisable()
     {
         GameEvents.PlayerDamaged -= OnPlayerDamaged;
+        GameEvents.StyleEvent -= OnStyleEvent;
         GameEvents.FilmChanged -= OnFilmChanged;
         GameEvents.OutOfFilm -= OnOutOfFilm;
     }
@@ -76,10 +80,14 @@ public class HudController : MonoBehaviour
         right.Add(_filmLabel);
         root.Add(right);
 
+        // Top-left column: truck HP, then the boost meter, stacked by layout so they never overlap.
+        var leftColumn = new VisualElement { pickingMode = PickingMode.Ignore };
+        leftColumn.style.position = Position.Absolute;
+        leftColumn.style.top = 16;
+        leftColumn.style.left = 16;
+        leftColumn.style.alignItems = Align.FlexStart;
+
         var left = new VisualElement();
-        left.style.position = Position.Absolute;
-        left.style.top = 16;
-        left.style.left = 16;
         left.style.flexDirection = FlexDirection.Row;
         left.style.alignItems = Align.Center;
         left.style.backgroundColor = new Color(0, 0, 0, 0.5f);
@@ -105,13 +113,11 @@ public class HudController : MonoBehaviour
             _hpPips.Add(pip);
             left.Add(pip);
         }
-        root.Add(left);
+        leftColumn.Add(left);
 
         // vehicle-feel.md UI: boost meter under truck HP; amber fill, grey while Critical disables boost.
         var boostRow = new VisualElement { pickingMode = PickingMode.Ignore };
-        boostRow.style.position = Position.Absolute;
-        boostRow.style.top = 52;
-        boostRow.style.left = 16;
+        boostRow.style.marginTop = 4;
         boostRow.style.flexDirection = FlexDirection.Row;
         boostRow.style.alignItems = Align.Center;
         boostRow.style.backgroundColor = new Color(0, 0, 0, 0.5f);
@@ -134,7 +140,8 @@ public class HudController : MonoBehaviour
         _boostFill.style.backgroundColor = HpFull;
         track.Add(_boostFill);
         boostRow.Add(track);
-        root.Add(boostRow);
+        leftColumn.Add(boostRow);
+        root.Add(leftColumn);
 
         // Top-center risk/reward meter: shows the live bonus a shot would get from here.
         var center = new VisualElement { pickingMode = PickingMode.Ignore };
@@ -193,16 +200,31 @@ public class HudController : MonoBehaviour
         }
     }
 
+    // vehicle-feel.md UI: the boost meter flashes when a style refill lands (drift, airtime, near-miss).
+    private void OnStyleEvent(StyleKind kind, float amount)
+    {
+        if (_boostFill == null || _boostDisabledShown) return;
+        _boostFill.style.backgroundColor = BoostFlash;
+        _boostFill.schedule.Execute(() =>
+            _boostFill.style.backgroundColor = _boostDisabledShown ? BoostOff : HpFull).StartingIn(BoostFlashMs);
+    }
+
     private void UpdateBoostMeter()
     {
         if (_vehicle == null || _boostFill == null) return;
         float shown = Mathf.Round(_vehicle.BoostMeter);
         bool disabled = _vehicleHealth != null && _vehicleHealth.Stage == DamageStage.Critical;
-        if (shown == _lastBoostShown && disabled == _boostDisabledShown) return;
-        _lastBoostShown = shown;
-        _boostDisabledShown = disabled;
-        _boostFill.style.width = BoostBarWidth * shown / 100f;
-        _boostFill.style.backgroundColor = disabled ? BoostOff : HpFull;
+        if (shown != _lastBoostShown)
+        {
+            _lastBoostShown = shown;
+            _boostFill.style.width = BoostBarWidth * shown / 100f;
+        }
+        // Colour only on a state change, so a refill flash isn't overwritten by the next width update.
+        if (disabled != _boostDisabledShown)
+        {
+            _boostDisabledShown = disabled;
+            _boostFill.style.backgroundColor = disabled ? BoostOff : HpFull;
+        }
     }
 
     private void UpdateWindMeter()

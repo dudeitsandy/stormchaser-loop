@@ -116,7 +116,11 @@ public class RunLoopSmokeTests
         Vector3 origin = truck.transform.position + new Vector3(0f, 0f, 60f);
         TornadoController tornado = Object.Instantiate(prefab, new Vector3(origin.x, 0f, origin.z), Quaternion.identity);
         tornado.Initialize(ef3, truck.transform);
-        yield return new WaitForSeconds(4f); // _formSeconds = 3 → Mature
+        // Pin it Mature and stationary: a wandering funnel (random heading, player pull) moved several m
+        // during the 1 s measurement, so the 15 m distance and the wind reading varied run to run (flaky).
+        tornado.HoldMature = true;
+        yield return null;
+        yield return new WaitForFixedUpdate();
 
         // Park 15 m off the funnel's axis, no input.
         Vector3 start = tornado.transform.position + new Vector3(15f, 0f, 0f);
@@ -141,6 +145,9 @@ public class RunLoopSmokeTests
             GameEvents.Tossed -= onTossed;
         }
 
+        float distance = Vector2.Distance(new Vector2(tornado.transform.position.x, tornado.transform.position.z),
+                                          new Vector2(start.x, start.z));
+        Assert.AreEqual(15f, distance, 0.01f, "the funnel must not move during the measurement");
         Vector3 delta = truck.transform.position - placed;
         float moved = new Vector2(delta.x, delta.z).magnitude;
         Debug.Log($"[Smoke] {tornado.EFRating} phase={tornado.Phase} windR={tornado.WindRadius:F1} " +
