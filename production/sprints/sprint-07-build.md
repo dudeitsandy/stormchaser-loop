@@ -90,6 +90,12 @@ the start so players see the new look while the feel work happens.
 - [ ] G3 feel playtest run; findings logged for Sprint 8
 
 ## Release Log
+- 2026-10-03 — **0.7.2 pushed** (html5 + windows): S7-05 camera (orbit/recenter, Storm Cam F14, camera-forward
+  aim via roof `CamcorderMount`), landing-wedge fix (lifted wheel casts) + heavier jump, KTVR DJ title with
+  Andy's key-art banner; Codex: knock-loose bales/mailboxes/signs/crates, sky-first tornado lifecycle, PiP on
+  the main camera. Evidence: EditMode 180/180, PlayMode 27/28 (known EF3 wind failure), WebGL 0 console
+  errors (`production/qa/evidence/v072_*.png`). Known: viewfinder still mirrors the main camera until Codex
+  renders it from `CamcorderMount` (AGENTS.md request).
 - 2026-10-03 — **0.7.1 pushed** (html5 + windows): solid scenery (Codex: trunks, barns, silos, poles block;
   45 kg fences knock loose as E13 destructibles) and arcade brake assist (full-speed stop ≈ 1.1 s). Evidence:
   PlayMode 11/12 (new ScenerySolidityTests 3/3: trunk/barn block with impact and no HP loss, canopy not solid,
