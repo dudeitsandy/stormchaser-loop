@@ -36,6 +36,7 @@ photos plus style goals that score, damage that matters, and a run that ends cle
 2 km streamed Epic world, roads (S7-09), per-tile scatter (X7-05), Tier B fracture (S7-10), Wildfire,
 Disaster Alchemy, Civilians & Rescue, Loadout/Garage/Storm Dollars meta loop, Story/Career mode, more
 worlds/biomes, Steam integration. These are the next milestone's candidates; `systems-index.md` tiers them.
+Parked ideas (biomes and generated locations, etc.) live in `production/backlog.md`.
 
 ## Design freeze
 

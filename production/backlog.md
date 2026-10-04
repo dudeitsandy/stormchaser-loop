@@ -1,0 +1,49 @@
+# Backlog — Parked Ideas
+
+Ideas captured so they aren't lost, deliberately **not designed** while the M1 design freeze holds
+(`production/milestones/milestone-1-vertical-slice.md`). Each entry says where it would land and what it
+needs first. Promote an entry by planning it into a milestone; until then nothing here gets a GDD.
+
+---
+
+## Biomes and generated locations (Andy, 2026-10-04)
+
+**Idea:** more maps beyond the Heartland farmland: plains/farmland, suburb, city, Japanese city and more.
+Possibly Rampage-style: runs travel through random generated towns and cities across the US or the world.
+
+**What's already planned:**
+- `vision-1.0.md` ("Modular Biome Hybrid") lists four biomes, one per season: Heartland (S1), Canyon
+  Faultline + Coastal Gateway (S2), Metro Suburbs + Port (S3).
+- ADR-0004 already supports it: the seeded `WorldPlan` assigns a biome per 128 m tile (S1 uses Heartland
+  only), plus the road graph and POI placement.
+- The Story/Career concept is "a season across one county, region by region."
+
+**New in this idea:** a dense city, a Japanese city, and generated named locations / a road-trip structure.
+
+**Direction (not a design):**
+- A biome is a **kit** (terrain rules, road style, POI set, prop palette, surface set) run through the same
+  generator. Cost is mostly Blender kit art, not code.
+- Generated identity is cheap: a procedural place name ("Pratt County, KS", "Kōtō Ward") plus a regional
+  flavor table. Career and Epic runs become a road trip from town to town. No real-world map data.
+- Each biome should change the verb mix, not just the look:
+  - Plains: sightlines and speed (the best photo map).
+  - Suburb: slalom, rescues, house-scale destruction.
+  - City: verticality and losing sight of the storm (tension).
+  - Japanese city: pairs with the Kaiju Rising season and the mecha thread.
+
+**Suggested order:**
+1. 2 km Epic world + **Suburbs** as the second biome (next milestone after M1); proves the kit pipeline
+   and density/perf.
+2. **City WebGL perf spike** before committing to a city biome.
+3. **Japanese city** with the Kaiju season.
+
+**Needs first:** M1 shipped; S7-09 roads and X7-05 per-tile scatter (Heartland) working on the 2 km world.
+
+---
+
+## Other parked items (pointers only)
+
+- Story / Career mode: `design/gdd/story-career-mode-concept.md` (concept, not a GDD)
+- Arcade scenario builder (share codes) and Epic 2 km chase: `design/gdd/session-modes.md` revision, after M1
+- S8-C2 per-truck HP redesign: Sprint 9 design task (`sprint-07-build.md` playtest notes)
+- Wildfire, Disaster Alchemy, Civilians & Rescue, meta loop: `design/gdd/systems-index.md` tiers, after M1
