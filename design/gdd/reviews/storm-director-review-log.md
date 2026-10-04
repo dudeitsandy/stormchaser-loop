@@ -80,3 +80,17 @@ Findings:
 - [NICE] AC-18 ±1 frame → ±0.05 s; caps row; compact steer-back inside substeps; status header
 Reviewed-Content-Hash: design/gdd/storm-director.md ca647c66ed0d9286b9923c65347a93e6bbee08b6
 Reviewed-Content-Hash: design/registry/entities.yaml bc9e31499be46bbb1ff18c57deeeb74b6416bacc
+
+## Review — 2026-10-03 — Verdict: APPROVED
+Scope signal: L (compact mode); XL once Epic integrates
+Specialists: none (lean mode)
+Blocking items: 0 | Recommended: 1
+Summary: All 2026-10-03 fixes verified: summed per-cell wind magnitude makes e = 1 at any bearing (2.72 + 20.24 m/s), the siren/caption rule is consistent across Rule 7, UI and AC-26, and the d_reach table re-derives exactly (Heat 0 602–952 m, Heat 1+ 565–704 m, never below 350 m). Compact P0 = origin confirmed in ArtTest. Remaining items were wording only and were applied with the approval.
+Prior verdict resolved: Yes
+Findings:
+- [RECOMMENDED] F2: compact Outbreak satellites had two placement rules (40–85 m from P0 vs within 120 m of anchor) → both apply, reroll
+- [NICE] Edge Cases: compact invalid spot undefined (barns/silos) → only outside the ±85 m square
+- [NICE] Header: Last Verified stale → 2026-10-03
+- [NICE] Player Fantasy heading absent (advisory at standard; Game Feel covers it) → left as is
+Reviewed-Content-Hash: design/gdd/storm-director.md e022a7441f252b09478fbaaa2d012553d7d0af95
+Reviewed-Content-Hash: design/registry/entities.yaml bc9e31499be46bbb1ff18c57deeeb74b6416bacc

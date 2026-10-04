@@ -71,7 +71,7 @@ biomes, and vehicles enter the index when their season is planned.
 | 35 | Online Leaderboard | Meta | Alpha | Not Started | — | Four-Axis Scoring, Save & Profile, Run Manager & Session Modes |
 | 36 | Onboarding / First Run (inferred) | Meta | Alpha | Not Started | — | HUD, Run Manager & Session Modes, Dynamic Objectives & Events |
 | 37 | Accessibility (inferred) | Meta | Full Vision | Not Started | — | Settings, Input & Controls, HUD |
-| 38 | Storm Director | Gameplay | MVP | In Review | design/gdd/storm-director.md | Disaster Entity Framework, Tiled World Streaming, Run Manager & Session Modes |
+| 38 | Storm Director | Gameplay | MVP | Approved | design/gdd/storm-director.md | Disaster Entity Framework, Tiled World Streaming, Run Manager & Session Modes |
 
 **Status notes.** "Implemented" means code exists and ships in 0.6.0, not that it is
 feature-complete against its GDD. Run Manager (#4) has a working `RunManager` /

@@ -1,9 +1,9 @@
 # Storm Director
 
-> **Status**: In Review (revised 2026-10-03 after the 2026-10-03 /design-review)
+> **Status**: Approved (2026-10-03, fifth /design-review)
 > **Author**: Andy Styx + Claude
 > **Last Updated**: 2026-10-03
-> **Last Verified**: 2026-10-02
+> **Last Verified**: 2026-10-03
 > **Implements Pillar**: 2 — Disaster Stacking & "Disaster Alchemy" (game-concept.md); serves Pillar 1 (Kinetic Chaos) via tension, and the anti-pillar "NOT scripted spectacle" (set pieces come from rules)
 
 ## Summary
@@ -215,7 +215,8 @@ The cell schedule formula is defined as:
   toward N_cells. It counts toward the caps in both.
 - **Compact mode (Rule 12):** T = 180 s fixed (no N_cells term). Δ = U(17, 28) s; Sequence S = 1–3;
   Outbreak S = 1–2; Chaos N = U{3..5}; anchors spawn 60–85 m and satellites 40–85 m from P0, inside the
-  arena's ±85 m spawn square; CapTotal = 2. At Heat 5 the anchor
+  arena's ±85 m spawn square (compact Outbreak satellites satisfy both this and "within 120 m of the
+  anchor", rerolling per Edge Cases); CapTotal = 2. At Heat 5 the anchor
   and co-anchor fill the cap, so any satellite still live when they spawn ropes out early. Every other rule
   is the same.
 
@@ -352,7 +353,8 @@ jog per 32 s; a +75° jog at 8–12 m/s for 3 s moves the funnel ≈ 30 m off it
 **Plan and spawning**
 - **If a spawn point falls in a blocked or invalid spot** (off the map, inside a POI): reroll the point
   up to 8 times from the same seeded stream, then place it at the nearest valid point along the same
-  bearing. The plan stays deterministic.
+  bearing. The plan stays deterministic. In compact mode the only invalid spot is outside the ±85 m spawn
+  square (scattered barns and silos are not POIs; a funnel may form over them).
 - **If the player drives far from the plan origin**: cells still spawn where planned. The forecast always
   shows bearing and distance, so a storm behind you is a choice, not a bug (live distance clamp: Open
   Questions).
