@@ -9,8 +9,8 @@ using UnityEngine;
 /// </summary>
 public class CamcorderMount : MonoBehaviour
 {
-    [Tooltip("Mount point in truck-local space (cab roof).")]
-    [SerializeField] private Vector3 _mountLocal = new Vector3(0f, 1f, 0.25f);
+    [Tooltip("Mount point in truck-local space: the lens of the roof camcorder on the hero pickup model.")]
+    [SerializeField] private Vector3 _mountLocal = new Vector3(0f, 0.66f, 0.41f);
     [Tooltip("Upward tilt in degrees, to fit tall funnels. Cosmetic: AimScore is measured flat.")]
     [SerializeField] private float _tiltUp = 6f;
     [Tooltip("Camera whose yaw aims the camcorder. Empty = the main camera, found once in Start.")]

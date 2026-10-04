@@ -717,8 +717,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: StormChaser::RunScreens
   _title: DOOMSDAY
+  _bannerResource: UI/TitleBanner
+  _bannerWidth: 640
   _seasonName: STORM SEASON
-  _tagline: Chase the storm. Get the shot. Don't get caught.
+  _radioLines:
+  - IT'S A BIG ONE, PEOPLE!
+  - GET IN THE TRUCK!
+  - THAT FUNNEL WON'T FILM ITSELF!
+  - WHO NEEDS A ROOF ANYWAY?!
+  - 24 FRAMES! MAKE 'EM COUNT!
+  - GET IN THE WIND! DOUBLE THE MONEY!
+  _radioLineMs: 1700
 --- !u!114 &1705244363
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -980,6 +989,72 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &2135516150
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2137005995}
+    m_Modifications:
+    - target: {fileID: 5129342144223612412, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_Name
+      value: TruckVisualBlender
+      objectReference: {fileID: 0}
+    - target: {fileID: 5129342144223612412, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+--- !u!4 &2135516151 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5504741439190587206, guid: a103945587c61f74f8ab42f9ab17a21f, type: 3}
+  m_PrefabInstance: {fileID: 2135516150}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2137005991
 GameObject:
   m_ObjectHideFlags: 0
@@ -996,6 +1071,7 @@ GameObject:
   - component: {fileID: 2137005996}
   - component: {fileID: 2137005998}
   - component: {fileID: 2137005999}
+  - component: {fileID: 2137006000}
   m_Layer: 0
   m_Name: PlayerTruck
   m_TagString: Untagged
@@ -1093,7 +1169,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2135516151}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2137005996
@@ -1158,7 +1235,6 @@ MonoBehaviour:
   _scoreAccumulator: {fileID: 1705244361}
   _maxRange: 60
   _cooldown: 0.35
-  _aimCamera: {fileID: 0}
   _filmPerRun: 24
   _repeatDecay: 0.5
   _repeatRecoverySeconds: 4
@@ -1180,6 +1256,19 @@ MonoBehaviour:
   OnWrecked:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2137006000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2137005991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fc95c2e70e8d6b46bca5a533fdd7a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: StormChaser::TruckVisualSelector
+  _useBlender: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

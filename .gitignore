@@ -145,3 +145,7 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 .playwright-mcp/
+
+# Third-party reference photos (copyrighted press/Wikimedia images): local only, never in the public repo.
+docs/visual-targets/vehicles/**/*.jpg
+docs/visual-targets/vehicles/**/*.jpeg
