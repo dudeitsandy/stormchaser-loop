@@ -37,19 +37,35 @@ public class VehicleImpactTests
     }
 
     [UnityTest]
-    public IEnumerator StaticWallAt14_ReportsOneHp_AndHealthIsUntouched()
+    public IEnumerator StaticWallAt14_LightBump_CostsNothing()
     {
         // Arrange
         PlayerVehicle truck = SpawnTruck(out VehicleHealth health);
         SpawnWall();
         // Act
         yield return Launch(truck, 14f);
+        // Assert: S8-C1, below the 15.5 m/s Light threshold a bump is free
+        Assert.AreEqual(1, _impacts.Count, "E12: exactly one impact for one wall hit");
+        Assert.AreEqual(0, _impacts[0].HpLoss);
+        Assert.AreEqual(health.MaxHealth, health.CurrentHealth);
+        Assert.AreEqual(0, _damageEvents);
+    }
+
+    [UnityTest]
+    public IEnumerator StaticWallAt18_CostsOneHp_FromSixHp()
+    {
+        // Arrange
+        PlayerVehicle truck = SpawnTruck(out VehicleHealth health);
+        SpawnWall();
+        // Act
+        yield return Launch(truck, 18f);
         // Assert
         Assert.AreEqual(1, _impacts.Count, "E12: exactly one impact for one wall hit");
         Assert.AreEqual(1, _impacts[0].HpLoss);
         Assert.AreEqual(ImpactKind.World, _impacts[0].Kind);
-        Assert.AreEqual(health.MaxHealth, health.CurrentHealth, "ImpactsCostHp is off until S8-C2");
-        Assert.AreEqual(0, _damageEvents);
+        Assert.AreEqual(6, health.MaxHealth, "S8-C1 Pickup HP");
+        Assert.AreEqual(5, health.CurrentHealth, "ImpactsCostHp is on");
+        Assert.AreEqual(1, _damageEvents);
     }
 
     [UnityTest]

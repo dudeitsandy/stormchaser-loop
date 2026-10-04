@@ -14,8 +14,8 @@ public class VehicleData : ScriptableObject
     public WheelLayout Layout = WheelLayout.Pickup;
 
     [Header("Durability (see design/gdd/vehicle-damage.md)")]
-    [Tooltip("Hit points. Default truck = 3 armor stars.")]
-    public int MaxHealth = 3;
+    [Tooltip("Hit points. Pickup = 6 (S8-C1 interim: 2 × its 3 armor stars until the S8-C2 durability redesign).")]
+    public int MaxHealth = 6;
     [Tooltip("Seconds of invulnerability after a hit.")]
     public float InvulnerabilitySeconds = 1.5f;
     [Tooltip("Speed the truck is flung away from a disaster on funnel contact.")]

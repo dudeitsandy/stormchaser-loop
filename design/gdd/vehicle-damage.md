@@ -34,6 +34,9 @@ choosing when to trade HP for score, not from dreading damage itself.
 1. **Max HP is derived from vehicle Armor rating** (`vision-1.0.md` archetype table): HP
    equals star count (★=1 through ★★★★★=5). ✗ Armor (Motorcycle) floors to 1 HP, same as ★.
    "Varies" (Prototype) is set per individual prototype unlock, not fixed here.
+   **Interim (S8-C1, 2026-10-04):** until the S8-C2 durability redesign the Pickup has **6 HP** (2 × its
+   3 stars) so F10 collision damage can be back on (`ImpactsCostHp` = true) without three bumps ending a run.
+   Stages follow the usual fractions: Damaged at ≤ 4 HP, Critical at ≤ 2 HP.
 2. **Damage sources are either instant (per-event) or continuous (per-second while in a
    hazard)**:
    - Instant, 1 HP: standard collision, generic disaster contact, ramming failure (fixed by
@@ -153,7 +156,7 @@ t=2.0s → 2 HP total; the remaining 0.5s doesn't trigger a third tick.
 | `HeatRank4Multiplier` (Brittle Chassis) | 2.0× | 1.5–3.0 | Heat 4+ becomes a much harder difficulty spike | Heat 4 loses its "brittle" identity vs. other ranks |
 | `DamagedThresholdFraction` | ⅔ | 0.5–0.8 | Vehicles show wear sooner (more time spent Damaged) | Vehicles feel invincible longer before any visible damage |
 | `CriticalThresholdFraction` | ⅓ | 0.2–0.4 | More time spent in the high-penalty Critical stage | Critical stage becomes a brief, easy-to-miss window |
-| Max HP per archetype | 1–5 (see `VehicleData.cs`) | 1–5 | *(owned by vehicle archetype data, not this system — listed for cross-reference)* | |
+| Max HP per archetype | 1–5 (see `VehicleData.cs`); Pickup 6 interim (S8-C1) | 1–6 | *(owned by vehicle archetype data, not this system — listed for cross-reference)* | |
 
 ## Visual/Audio Requirements
 
@@ -197,4 +200,4 @@ t=2.0s → 2 HP total; the remaining 0.5s doesn't trigger a third tick.
 | Should NPCs and structures share this same HP/stage model (per the "Living Damage Economy" pillar), or get their own simpler system? | Game Designer | Before Season 2 scoping | Open |
 | Exact Max HP for each individual Prototype archetype unlock | Economy Designer | Before Tree 1 content is finalized | Open |
 | Should Critical-stage viewfinder glitch reduce actual photo score, or stay purely cosmetic as currently specced? | Game Designer | Before S4-01 PiP camera implementation | Open — currently specced as cosmetic only |
-| The 1–5 HP model is "too fragile" (Andy playtest, 2026-10-02): the 3 HP Pickup ends a run after three bumps. Replace it with a fuller per-truck HP pool and damage scaled by impact severity? Keep near-term tuning (higher HP, a severity threshold so light bumps are free) separate from this redesign | Game Designer | Sprint 8 planning | Open — Andy 2026-10-03: full redesign (S8-C2): a 100 % health bar or numeric HP per vehicle, plus roguelite durability enhancements. Until then `vehicle-feel.md` F10 collision HP is disabled (`ImpactsCostHp` = false); impacts still raise `VehicleImpact` |
+| The 1–5 HP model is "too fragile" (Andy playtest, 2026-10-02): the 3 HP Pickup ends a run after three bumps. Replace it with a fuller per-truck HP pool and damage scaled by impact severity? Keep near-term tuning (higher HP, a severity threshold so light bumps are free) separate from this redesign | Game Designer | Sprint 8 planning | Open — Andy 2026-10-03: full redesign (S8-C2): a 100 % health bar or numeric HP per vehicle, plus roguelite durability enhancements. Until then S8-C1 (2026-10-04) is the interim: Pickup 6 HP, F10 Light/Severe 15.5 / 23.25 m/s, F10 HP back on (`ImpactsCostHp` = true); G5 playtest checks it |

@@ -383,7 +383,7 @@ public class PlayerVehicle : MonoBehaviour
         if (severity >= _values.ImpactReportMin) _stepImpact.Offer(severity, kind, point);
     }
 
-    // E12: one impact per physics step, the most severe. HP is applied only when ImpactsCostHp (S8-C2 pending).
+    // E12: one impact per physics step, the most severe. HP is applied while ImpactsCostHp (on since S8-C1).
     private void ResolveImpact()
     {
         if (!_stepImpact.Has) return;

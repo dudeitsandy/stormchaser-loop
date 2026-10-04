@@ -38,7 +38,7 @@ back on with S8-C1 durability tuning.
 |----|-------|------|------|
 | 007 | Claude | Forecast model + HUD forecast panel (F4) | 3 h — **Done** |
 | 009 | Claude | Results: seed, build version, regime, "The big one got away" | 1.5 h — **Done** |
-| S8-C1 | Claude | Durability tuning within the current model: severity threshold so light bumps cost 0 HP, Pickup Max HP raised, F10 HP cost back on; values in `vehicle-damage.md` | 2 h |
+| S8-C1 | Claude | Durability tuning within the current model: severity threshold so light bumps cost 0 HP, Pickup Max HP raised, F10 HP cost back on; values in `vehicle-damage.md` | 2 h — **Done** (Pickup 6 HP, Light 15.5 / Severe 23.25 m/s, HP on; G5 next) |
 | X7-09 | Codex | Storm telegraph presentation on `StormCell*` events (world cues, storm audio, failed touchdown) | Codex lane |
 
 ### Not this sprint

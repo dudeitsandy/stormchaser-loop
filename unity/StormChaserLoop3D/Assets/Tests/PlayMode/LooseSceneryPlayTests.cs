@@ -79,7 +79,7 @@ public class LooseSceneryPlayTests
         yield return Ram(bale.transform.position, BoostedSpeed, t => truck = t,
                          () => peak = Mathf.Max(peak, body.linearVelocity.magnitude));
 
-        // Assert: a 250 kg bale thuds (impact allowed), but flies and costs no HP while HP cost is off.
+        // Assert: a 250 kg bale thuds (impact allowed), but flies and costs no HP (E13 mass scaling keeps it under Light).
         Debug.Log($"[Loose] bale mass={body.mass:F0} peak={peak:F1} truck={truck.CurrentSpeed:F1} impacts={_impacts.Count}");
         Assert.Greater(peak, 5f, "the bale should be knocked loose");
         Assert.Greater(truck.CurrentSpeed, 8f, "the truck should plough through, not stop");

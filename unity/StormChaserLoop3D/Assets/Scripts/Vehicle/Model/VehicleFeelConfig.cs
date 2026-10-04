@@ -97,7 +97,9 @@ public struct VehicleFeelValues
         AccelTimeBase = 4.2f, AccelTimePerStar = 0.4f,
         MassBase = 1200f, MassPerStar = 300f,
         ExposureBase = 1.3f, ExposurePerStar = 0.15f,
-        LightBase = 8f, LightPerStar = 1.5f, SevereRatio = 1.8f,
+        // S8-C1 (2026-10-04, "three bumps end a run"): Pickup Light 12.5 → 15.5 m/s (≈ 72 % of top speed, so bumps
+        // are free) and Severe 22.5 → 23.25 m/s (above unboosted top speed: 2 HP needs boost or a throw).
+        LightBase = 11f, LightPerStar = 1.5f, SevereRatio = 1.5f,
         TrickScaleBase = 0.6f, TrickScalePerStar = 0.2f,
         HandbrakeGripBase = 0.45f, HandbrakeGripPerStar = 0.04f,
         StyleRefillBase = 0.7f, StyleRefillPerStar = 0.15f,
@@ -144,7 +146,7 @@ public struct VehicleFeelValues
 
         LandingThresholdMul = 1.5f,
         ImpactReportMin = 3f,
-        ImpactsCostHp = false,
+        ImpactsCostHp = true, // S8-C1: back on with the higher thresholds and the 6 HP Pickup
 
         KnockbackSpreadSeconds = 0.15f, KnockbackGripScale = 0.35f,
         // Playtest 2026-10-03: nose-first landings wedged the truck with rear wheels down; you had to jump out.

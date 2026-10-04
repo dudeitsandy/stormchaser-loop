@@ -138,7 +138,7 @@ public class HudController : MonoBehaviour
         hpTitle.style.marginRight = 8;
         left.Add(hpTitle);
 
-        int max = _vehicleHealth != null ? _vehicleHealth.MaxHealth : 3;
+        int max = _vehicleHealth != null ? _vehicleHealth.MaxHealth : 6;
         for (int i = 0; i < max; i++)
         {
             var pip = new VisualElement();

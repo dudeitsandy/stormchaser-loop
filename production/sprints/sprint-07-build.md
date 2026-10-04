@@ -120,6 +120,13 @@ the start so players see the new look while the feel work happens.
 - [ ] G3 feel playtest run; findings logged for Sprint 8
 
 ## Release Log
+- 2026-10-04 — **0.7.5 pushed** (html5 + windows): **forecast panel** (story 007: nearest storms with bearing,
+  `~EF` estimate past 150 m, ON GROUND / PEAK ETAs, anchor in amber; off-screen indicator agrees), **results
+  screen** shows WEATHER regime, seed + version replay line, "THE BIG ONE GOT AWAY" (story 009), **durability
+  S8-C1**: Pickup 6 HP, light bumps free (Light 15.5 m/s), collision HP back on (2 HP only boosted/thrown).
+  Director fixes from Codex review (long-frame lifecycle, restart cleanup, callback state). Codex: broadcast
+  alert tones, darker EF4–5 funnels, jog lean. Evidence: EditMode 298/298, PlayMode 55/55, WebGL 0 console
+  errors (`forecast-panel*.png`, `results-seed.png`, `s8c1_hp6.png`, `s8c1_after_drive.png`).
 - 2026-10-04 — **0.7.4 pushed** (html5 + windows): **Storm Director live** (Sprint 8 stories 001–006, 008):
   seeded compact weather plans (replay with `?seed=N`), F3 storm scale (EF3 shoves, EF4/5 toss in their
   cores, EF5 inflow drags you in), storm tracks with late-life jogs, `StormCell*` events, KTVR News crawl with

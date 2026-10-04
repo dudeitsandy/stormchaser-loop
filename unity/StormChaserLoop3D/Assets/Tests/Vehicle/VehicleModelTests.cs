@@ -19,8 +19,8 @@ public class VehicleModelTests
         Assert.AreEqual(3.0f, p.AccelTime, 1e-4f);
         Assert.AreEqual(2100f, p.Mass, 1e-3f);
         Assert.AreEqual(0.85f, p.Exposure, 1e-4f);
-        Assert.AreEqual(12.5f, p.LightImpact, 1e-4f);
-        Assert.AreEqual(22.5f, p.SevereImpact, 1e-4f);
+        Assert.AreEqual(15.5f, p.LightImpact, 1e-4f);
+        Assert.AreEqual(23.25f, p.SevereImpact, 1e-4f);
         Assert.AreEqual(1.0f, p.TrickScale, 1e-4f);
         Assert.AreEqual(0.37f, p.HandbrakeGrip, 1e-4f);
         Assert.AreEqual(1.0f, p.StyleRefillScale, 1e-4f);
@@ -34,10 +34,10 @@ public class VehicleModelTests
         Assert.AreEqual(26.5f, moto.TopSpeed, 1e-4f);
         Assert.AreEqual(1200f, moto.Mass, 1e-3f);
         Assert.AreEqual(1.3f, moto.Exposure, 1e-4f);
-        Assert.AreEqual(8f, moto.LightImpact, 1e-4f);
+        Assert.AreEqual(11f, moto.LightImpact, 1e-4f);
         Assert.AreEqual(2700f, monster.Mass, 1e-3f);
         Assert.AreEqual(0.55f, monster.Exposure, 1e-4f);
-        Assert.AreEqual(15.5f, monster.LightImpact, 1e-4f);
+        Assert.AreEqual(18.5f, monster.LightImpact, 1e-4f);
     }
 
     // ---------- F1 suspension ----------
@@ -354,13 +354,23 @@ public class VehicleModelTests
 
     // ---------- F10 impacts ----------
 
-    [TestCase(12.4f, 0)]
-    [TestCase(12.5f, 1)]
-    [TestCase(22.4f, 1)]
-    [TestCase(22.5f, 2)]
+    [TestCase(15.4f, 0)]
+    [TestCase(15.5f, 1)]
+    [TestCase(23.2f, 1)]
+    [TestCase(23.25f, 2)]
     public void PickupImpactSeverity_MapsToHpLoss(float speed, int expected)
     {
-        Assert.AreEqual(expected, VehicleModel.ImpactHpLoss(speed, 12.5f, 22.5f));
+        ArchetypeParams p = ArchetypeParams.Derive(Stars.Pickup, V);
+        Assert.AreEqual(expected, VehicleModel.ImpactHpLoss(speed, p.LightImpact, p.SevereImpact));
+    }
+
+    [Test]
+    public void PickupAtUnboostedTopSpeed_HeadOn_CostsOneHpNotTwo()
+    {
+        // S8-C1: a barn hit at speed hurts, but only boost or a throw reaches Severe.
+        ArchetypeParams p = ArchetypeParams.Derive(Stars.Pickup, V);
+        Assert.AreEqual(1, VehicleModel.ImpactHpLoss(p.TopSpeed, p.LightImpact, p.SevereImpact));
+        Assert.AreEqual(2, VehicleModel.ImpactHpLoss(p.TopSpeed * V.BoostMaxSpeedRatio, p.LightImpact, p.SevereImpact));
     }
 
     [Test]

@@ -258,9 +258,11 @@ Refill: +18/s Sliding, +14/s Airborne, +25 per near-miss (all × `StyleRefillSca
 
 **F10. Impact severity**
 Collision `s = |v_rel · n|`; landing `s = |v_y| / 1.5`.
-`HP_loss = 2 if s ≥ Severe; 1 if s ≥ Light; else 0`. Pickup: Light 12.5 m/s, Severe 22.5 m/s.
+`HP_loss = 2 if s ≥ Severe; 1 if s ≥ Light; else 0`. Pickup: Light 15.5 m/s, Severe 23.25 m/s
+*(S8-C1, 2026-10-04: was 12.5 / 22.5, "three bumps end a run")*.
 Sanity: an ~8 m drop lands at 12.5 m/s → /1.5 = 8.3 → no damage (clean landings never hurt);
-head-on at ≥ 12.5 m/s (~45 km/h) → 1 HP; full speed ≥ 22.5 m/s → 2 HP.
+head-on below 15.5 m/s (~56 km/h, ≈ 72 % of top speed) → free; head-on at unboosted top speed (21.5) → 1 HP;
+boosted (≥ 23.25) or thrown → 2 HP.
 
 **F11. Wind force** *(corrected 2026-10-01, S7-03)*
 `a_wind = ŵ · min(WindResponse · Exposure · max(0, |w| − v_h·ŵ), WindForceCapG · g)`, applied
@@ -308,11 +310,11 @@ leaves AimScore at 0.47, so an uncorrected Storm Cam shot lands GOOD, and center
 | Stat | Drives | Formula | Pickup (3/3/2) |
 |------|--------|---------|----------------|
 | Speed `s` | Top speed, accel | `v_top = 14 + 2.5s` m/s; `AccelTime = 4.2 − 0.4s` s | 21.5 m/s (77 km/h); 3.0 s |
-| Armor `a` | Mass, wind, crash thresholds | `M = 1200 + 300a`; `Exposure = 1.3 − 0.15a`; `Light = 8 + 1.5a`; `Severe = 1.8 · Light` | 2100 kg; 0.85; 12.5 / 22.5 m/s |
+| Armor `a` | Mass, wind, crash thresholds | `M = 1200 + 300a`; `Exposure = 1.3 − 0.15a`; `Light = 11 + 1.5a`; `Severe = 1.5 · Light` | 2100 kg; 0.85; 15.5 / 23.25 m/s |
 | Trick `t` | Air, slide, style refill | `TrickScale = 0.6 + 0.2t`; `HandbrakeGrip = 0.45 − 0.04t`; `StyleRefillScale = 0.7 + 0.15t` | 1.0; 0.37; 1.0 |
 
-Extremes: **Motorcycle (5/✗/5)** — 26.5 m/s, 1200 kg, exposure 1.3, Light 8 m/s: fast, wind-blown,
-fragile (fits its 1 HP). **Monster Truck (2/5/3)** — 2700 kg, exposure 0.55, Light 15.5 m/s: shrugs
+Extremes: **Motorcycle (5/✗/5)** — 26.5 m/s, 1200 kg, exposure 1.3, Light 11 m/s: fast, wind-blown,
+fragile (fits its 1 HP). **Monster Truck (2/5/3)** — 2700 kg, exposure 0.55, Light 18.5 m/s: shrugs
 off wind and crashes.
 
 ## Playtest Tuning Log
@@ -419,7 +421,7 @@ All live on `VehicleData` (per archetype) or a shared vehicle-feel config. Defau
 | `BoostDrain` / `PassiveRegen` | 33 / 4 per s | 20–50 / 0–10 | Boost scarce / always full | Endless / style-only |
 | Style refills (slide / air / near-miss) | 18/s / 14/s / 25 | ±50 % | Boost always full | Style doesn't feed speed |
 | **Impacts** | | | | |
-| `Light` / `Severe` (F13 coefficients) | `8 + 1.5a` / ×1.8 | ±30 % | Invincible bumper car | Every bump costs HP |
+| `Light` / `Severe` (F13 coefficients) | `11 + 1.5a` / ×1.5 (S8-C1) | ±30 % | Invincible bumper car | Every bump costs HP |
 | `LandingThresholdMul` | 1.5 | 1.2–2.5 | Landings never hurt | Jumps punishing |
 | **Wind** | | | | |
 | `WindResponse` | 1.1 /s | 0.5–2 | Tumbleweed | Wind cosmetic again |
