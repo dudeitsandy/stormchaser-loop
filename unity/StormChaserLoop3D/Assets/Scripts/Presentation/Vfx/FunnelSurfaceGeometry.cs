@@ -40,15 +40,18 @@ public static class FunnelSurfaceGeometry
     }
 
     /// <summary>Deforms an existing surface without allocations, keeping ground tip and cloud crown anchored.</summary>
-    public static void Deform(Vector3[] vertices, int segments, float baseRadius, float bend, float depth, float phase)
+    public static void Deform(Vector3[] vertices, int segments, float baseRadius, float bend, float depth, float phase, float slenderMotion = 0f)
     {
         Validate(segments);
         if (vertices == null || vertices.Length != (segments + 1) * 2) throw new ArgumentException(nameof(vertices));
         for (int row = 0; row <= segments; row++)
         {
             float t = row / (float)segments;
-            float radius = baseRadius + (1f - baseRadius) * (float)Math.Pow(t, 0.8f);
+            // Slender storms stay rope-like until they flare into the cloud, rather than
+            // filling a triangle. A small travelling width pulse breaks up rigid edges.
+            float radius = baseRadius + (1f - baseRadius) * (float)Math.Pow(t, 0.8f + slenderMotion * 0.9f);
             float envelope = row == 0 || row == segments ? 0f : (float)Math.Sin(Math.PI * t);
+            radius *= 1f + slenderMotion * 0.08f * envelope * (float)Math.Sin(phase * 1.3f - t * 8f);
             float x = envelope * bend * (float)Math.Sin(phase + t * 5f);
             float z = envelope * depth * (float)Math.Cos(phase * 0.7f + t * 4f);
             vertices[row * 2] = new Vector3(x - radius, t, z);

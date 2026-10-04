@@ -120,6 +120,14 @@ the start so players see the new look while the feel work happens.
 - [ ] G3 feel playtest run; findings logged for Sprint 8
 
 ## Release Log
+- 2026-10-04 — **0.7.4 pushed** (html5 + windows): **Storm Director live** (Sprint 8 stories 001–006, 008):
+  seeded compact weather plans (replay with `?seed=N`), F3 storm scale (EF3 shoves, EF4/5 toss in their
+  cores, EF5 inflow drags you in), storm tracks with late-life jogs, `StormCell*` events, KTVR News crawl with
+  TORNADO EMERGENCY for EF5, runs now 3:00 (compact T = 180 s, GDD Rule 12). Also: wheel visuals follow the
+  suspension (no sinking), Blender hero pickup default, Codex tall cloud-to-ground funnels + slender sway,
+  PiP near clip 1.5 m. Evidence: EditMode 288/288, PlayMode 47/47, WebGL 0 console errors
+  (`production/qa/evidence/v074_*.png`). Known: EF5 wedge reads pale, not near-black (Codex art note);
+  forecast HUD (007) and results seed (009) not in yet.
 - 2026-10-03 — **0.7.3 pushed** (html5 + windows): X7-08 viewfinder renders the roof cab cam (Codex), zoomed to
   the ±15° scoring cone; X7-07 props accepted (`LooseSceneryPlayTests` 6/6). Evidence: EditMode 182/182,
   PlayMode 33/34 (known EF3 wind failure), WebGL 0 console errors (`production/qa/evidence/v073_*.png`).

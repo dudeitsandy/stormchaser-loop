@@ -46,13 +46,25 @@ public class FunnelVisualDimensionsTests
     {
         const int segments = 12;
         var vertices = new UnityEngine.Vector3[(segments + 1) * 2];
-        FunnelSurfaceGeometry.Deform(vertices, segments, 0.04f, 0.1f, 0.08f, phase);
+        FunnelSurfaceGeometry.Deform(vertices, segments, 0.04f, 0.65f, 0.39f, phase, 1f);
         Assert.That((vertices[0].x + vertices[1].x) * 0.5f, Is.Zero);
         Assert.That(vertices[0].y, Is.Zero);
         Assert.That(vertices[0].z, Is.Zero);
         Assert.That((vertices[24].x + vertices[25].x) * 0.5f, Is.Zero);
         Assert.That(vertices[24].y, Is.EqualTo(1f));
         Assert.That(vertices[24].z, Is.Zero);
+    }
+    [Test]
+    public void SlenderMotion_CurvesTheTaperAndMovesTheMiddleWithoutCollapsingWidth()
+    {
+        var first = new UnityEngine.Vector3[26];
+        var later = new UnityEngine.Vector3[26];
+        FunnelSurfaceGeometry.Deform(first, 12, 0.04f, 0.65f, 0.39f, 0f, 1f);
+        FunnelSurfaceGeometry.Deform(later, 12, 0.04f, 0.65f, 0.39f, 1.5f, 1f);
+        Assert.That(first[13].x - first[12].x, Is.LessThan(0.8f), "The middle should stay narrow before flaring into the cloud.");
+        Assert.That(first[12].x + first[13].x, Is.Not.EqualTo(later[12].x + later[13].x));
+        for (int row = 0; row <= 12; row++)
+            Assert.That(later[row * 2 + 1].x, Is.GreaterThan(later[row * 2].x));
     }
     [Test]
     public void EllipticalDepth_VariesProfileWithoutChangingHeightOrEndpoints()

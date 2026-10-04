@@ -73,6 +73,8 @@ public class DisasterSpawner : MonoBehaviour
             foreach (RosterEntry entry in _roster) roster.Add(entry.Data);
             Vector3 origin = _player != null ? _player.position : Vector3.zero;
             _director.Begin(_tornadoPrefab, roster, origin, StormDirector.ResolveSeed());
+            // The run lasts as long as the plan (compact T = 180 s), so the anchor's peak window fits the run.
+            if (_sessionTimer != null && _director.Plan != null) _sessionTimer.SetDuration(_director.Plan.Duration);
             return;
         }
         _running = true;

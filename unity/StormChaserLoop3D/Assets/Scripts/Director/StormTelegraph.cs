@@ -46,15 +46,15 @@ public static class StormTelegraph
     {
         if (trueEf < WarningMinEf) return null;
         return trueEf >= 5
-            ? $"★ TORNADO EMERGENCY ★ VIOLENT TORNADO FORMING · BEARING {bearing} · TAKE COVER NOW ★"
-            : $"★ TORNADO WARNING ★ SEVERE CELL FORMING · BEARING {bearing} ★";
+            ? $"TORNADO EMERGENCY  ·  VIOLENT TORNADO FORMING  ·  BEARING {bearing}  ·  TAKE COVER NOW"
+            : $"TORNADO WARNING  ·  SEVERE CELL FORMING  ·  BEARING {bearing}";
     }
 
     /// <summary>Crawl for the anchor's touchdown (its Peak).</summary>
     public static string TouchdownCrawl(int trueEf, string bearing) =>
         trueEf >= 5
-            ? $"★ TORNADO EMERGENCY ★ VIOLENT TORNADO ON THE GROUND · BEARING {bearing} ★"
-            : $"★ TORNADO WARNING ★ TORNADO ON THE GROUND · BEARING {bearing} ★";
+            ? $"TORNADO EMERGENCY  ·  VIOLENT TORNADO ON THE GROUND  ·  BEARING {bearing}"
+            : $"TORNADO WARNING  ·  TORNADO ON THE GROUND  ·  BEARING {bearing}";
 
     /// <summary>True for crawls that use the red emergency style.</summary>
     public static bool IsEmergency(int trueEf) => trueEf >= 5;

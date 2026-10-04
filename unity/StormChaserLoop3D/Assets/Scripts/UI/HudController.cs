@@ -321,7 +321,11 @@ public class HudController : MonoBehaviour
         lane.style.overflow = Overflow.Hidden;
         _crawlText = new Label { pickingMode = PickingMode.Ignore };
         _crawlText.style.position = Position.Absolute;
-        _crawlText.style.top = 6;
+        _crawlText.style.top = 0;
+        _crawlText.style.height = 34;
+        _crawlText.style.unityTextAlign = TextAnchor.MiddleLeft;
+        _crawlText.style.paddingTop = 0;
+        _crawlText.style.paddingBottom = 0;
         _crawlText.style.fontSize = 18;
         _crawlText.style.color = Color.white;
         _crawlText.style.unityFontStyleAndWeight = FontStyle.Bold;

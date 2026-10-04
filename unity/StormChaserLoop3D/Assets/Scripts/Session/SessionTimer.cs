@@ -29,6 +29,16 @@ public class SessionTimer : MonoBehaviour
     /// <summary>Halts the countdown without firing <see cref="OnSessionEnd"/>.</summary>
     public void Stop() => IsRunning = false;
 
+    /// <summary>
+    /// Sets the run length in seconds (the Storm Director's plan duration, storm-director.md Rule 12) and, if the
+    /// timer is running, restarts the countdown from it.
+    /// </summary>
+    public void SetDuration(float seconds)
+    {
+        _duration = Mathf.Max(1f, seconds);
+        if (IsRunning) TimeRemaining = _duration;
+    }
+
     private void Update()
     {
         if (!IsRunning) return;

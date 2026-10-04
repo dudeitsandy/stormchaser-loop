@@ -18,6 +18,8 @@ public sealed class TornadoCardVisual : MonoBehaviour
     [SerializeField, Min(0f)] private float _cloudHeightVariation = 18.8f;
     [SerializeField, Min(0.5f)] private float _cloudThickness = 2.4f;
     [SerializeField, Range(0f, 0.3f)] private float _funnelBend = 0.1f;
+    [Tooltip("Extra middle sway for narrow storms, measured in crown radii; endpoints remain attached.")]
+    [SerializeField, Range(0f, 1f)] private float _slenderSway = 0.55f;
     [Tooltip("Width tuning: 2 preserves the damage-radius scale; cloud height never widens the funnel.")]
     [SerializeField, Min(0.1f)] private float _topRadius = 2f;
     [SerializeField] private float _swirlSpeed = 2.5f;
@@ -241,8 +243,11 @@ public sealed class TornadoCardVisual : MonoBehaviour
         {
             if (!_previewWedge && _funnelMesh != null)
             {
+                float slender = wedge ? 0f : 1f - Mathf.InverseLerp(0.35f, 1.5f, size);
+                float bend = _funnelBend + _slenderSway * slender;
                 FunnelSurfaceGeometry.Deform(_funnelVertices, _segments, wedge ? 0.85f : 0.04f,
-                    _funnelBend, _funnelBend * _depthRatio * 0.6f, _shapePhase + _age * _swirlSpeed * 0.12f);
+                    bend, bend * _depthRatio * 0.6f,
+                    _shapePhase + _age * _swirlSpeed * Mathf.Lerp(0.12f, 0.28f, slender), slender);
                 _funnelMesh.vertices = _funnelVertices;
                 _funnelMesh.RecalculateBounds();
             }

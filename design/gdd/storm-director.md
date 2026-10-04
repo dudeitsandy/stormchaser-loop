@@ -556,7 +556,7 @@ arrive, risk and escape.
   highlighted. Shares the off-screen indicator's
   bearing logic.
 - **News crawl (was radio caption; Andy, 2026-10-04):** a KTVR News lower-third ticker when the siren or
-  radio cue plays ("★ TORNADO WARNING ★ SEVERE CELL FORMING · BEARING NW ★"; a forming EF5 escalates to a
+  radio cue plays ("TORNADO WARNING  ·  SEVERE CELL FORMING  ·  BEARING NW"; a forming EF5 escalates to a
   red "TORNADO EMERGENCY"; never an EF number, Rule 7), so the audio is also readable on screen
   (accessibility). Post-M1 idea, not in scope: a 3 s vertical "VIEWER VIDEO" bystander clip on the anchor's
   touchdown (pairs with event-system.md TV News bounties).
