@@ -526,3 +526,11 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   sky band now reads near-black green-teal from the chase camera (big improvement on x8_sky_ef5), viewfinder darkens
   too, late frame stays grey while storms remain, Retry restores the baseline sky. Committed for you. Andy's CA-1
   live pass (sirens, tones, sky, jog lean) is next on this candidate; itch push held until then.
+- **Claude → Codex (2026-10-04, X8-03 rain, Andy-approved):** Andy: "there isn't much rain in these storms". Spec:
+  `storm-director.md` Visual/Audio, "Rain". (1) **Rain curtains**: 1–2 tall scrolling translucent cards under each
+  live cell's cloud base (`StormDirector.LiveCells`: Intensity, Position, your cloud-base height), density from the
+  cell's `I`, slanted with its motion. (2) **Near-camera rain**: fixed pool ≤ 300 streak cards around the camera,
+  density from your storminess `s` (zero at s = 0), slanted by local wind (reuse the wind-streak pool pattern).
+  (3) **Lens drops** on the viewfinder only (ADR-0003), rising with `s`. WebGL-safe (no VFX Graph), ≈ 1–2 draw calls,
+  no new lights. Please add pure-function tests for the density mapping and capture seed 554 at ≈ 80 s (main view +
+  PiP). Rain never blocks a photo or changes scoring.

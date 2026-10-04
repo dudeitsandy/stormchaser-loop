@@ -468,6 +468,7 @@ column.
 | Environmental-cue full scale | 20 m/s | 15–30 m/s | When the sky reaches maximum dread |
 | `StorminessFull` | 6 | 4–10 | How much storm it takes to fully darken the run-wide sky (6 = one EF5 at peak) |
 | Storminess rise / fall time constants | 5 s / 20 s | 2–10 s / 10–40 s | How fast the sky closes in and how long it stays dark after a rope-out |
+| Rain pool size / curtain cards per cell | 300 / 2 | 100–400 / 1–3 | Rain density vs WebGL fill cost |
 | `SirenCycleSeconds` | 25 s | 15–45 s | How long the outdoor sirens wail per warning (EF5 emergency: continuous) |
 
 ## Visual/Audio Requirements
@@ -529,6 +530,18 @@ column.
   cue still deepens up close. At `s` = 1 the sky is near-black green-teal overhead with light only at the
   horizon; at `s` = 0 it is the baseline sky.
 - Deterministic from the plan (Rule 10): `s` reads director state only, never player input.
+
+**Rain (Andy, 2026-10-04: "there isn't much rain in these storms")**
+- Presentation only; never blocks a photo or changes scoring in M1. WebGL-safe card language, no VFX Graph
+  (needs compute, unavailable on WebGL).
+- **Rain curtains:** 1–2 tall scrolling translucent cards hanging under each live cell's cloud base, density
+  following the cell's intensity `I`; slanted with the cell's motion. Readable from distance, like a real
+  chaser reading the sky.
+- **Near-camera rain:** a fixed pool (≤ 300) of streak cards around the camera, density from run-wide
+  storminess `s` (none at `s` = 0), slanted by local wind.
+- **Lens drops:** droplets on the viewfinder / camcorder only (ADR-0003: retro treatment stays in the lens),
+  rising with `s`.
+- Budget: ≈ 1–2 draw calls and a few hundred quads; measured against the M1 whole-frame budget.
 
 **Outdoor warning sirens (Andy, 2026-10-04)**
 - Real outdoor civil-defense sirens on poles placed around the map: the rising-and-falling wail, positional

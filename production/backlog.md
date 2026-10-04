@@ -67,3 +67,14 @@ Possibly Rampage-style: runs travel through random generated towns and cities ac
 
 **Needs first:** the Disaster Alchemy / interaction design (out of M1 scope), a second `DisasterEntity` type,
 and for lightning a strike-photo scoring rule in `photo-scoring.md`.
+
+---
+
+## Rain-wrapped tornadoes (Andy, 2026-10-04)
+
+**Idea:** a tornado hidden inside its own rain curtain, one of the real dangers of storm chasing. The player can
+hear it and see the curtain but not the funnel until it is close: a built-in "oh no" moment.
+
+**Fit:** builds on X8-03 rain curtains (presentation) and the storm-tension direction. Needs a design pass in
+`storm-director.md` (which cells are rain-wrapped, how the forecast and telegraphs still give fair warning) and
+`photo-scoring.md` (does a shot through rain score). Post-M1.

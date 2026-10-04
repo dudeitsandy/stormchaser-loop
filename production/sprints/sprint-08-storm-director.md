@@ -64,6 +64,13 @@ results) are specified and complete.
 | CA-1 | Andy | Codex live acceptance pass, `production/qa/g3-playtest-session.md` Part B: X7-01/08, X7-02, X7-03, X7-04, X7-07, X7-09, X7-10, plus X8-01 sirens and X8-02 storm sky (add them to Part B). Fold into the next play session, ≈ 25 min | 25 min | **Partial** (0.7.6, 2026-10-04): X8-01 sirens, X7-10 tones (pre-polish OK), X7-04 funnel pass; sky, jog lean, X7-02/03/07 still to check |
 | CA-2 | Andy | Checklist C6: accept the S7-06 physics PASS caveat, or one `?physProbe=1` prop-cluster smash | 5 min | Open |
 
+### Codex presentation (added 2026-10-04)
+| ID | Owner | Task | Status |
+|----|-------|------|--------|
+| X8-01 | Codex | Outdoor warning sirens | Done (0.7.6; Andy: "sirens sound good") |
+| X8-02 | Codex | Run-wide storm sky | Done (0.7.6) |
+| X8-03 | Codex | Rain: curtains under cells, near-camera streaks, lens drops | Queued |
+
 ### Not this sprint
 S8-C2 per-truck HP redesign → **deferred past M1** (Andy, 2026-10-04). Driving tuning pass → Sprint 9.
 Roads, scatter, Tier B fracture, Story/Career, new worlds → after M1.
