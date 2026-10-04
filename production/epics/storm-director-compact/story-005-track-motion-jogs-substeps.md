@@ -1,7 +1,7 @@
 # Story 005: Track motion, jogs and fixed substeps (F5)
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: Ready
+> **Status**: Done (2026-10-04)
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: 3 h (M)
@@ -67,7 +67,7 @@ Deterministic storm tracks that never read the player: hash-noise wander, the He
 **Story Type**: Logic
 **Required evidence**: Logic: automated test must exist and pass — `unity/StormChaserLoop3D/Assets/Tests/Director/TrackModelTests.cs` + a PlayMode FPS case
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (`Tests/Director/TrackModelTests.cs`, 11 cases; AC-23 is covered in EditMode by stepping at 5 and 60 FPS frame sizes)
 
 ---
 
