@@ -112,6 +112,9 @@ public readonly struct StormCellInfo
     }
 }
 
+/// <summary>Why a run paused (run-screens.md Events Fired).</summary>
+public enum PauseReason { Manual, FocusLost, ControllerLost }
+
 /// <summary>
 /// Cross-system event hub. Gameplay raises, presentation (UI, audio, VFX) listens.
 /// Presentation code must never call the Raise methods.
@@ -132,6 +135,10 @@ public static class GameEvents
     public static event Action<int, int> PlayerDamaged;
     /// <summary>Fired once when the run ends (timer or wreck).</summary>
     public static event Action<RunSummary> RunEnded;
+    /// <summary>Fired when a run pauses (true) or resumes (false), with why it paused.</summary>
+    public static event Action<bool, PauseReason> PauseChanged;
+    /// <summary>Fired when the player quits a run from the pause menu: no run end, nothing banked.</summary>
+    public static event Action RunForfeited;
 
     // Vehicle events (ADR-0005; vehicle-feel.md Interactions). Presentation listens; only gameplay raises.
     /// <summary>Style moment: drift seconds, airtime seconds, or a near-miss (amount = 1).</summary>
@@ -150,6 +157,8 @@ public static class GameEvents
     public static void RaiseFilmChanged(int remaining, int capacity) => FilmChanged?.Invoke(remaining, capacity);
     public static void RaisePlayerDamaged(int current, int max) => PlayerDamaged?.Invoke(current, max);
     public static void RaiseRunEnded(RunSummary summary) => RunEnded?.Invoke(summary);
+    public static void RaisePauseChanged(bool paused, PauseReason reason) => PauseChanged?.Invoke(paused, reason);
+    public static void RaiseRunForfeited() => RunForfeited?.Invoke();
     public static void RaiseStyleEvent(StyleKind kind, float amount) => StyleEvent?.Invoke(kind, amount);
     public static void RaiseLanded(float verticalSpeed) => Landed?.Invoke(verticalSpeed);
     public static void RaiseVehicleImpact(ImpactInfo impact) => VehicleImpact?.Invoke(impact);
@@ -183,6 +192,8 @@ public static class GameEvents
         FilmChanged = null;
         PlayerDamaged = null;
         RunEnded = null;
+        PauseChanged = null;
+        RunForfeited = null;
         StyleEvent = null;
         Landed = null;
         VehicleImpact = null;

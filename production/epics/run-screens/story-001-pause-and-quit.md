@@ -1,7 +1,7 @@
 # Story 001: Pause menu and quitting
 
 > **Epic**: Run Screens
-> **Status**: Ready
+> **Status**: In Review (2026-10-04, 0.7.7 candidate) — Windows desktop quit and Title Esc-Esc await Andy's check
 > **Layer**: Presentation
 > **Type**: Integration
 > **Estimate**: 3 h (M)
@@ -69,7 +69,7 @@ Andy (2026-10-04): "i need a better way to quit the windows build and a pause me
 **Story Type**: Integration
 **Required evidence**: PlayMode test `unity/StormChaserLoop3D/Assets/Tests/PlayMode/PauseTests.cs` (freeze, resume time, forfeit, auto-pause) + retained screenshots of Pause and the quit confirm in `production/qa/evidence/`
 
-**Status**: [ ] Not yet created
+**Status**: [x] `Tests/Gameplay/PauseMenuTests.cs` (6) + `Tests/PlayMode/PauseTests.cs` (4) passing; WebGL screenshots `production/qa/evidence/run-screens-{pause,pause-frozen,quit-confirm,resumed}.png`
 
 ---
 

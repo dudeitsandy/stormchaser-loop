@@ -6,12 +6,14 @@ using UnityEngine.InputSystem.Utilities;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Owns the Title → Running → Results → Retry loop. Gates input, damage, spawning, and the timer,
-/// and raises <see cref="GameEvents.RunStarted"/> / <see cref="GameEvents.RunEnded"/>.
+/// Owns the Title → Running (⇄ Paused) → Results → Retry loop. Gates input, damage, spawning, the timer and
+/// time scale, and raises <see cref="GameEvents.RunStarted"/> / <see cref="GameEvents.RunEnded"/> /
+/// <see cref="GameEvents.PauseChanged"/> / <see cref="GameEvents.RunForfeited"/>. Pause, forfeit and quit are run
+/// state; <see cref="RunScreens"/> only draws them (design/ux/run-screens.md).
 /// </summary>
 public class RunManager : MonoBehaviour
 {
-    public enum State { Title, Running, Ending, Results }
+    public enum State { Title, Running, Paused, Ending, Results }
 
     [SerializeField] private SessionTimer _timer;
     [SerializeField] private ScoreAccumulator _score;
@@ -28,6 +30,9 @@ public class RunManager : MonoBehaviour
 
     private RunScreens _screens;
     private IDisposable _anyButton;
+    private PauseMenu _pauseMenu;
+    private float _stickY;
+    private const float StickThreshold = 0.5f;
 
     // Set before a retry reload so the next scene load skips the title.
     private static bool _skipTitleOnLoad;
@@ -54,12 +59,14 @@ public class RunManager : MonoBehaviour
     {
         _timer.OnSessionEnd.AddListener(OnTimerEnd);
         if (_health != null) _health.OnWrecked.AddListener(OnWrecked);
+        InputSystem.onDeviceChange += OnDeviceChange;
     }
 
     private void OnDisable()
     {
         _timer.OnSessionEnd.RemoveListener(OnTimerEnd);
         if (_health != null) _health.OnWrecked.RemoveListener(OnWrecked);
+        InputSystem.onDeviceChange -= OnDeviceChange;
     }
 
     private void Start()
@@ -79,6 +86,7 @@ public class RunManager : MonoBehaviour
     {
         _anyButton?.Dispose();
         Time.timeScale = 1f;
+        AudioListener.pause = false;
     }
 
     private void EnterTitle()
@@ -90,9 +98,179 @@ public class RunManager : MonoBehaviour
         WaitForAnyButton(0.25f, control =>
         {
             if (control != Keyboard.current?.escapeKey) StartRun();
-            else if (CanQuit) Quit();
+            else if (CanQuit) ConfirmQuitGame();
             else EnterTitle(); // WebGL: Application.Quit halts the player and freezes the canvas
         });
+    }
+
+    // Windows title: Esc asks first ("QUIT GAME? ESC AGAIN"); any other press returns to the title, never starts a run.
+    private void ConfirmQuitGame()
+    {
+        _screens.ShowQuitGameConfirm();
+        WaitForAnyButton(0.15f, control =>
+        {
+            if (control == Keyboard.current?.escapeKey) Quit();
+            else EnterTitle();
+        });
+    }
+
+    private void Update()
+    {
+        if (Current == State.Running && PausePressed()) Pause(PauseReason.Manual);
+        else if (Current == State.Paused) HandlePauseInput();
+    }
+
+    /// <summary>
+    /// Pauses a running run: freezes time, the timer and audio, disables driving, shows the pause menu. Ignored in
+    /// any other state (title, wreck beat, results). Public for PlayMode tests.
+    /// </summary>
+    public void Pause(PauseReason reason)
+    {
+        if (Current != State.Running) return;
+        Current = State.Paused;
+        Time.timeScale = 0f;
+        AudioListener.pause = true;
+        SetGameplayActive(false);
+        _pauseMenu = new PauseMenu(CanQuit);
+        _screens.ShowPause(_pauseMenu, null, OnPauseHover, OnPauseClick);
+        GameEvents.RaisePauseChanged(true, reason);
+    }
+
+    /// <summary>Resumes a paused run exactly where it stopped. Public for PlayMode tests.</summary>
+    public void Resume()
+    {
+        if (Current != State.Paused) return;
+        Current = State.Running;
+        _pauseMenu = null;
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
+        _screens.Hide();
+        SetGameplayActive(true);
+        // The press that resumed belongs to the menu: keep the shutter safe until it's released.
+        if (_photo != null)
+        {
+            _photo.Armed = false;
+            StartCoroutine(ArmShutterOnRelease());
+        }
+        GameEvents.RaisePauseChanged(false, PauseReason.Manual);
+    }
+
+    /// <summary>
+    /// Quit Run, confirmed: the run is forfeited (no run end, nothing banked) and the scene reloads to the title.
+    /// Public for PlayMode tests.
+    /// </summary>
+    public void ForfeitRun(bool quitToDesktop = false)
+    {
+        if (Current != State.Paused && Current != State.Running) return;
+        _timer.Stop();
+        _spawner.Stop();
+        GameEvents.RaiseRunForfeited();
+        AudioListener.pause = false;
+        if (quitToDesktop && CanQuit) Quit();
+        else Reload(skipTitle: false);
+    }
+
+    /// <summary>
+    /// Window or tab focus changed. Losing focus mid-run pauses; regaining it never resumes (the player presses
+    /// Resume). Batchmode test runners report no real focus, so they pass <paramref name="ignore"/>.
+    /// </summary>
+    public void HandleFocusChange(bool focused, bool ignore)
+    {
+        if (!focused && !ignore && Current == State.Running) Pause(PauseReason.FocusLost);
+    }
+
+    private void OnApplicationFocus(bool focused) => HandleFocusChange(focused, Application.isBatchMode);
+    private void OnApplicationPause(bool paused) => HandleFocusChange(!paused, Application.isBatchMode);
+
+    private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+    {
+        if (device is Gamepad && (change == InputDeviceChange.Removed || change == InputDeviceChange.Disconnected)
+            && Current == State.Running)
+            Pause(PauseReason.ControllerLost);
+    }
+
+    private static bool PausePressed()
+    {
+        Keyboard kb = Keyboard.current;
+        if (kb != null && (kb.pKey.wasPressedThisFrame || kb.escapeKey.wasPressedThisFrame)) return true;
+        foreach (Gamepad pad in Gamepad.all)
+            if (pad.startButton.wasPressedThisFrame) return true;
+        return false;
+    }
+
+    private void HandlePauseInput()
+    {
+        if (_pauseMenu == null) return;
+        Keyboard kb = Keyboard.current;
+        int move = 0;
+        bool select = false, back = false;
+        if (kb != null)
+        {
+            if (kb.wKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame) move = -1;
+            if (kb.sKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame) move = 1;
+            select |= kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame;
+            back |= kb.escapeKey.wasPressedThisFrame || kb.pKey.wasPressedThisFrame;
+        }
+        foreach (Gamepad pad in Gamepad.all)
+        {
+            if (pad.dpad.up.wasPressedThisFrame) move = -1;
+            if (pad.dpad.down.wasPressedThisFrame) move = 1;
+            select |= pad.buttonSouth.wasPressedThisFrame;
+            back |= pad.buttonEast.wasPressedThisFrame || pad.startButton.wasPressedThisFrame;
+        }
+        // Left stick: one step per push past the threshold.
+        float y = 0f;
+        foreach (Gamepad pad in Gamepad.all) if (Mathf.Abs(pad.leftStick.y.ReadValue()) > Mathf.Abs(y)) y = pad.leftStick.y.ReadValue();
+        if (move == 0)
+        {
+            if (y > StickThreshold && _stickY <= StickThreshold) move = -1;
+            else if (y < -StickThreshold && _stickY >= -StickThreshold) move = 1;
+        }
+        _stickY = y;
+
+        if (back) Apply(_pauseMenu.Back());
+        else if (select) Apply(_pauseMenu.Select());
+        else if (move != 0)
+        {
+            _pauseMenu.Move(move);
+            _screens.ShowPause(_pauseMenu, null, OnPauseHover, OnPauseClick);
+        }
+    }
+
+    private void OnPauseHover(int index)
+    {
+        // Rebuild only on a real change, so a rebuilt entry under a resting pointer can't re-trigger hover.
+        if (_pauseMenu == null || _pauseMenu.Confirming.HasValue || index == _pauseMenu.Focus) return;
+        _pauseMenu.FocusOn(index);
+        _screens.ShowPause(_pauseMenu, null, OnPauseHover, OnPauseClick);
+    }
+
+    private void OnPauseClick(int index)
+    {
+        if (_pauseMenu == null) return;
+        if (_pauseMenu.Confirming.HasValue)
+        {
+            // Confirm row: 0 = KEEP PLAYING, 1 = QUIT.
+            if ((index == 1) != _pauseMenu.ConfirmQuitFocused) _pauseMenu.Move(1);
+        }
+        else _pauseMenu.FocusOn(index);
+        Apply(_pauseMenu.Select());
+    }
+
+    private void Apply(PauseAction action)
+    {
+        switch (action)
+        {
+            case PauseAction.Resume: Resume(); break;
+            case PauseAction.ForfeitToTitle: ForfeitRun(); break;
+            case PauseAction.QuitToDesktop: ForfeitRun(quitToDesktop: true); break;
+            case PauseAction.ShowSettings:
+                _screens.ShowPause(_pauseMenu, "SETTINGS  ·  COMING SOON", OnPauseHover, OnPauseClick); // story 002
+                break;
+            default:
+                _screens.ShowPause(_pauseMenu, null, OnPauseHover, OnPauseClick);
+                break;
+        }
     }
 
     /// <summary>Starts a run immediately (title dismissed). Public for PlayMode tests.</summary>
@@ -147,7 +325,9 @@ public class RunManager : MonoBehaviour
         _screens.ShowResults(summary);
         WaitForAnyButton(_resultsInputDelay, control =>
         {
-            Reload(skipTitle: control != Keyboard.current?.escapeKey);
+            bool toTitle = control == Keyboard.current?.escapeKey
+                           || (control.device is Gamepad pad && control == pad.buttonEast);
+            Reload(skipTitle: !toTitle);
         });
     }
 

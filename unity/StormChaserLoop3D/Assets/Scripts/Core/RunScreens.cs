@@ -172,6 +172,62 @@ public class RunScreens : MonoBehaviour
             _overlay.Add(MakeLabel("Different version: storms may differ.", 16, Alarm));
     }
 
+    /// <summary>
+    /// Pause menu (design/ux/run-screens.md): PAUSED over the frozen world, the entries with the focused one
+    /// marked, or the quit confirm. <paramref name="message"/> is an optional line under the menu. Entries are
+    /// mouse-hoverable and clickable; callbacks get the entry index (confirm: 0 KEEP PLAYING, 1 QUIT).
+    /// </summary>
+    public void ShowPause(PauseMenu menu, string message, System.Action<int> onHover, System.Action<int> onClick)
+    {
+        ClearOverlay();
+        _overlay.Add(MakeLabel("PAUSED", 72, Amber, bold: true, letterSpacing: 12));
+        _overlay.Add(Spacer(28));
+        if (menu.Confirming.HasValue)
+        {
+            string what = menu.Confirming.Value == PauseItem.QuitToDesktop ? "QUIT TO DESKTOP?" : "QUIT RUN?";
+            _overlay.Add(MakeLabel($"{what} NOTHING FROM THIS RUN IS BANKED.", 24, Alarm, bold: true, letterSpacing: 2));
+            _overlay.Add(Spacer(16));
+            _overlay.Add(MenuEntry("KEEP PLAYING", !menu.ConfirmQuitFocused, 0, null, onClick));
+            _overlay.Add(MenuEntry("QUIT", menu.ConfirmQuitFocused, 1, null, onClick));
+        }
+        else
+        {
+            for (int i = 0; i < menu.Items.Count; i++)
+                _overlay.Add(MenuEntry(PauseMenu.Label(menu.Items[i]), i == menu.Focus, i, onHover, onClick));
+        }
+        if (!string.IsNullOrEmpty(message))
+        {
+            _overlay.Add(Spacer(16));
+            _overlay.Add(MakeLabel(message, 18, Dim, letterSpacing: 4));
+        }
+        _overlay.Add(Spacer(28));
+        _overlay.Add(MakeLabel("W S / D-PAD  MOVE      ENTER / A  PICK      ESC / B  BACK", 16, Dim, letterSpacing: 2));
+        _overlay.style.display = DisplayStyle.Flex;
+    }
+
+    /// <summary>Windows title: the second Esc quits; anything else returns to the title.</summary>
+    public void ShowQuitGameConfirm()
+    {
+        ClearOverlay();
+        _overlay.Add(MakeLabel("QUIT GAME?", 72, Amber, bold: true, letterSpacing: 12));
+        _overlay.Add(Spacer(24));
+        AddPrompt("ESC AGAIN TO QUIT      ANY OTHER KEY  BACK");
+        _overlay.style.display = DisplayStyle.Flex;
+    }
+
+    // A focusable menu row: "> ENTRY <" in amber when focused (the font has no ▸ glyph guarantee).
+    private static Label MenuEntry(string text, bool focused, int index, System.Action<int> onHover, System.Action<int> onClick)
+    {
+        Label entry = MakeLabel(focused ? $">  {text}  <" : text, 30, focused ? Amber : Bone, bold: focused, letterSpacing: 6);
+        entry.pickingMode = PickingMode.Position;
+        entry.style.minWidth = 420;
+        entry.style.paddingTop = 6;
+        entry.style.paddingBottom = 6;
+        if (onHover != null) entry.RegisterCallback<PointerEnterEvent>(_ => onHover(index));
+        if (onClick != null) entry.RegisterCallback<ClickEvent>(_ => onClick(index));
+        return entry;
+    }
+
     /// <summary>Hides whichever screen is showing.</summary>
     public void Hide()
     {
