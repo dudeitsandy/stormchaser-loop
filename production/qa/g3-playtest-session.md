@@ -96,11 +96,8 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 ## Part C — Decisions (Andy, ≈ 10 min)
 
 - [ ] **C1 — G3 verdict:** PASS / PASS with tuning notes for Sprint 8 / FAIL (one more feel pass first)
-- [ ] **C2 — Hay bale conflict (Codex, 2026-10-03, unanswered):** a 250 kg bale hit at 50 MPH registers an
-      impact under E13. Pick one:
-      (a) accept a reported impact with no HP cost (HP is off anyway until S8-C1)
-      (b) drop the bale to about 100 kg so it's a clean knock-loose
-      (c) bales become solid, like barns
+- [x] **C2 — Hay bale conflict:** resolved 2026-10-03 (Claude, Codex acked): (a) a 250 kg bale registers a
+      light impact with no HP cost; `LooseSceneryPlayTests` covers it. Andy can still overrule here.
 - [ ] **C3 — X7-06 budget:** accept the GPU/browser evidence (0.68 ms mean / 1.58 ms p95 under strong wind)
       as enough for now and move the Unity CPU capture to Sprint 10's WebGL budget criterion, or block on it now
 - [ ] **C4 — Durability input for S8-C1:** after these runs, how many hits should a careful run survive?
