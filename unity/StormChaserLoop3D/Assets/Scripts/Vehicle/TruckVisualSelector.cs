@@ -28,6 +28,10 @@ public class TruckVisualSelector : MonoBehaviour
         if (cube != null) cube.gameObject.SetActive(!blender);
         if (pickup != null) pickup.gameObject.SetActive(blender);
         UsingBlender = blender;
+        // Only the pickup has separate wheels; they follow the suspension so the truck never sinks visually.
+        var wheels = GetComponent<WheelVisuals>();
+        if (wheels == null) wheels = gameObject.AddComponent<WheelVisuals>();
+        wheels.Bind(blender ? pickup : null);
     }
 
     private static bool CubeRequested()

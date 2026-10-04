@@ -43,6 +43,14 @@ public class PlayerVehicle : MonoBehaviour
 
     /// <summary>Signed forward speed in units/sec.</summary>
     public float CurrentSpeed => _model != null ? _model.ForwardSpeed : 0f;
+    /// <summary>Latest wheel ground contacts, FL, FR, RL, RR (read-only; for visuals and presentation).</summary>
+    public System.Collections.Generic.IReadOnlyList<WheelContact> WheelContacts => _contacts;
+    /// <summary>Wheel anchor points in vehicle-local space, FL, FR, RL, RR.</summary>
+    public System.Collections.Generic.IReadOnlyList<Vector3> WheelAnchors => _anchors;
+    /// <summary>Current front-wheel steer angle in degrees (positive = right).</summary>
+    public float SteerAngleDeg => _model != null ? _model.SteerAngleDeg : 0f;
+    /// <summary>Suspension rest length (anchor to ground at full droop), metres.</summary>
+    public float SuspensionRestLength => _values.RestLength;
     /// <summary>Top forward speed in units/sec (F13 v_top).</summary>
     public float MaxSpeed => _model != null ? _model.Params.TopSpeed : 0f;
     /// <summary>Tuning data for this vehicle.</summary>

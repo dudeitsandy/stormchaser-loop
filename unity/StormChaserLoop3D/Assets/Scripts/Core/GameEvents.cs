@@ -60,6 +60,30 @@ public readonly struct RunSummary
     public bool IsNewBest => Score > PreviousBest;
 }
 
+/// <summary>Role of a storm cell in the Weather Plan (storm-director.md Rule 3).</summary>
+public enum StormCellRole { Anchor, CoAnchor, Satellite }
+
+/// <summary>
+/// Payload for the storm-cell lifecycle events (storm-director.md Rule 11, agreed with Codex 2026-10-02).
+/// <see cref="Position"/> is the cell's position at that transition; per-frame values are a query surface.
+/// </summary>
+public readonly struct StormCellInfo
+{
+    public readonly int CellId;
+    /// <summary>True EF rating 0–5 (the forecast's ±1 estimate is separate).</summary>
+    public readonly int EF;
+    public readonly StormCellRole Role;
+    public readonly Vector3 Position;
+
+    public StormCellInfo(int cellId, int ef, StormCellRole role, Vector3 position)
+    {
+        CellId = cellId;
+        EF = ef;
+        Role = role;
+        Position = position;
+    }
+}
+
 /// <summary>
 /// Cross-system event hub. Gameplay raises, presentation (UI, audio, VFX) listens.
 /// Presentation code must never call the Raise methods.
@@ -103,6 +127,23 @@ public static class GameEvents
     public static void RaiseVehicleImpact(ImpactInfo impact) => VehicleImpact?.Invoke(impact);
     public static void RaiseTossed() => Tossed?.Invoke();
 
+    // Storm Director lifecycle (storm-director.md Rule 11): Forming → Peak → RopeOut → Ended for a full
+    // life; evicted while Forming: Forming → RopeOut → Ended; left the world or run ended: Ended only.
+    // Every spawned cell raises Ended exactly once; a cell that never spawns raises nothing.
+    /// <summary>A cell started Forming (visible, growing; no damage or lift yet).</summary>
+    public static event Action<StormCellInfo> StormCellForming;
+    /// <summary>A cell reached Mature (touchdown; for the anchor, the peak alert).</summary>
+    public static event Action<StormCellInfo> StormCellPeak;
+    /// <summary>A cell began Roping Out (normal decline or cap eviction).</summary>
+    public static event Action<StormCellInfo> StormCellRopeOut;
+    /// <summary>A cell is gone (Done, left the world, or the run ended).</summary>
+    public static event Action<StormCellInfo> StormCellEnded;
+
+    public static void RaiseStormCellForming(StormCellInfo cell) => StormCellForming?.Invoke(cell);
+    public static void RaiseStormCellPeak(StormCellInfo cell) => StormCellPeak?.Invoke(cell);
+    public static void RaiseStormCellRopeOut(StormCellInfo cell) => StormCellRopeOut?.Invoke(cell);
+    public static void RaiseStormCellEnded(StormCellInfo cell) => StormCellEnded?.Invoke(cell);
+
     // Static events survive play sessions when domain reload is disabled; clear them on entry.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics()
@@ -118,5 +159,9 @@ public static class GameEvents
         Landed = null;
         VehicleImpact = null;
         Tossed = null;
+        StormCellForming = null;
+        StormCellPeak = null;
+        StormCellRopeOut = null;
+        StormCellEnded = null;
     }
 }

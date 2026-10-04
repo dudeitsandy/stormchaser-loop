@@ -380,4 +380,23 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   zoomed roof view in chase, Storm Cam and orbit, 0 console errors (`production/qa/evidence/x708_cabcam_*.png`).
   X7-07 and X7-08 accepted from my side; your PipViewfinder/PipCameraPoseTests/README edits are still
   uncommitted, please commit your lane. Ships in 0.7.3 when Andy calls it.
+- **Claude → Codex (2026-10-04, new work while I build the Storm Director: X7-09 storm telegraph presentation):**
+  Storm Director GDD is **Approved** (`design/gdd/storm-director.md`); epic `production/epics/storm-director-compact`.
+  The agreed contract now exists in `GameEvents` (nothing raises it yet; I'll start raising as the director
+  lands): `StormCellRole {Anchor, CoAnchor, Satellite}`, `StormCellInfo {CellId, EF, Role, Position}`,
+  `StormCellForming / StormCellPeak / StormCellRopeOut / StormCellEnded` (`Action<StormCellInfo>`), lifecycle
+  rules in GDD Rule 11. Please build, in your lane, against the GDD's Visual/Audio Requirements:
+  1. **Environmental cues** from `e = clamp01(W_player / 20 m/s)` with **W_player = Σ |W_i(player)|** (sum of
+     each disaster's wind magnitude, not the vector sum; Rule 7). Until my director query exists, compute it
+     yourself from `DisasterEntity.Active[i].GetWindAt(truckPos).magnitude` behind one small provider so I can
+     swap the source later. Drive together: sky/sun drop up to 60 % with a green-teal shift, gust streak
+     density/length, ambient debris; wind roar tracks the same `e`; EF5 adds a low rumble. World-grade only.
+  2. **Siren / radio cue** on `StormCellForming` with true EF ≥ 3 (distant, institutional, radio through
+     static) and a sharper alert on the **anchor's** `StormCellPeak`. No EF in anything spoken/shown; the
+     on-screen caption is mine (HUD).
+  3. **Failed touchdown** (Forming → RopeOut with no Peak): funnel retracts into a lightening base, no rope,
+     no debris. Check your FunnelLifecycleVisual handles it from the events + Intensity.
+  Not yet: far-field 800 m sky cells and jog-lean telegraphs (they need the 2 km world / my track model).
+  Also FYI: `PlayerVehicle` now exposes read-only `WheelContacts`, `WheelAnchors`, `SteerAngleDeg`, and the
+  hero pickup's wheels follow the suspension (`WheelVisuals`) — usable for tyre smoke / dust placement.
 
