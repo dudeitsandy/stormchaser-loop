@@ -24,6 +24,11 @@ public sealed class TornadoCardVisual : MonoBehaviour
     [SerializeField, Min(0.1f)] private float _topRadius = 2f;
     [SerializeField] private float _swirlSpeed = 2.5f;
     [SerializeField] private Color _funnelColor = new Color(0.62f, 0.72f, 0.77f, 0.95f);
+    [SerializeField] private Color _violentFunnelColor = new Color(0.055f, 0.12f, 0.10f, 1f);
+    [SerializeField, Range(0f, 0.2f)] private float _jogLeanStrength = 0.08f;
+    private StormDirector _director;
+    private Vector3[] _jogVertices;
+    private bool _jogMeshApplied;
     [SerializeField] private Color _dustColor = new Color(0.72f, 0.57f, 0.35f, 0.5f);
     [SerializeField] private Color _cloudColor = new Color(0.22f, 0.28f, 0.29f, 0.85f);
     private TornadoController _controller;
@@ -111,6 +116,7 @@ public sealed class TornadoCardVisual : MonoBehaviour
     private void Awake()
     {
         _controller = GetComponent<TornadoController>();
+        _director = FindAnyObjectByType<StormDirector>();
         _assets = new CardVfxAssets();
         _root = new GameObject("IllustratedFunnel").transform;
         _root.SetParent(transform, false);
@@ -125,6 +131,7 @@ public sealed class TornadoCardVisual : MonoBehaviour
         {
             _funnelMesh = _mass.GetComponent<MeshFilter>().sharedMesh;
             _funnelVertices = new Vector3[(_segments + 1) * 2];
+            _jogVertices = new Vector3[_funnelVertices.Length];
             _funnelMesh.MarkDynamic();
         }
         _cloud = _assets.Create(_root, CardVfxAssets.Shape.Cloud, "FunnelCloudBase");
@@ -236,7 +243,9 @@ public sealed class TornadoCardVisual : MonoBehaviour
             cloud.a = _cloudColor.a * (phase == TornadoLifecycle.Phase.Dissipating ? intensity : Mathf.Lerp(0.35f, 1f, intensity));
             _assets.SetColor(CardVfxAssets.Shape.Cloud, cloud);
         }
-        Color funnel = _previewWedge ? new Color(0.12f, 0.2f, 0.18f, 0.96f) : _funnelColor;
+        float violent = Mathf.InverseLerp(1f, 12f / 4.3f, size);
+        Color funnel = _previewWedge ? new Color(0.12f, 0.2f, 0.18f, 0.96f)
+            : Color.Lerp(_funnelColor, _violentFunnelColor, violent);
         funnel.a *= Mathf.Clamp01(intensity * 3f);
         _assets.SetColor(CardVfxAssets.Shape.Funnel, funnel);
         if (_mass != null)
@@ -320,6 +329,7 @@ public sealed class TornadoCardVisual : MonoBehaviour
             float bearing = Mathf.Atan2(forward.x, forward.z) + _shapePhase;
             float depth = _controller.EFRating == "EF5" ? Mathf.Max(1f, _depthRatio) : _depthRatio;
             _mass.localScale = new Vector3(FunnelVisualDimensions.ProjectedRadius(_visualRadius, depth, bearing), _visualHeight, _visualRadius);
+            ApplyJogLean();
         }
         if (_cloud != null && !_previewWedge)
         {
@@ -339,6 +349,36 @@ public sealed class TornadoCardVisual : MonoBehaviour
         foreach (var card in _dust) if (card != null) CardVfxAssets.FaceCamera(card, camera);
         for (int i = 0; i < _debris.Length; i++)
             if (_debris[i] != null) CardVfxAssets.FaceCamera(_debris[i], camera, _age * 150f + i * 40f);
+    }
+    private void ApplyJogLean()
+    {
+        if (_funnelMesh == null || _director == null) return;
+        float lean = _controller.JogLean;
+        if (lean == 0f)
+        {
+            if (_jogMeshApplied) { _funnelMesh.vertices = _funnelVertices; _funnelMesh.RecalculateBounds(); }
+            _jogMeshApplied = false;
+            return;
+        }
+        var cells = _director.LiveCells;
+        for (int i = 0; i < cells.Count; i++)
+        {
+            if (cells[i].Tornado != _controller) continue;
+            float heading = cells[i].Track.HeadingDeg * Mathf.Deg2Rad;
+            Vector3 right = new Vector3(Mathf.Cos(heading), 0f, -Mathf.Sin(heading));
+            Vector3 local = _mass.InverseTransformVector(right * (lean * _jogLeanStrength * _visualHeight));
+            for (int v = 0; v < _funnelVertices.Length; v++)
+            {
+                Vector3 vertex = _funnelVertices[v];
+                // Ground and crown remain attached; the middle bows toward the upcoming turn.
+                float envelope = Mathf.Sin(vertex.y * Mathf.PI);
+                _jogVertices[v] = vertex + local * envelope;
+            }
+            _funnelMesh.vertices = _jogVertices;
+            _funnelMesh.RecalculateBounds();
+            _jogMeshApplied = true;
+            return;
+        }
     }
     private void OnDestroy()
     {

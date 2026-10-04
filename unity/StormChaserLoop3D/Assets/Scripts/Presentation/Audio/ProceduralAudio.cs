@@ -17,9 +17,9 @@ public sealed class ProceduralAudio : MonoBehaviour
     private static readonly ProfilerMarker UpdateMarker = new ProfilerMarker("Presentation.Audio.Update");
     private PlayerVehicle _vehicle;
     private AudioSource _effects, _engine, _wind, _skid, _vehicleEffects, _boost, _rumble, _stormAlert;
-    private AudioClip _formingAlert, _peakAlert;
+    private AudioClip _formingAlert, _emergencyAlert, _peakAlert;
     private readonly StormCellCueTracker _stormCells = new StormCellCueTracker();
-    private readonly Queue<(int CellId, float Level)> _stormQueue = new Queue<(int, float)>();
+    private readonly Queue<(int CellId, float Level, bool Emergency)> _stormQueue = new Queue<(int, float, bool)>();
     private int _playingCellId = -1;
     private bool _playingPeak;
     private AudioClip _shutter, _dryShutter, _hit, _finish, _wreck, _landing, _crunch, _toss, _boostStart;
@@ -59,7 +59,8 @@ public sealed class ProceduralAudio : MonoBehaviour
         _boost.clip = Clip("BoostRoarLoop", 1f, 11);
         _boostStart = Clip("BoostIgnition", 0.22f, 12);
         _rumble.clip = Clip("EF5LowRumble", 2f, 13);
-        _formingAlert = Clip("DistantStormRadioSiren", 2.5f, 14);
+        _formingAlert = Clip("BroadcastWarningRadio", 3.2f, 14);
+        _emergencyAlert = Clip("BroadcastEmergencyRadio", 4.2f, 16);
         _peakAlert = Clip("AnchorTouchdownAlert", 0.5f, 15);
     }
     private void Start()
@@ -135,7 +136,7 @@ public sealed class ProceduralAudio : MonoBehaviour
     {
         if (!Running || _stormQueue.Count >= 8) return;
         float distance = Vector3.Distance(_vehicle.transform.position, cell.Position);
-        _stormQueue.Enqueue((cell.CellId, Mathf.Clamp01(40f / Mathf.Max(40f, distance)) * 0.65f + 0.15f));
+        _stormQueue.Enqueue((cell.CellId, Mathf.Clamp01(40f / Mathf.Max(40f, distance)) * 0.65f + 0.15f, cell.EF >= 5));
     }
     private void CellForming(StormCellInfo cell) { if (_stormCells.Forming(cell)) QueueStormCue(cell); }
     private void CellPeak(StormCellInfo cell)
@@ -220,7 +221,7 @@ public sealed class ProceduralAudio : MonoBehaviour
             var cue = _stormQueue.Dequeue();
             if (_stormCells.IsForming(cue.CellId))
             {
-                _stormAlert.clip = _formingAlert;
+                _stormAlert.clip = cue.Emergency ? _emergencyAlert : _formingAlert;
                 _playingCellId = cue.CellId;
                 _playingPeak = false;
                 _stormAlert.volume = _stormAlertVolume * cue.Level;
@@ -257,10 +258,23 @@ public sealed class ProceduralAudio : MonoBehaviour
                 case 12: value = filtered * 2f * Mathf.Sin(Mathf.PI * t / seconds) + noise * 0.2f * Mathf.Exp(-t * 30f); break;
                 case 13: value = Mathf.Sin(2 * Mathf.PI * 35 * t) * 0.45f + Mathf.Sin(2 * Mathf.PI * 55 * t) * 0.2f + filtered * 0.25f; break;
                 case 14:
+                case 16:
+                    float attentionSeconds = kind == 16 ? 1.7f : 0.7f;
+                    if (t < attentionSeconds)
+                    {
+                        float pulseTime = Mathf.Repeat(t, kind == 16 ? 0.42f : 0.23f);
+                        float tone = kind == 16 ? 853f : (t < 0.23f ? 660f : t < 0.46f ? 880f : 990f);
+                        float envelope = Mathf.Clamp01(pulseTime / 0.012f) * Mathf.Clamp01((0.20f - pulseTime) / 0.025f);
+                        value = (Mathf.Sin(2f * Mathf.PI * tone * t) * 0.38f
+                            + (kind == 16 ? Mathf.Sin(2f * Mathf.PI * 960f * t) * 0.26f : 0f)) * envelope;
+                        break;
+                    }
                     // Filtered radio chatter texture and a distant institutional two-tone siren; no spoken EF.
-                    float carrier = t < 1.25f ? 420f : 560f;
+                    float radioTime = t - attentionSeconds;
+                    float carrier = radioTime < 1.25f ? 420f : 560f;
                     float chatter = Mathf.Max(0f, Mathf.Sin(t * 31f)) * Mathf.Sin(2 * Mathf.PI * 190 * t);
-                    value = Mathf.Sin(2 * Mathf.PI * carrier * t) * 0.22f + chatter * 0.16f + filtered * 0.55f;
+                    value = (Mathf.Sin(2 * Mathf.PI * carrier * t) * 0.22f + chatter * 0.16f + filtered * 0.55f)
+                        * Mathf.Clamp01(radioTime / 0.02f);
                     break;
                 case 15: value = (Mathf.Sin(2 * Mathf.PI * 880 * t) + Mathf.Sin(2 * Mathf.PI * 1320 * t) * 0.3f) * Mathf.Exp(-t * 5f) * 0.45f; break;
                 default: value = filtered * 2f; break;

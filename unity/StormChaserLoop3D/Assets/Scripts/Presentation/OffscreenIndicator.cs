@@ -7,6 +7,7 @@ public sealed class OffscreenIndicator : MonoBehaviour
     [SerializeField] private float _edgeMargin = 75f;
     private PlayerVehicle _vehicle;
     private Camera _camera;
+    private StormDirector _director;
     private VisualElement _root;
     private Label _label;
 
@@ -22,6 +23,8 @@ public sealed class OffscreenIndicator : MonoBehaviour
     {
         _vehicle = FindAnyObjectByType<PlayerVehicle>();
         _camera = Camera.main;
+        var spawner = FindAnyObjectByType<DisasterSpawner>();
+        _director = spawner != null ? spawner.Director : null;
         _root = PresentationOverlay.Create(transform, "TornadoIndicatorUI", 20);
         if (_root == null) return;
         _label = PresentationOverlay.Label("", 18, new Color(1f, 0.73f, 0.17f));
@@ -57,7 +60,20 @@ public sealed class OffscreenIndicator : MonoBehaviour
         Vector2 point = IndicatorGeometry.EdgePosition(local, new Vector2(width, height), _edgeMargin);
         string arrow = Mathf.Abs(direction.x) > Mathf.Abs(direction.y)
             ? (direction.x > 0 ? "▶" : "◀") : (direction.y > 0 ? "▼" : "▲");
-        _label.text = $"{arrow} {nearest.EFRating}\n{Mathf.Sqrt(distance):N0} m";
+        // The forecast owns severity estimates; true EF must never leak through this overlay.
+        string severity = "STORM";
+        if (_director != null && _director.Forecast != null)
+        {
+            var cells = _director.LiveCells;
+            for (int i = 0; i < cells.Count; i++)
+            {
+                if (cells[i].Tornado != nearest) continue;
+                ForecastRow forecast = _director.Forecast.Evaluate(cells[i], _vehicle.transform.position);
+                severity = $"{(forecast.Uncertain ? "~" : "")}EF{forecast.ShownEf}";
+                break;
+            }
+        }
+        _label.text = $"{arrow} {severity}\n{Mathf.Sqrt(distance):N0} m";
         _label.style.left = point.x - 70;
         _label.style.top = point.y - 27;
         _label.style.display = DisplayStyle.Flex;

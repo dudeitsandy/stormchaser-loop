@@ -6,7 +6,10 @@ public static class StormWindProvider
 {
     /// <summary>Samples summed magnitudes, strongest bearing and EF5 exposure without changing physics.</summary>
     public static void Sample(Vector3 position, out float exposure, out Vector3 bearing, out float ef5Exposure)
-        => Sample(DisasterEntity.Active, position, out exposure, out bearing, out ef5Exposure);
+    {
+        Sample(DisasterEntity.Active, position, out exposure, out bearing, out ef5Exposure);
+        exposure = StormTelegraph.EnvironmentIntensity(position);
+    }
 
     /// <summary>Explicit registry overload for native testing; runtime uses the active registry above.</summary>
     public static void Sample(IReadOnlyList<DisasterEntity> disasters, Vector3 position, out float exposure, out Vector3 bearing, out float ef5Exposure)
