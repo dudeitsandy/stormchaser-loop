@@ -64,7 +64,7 @@ far-field), 27, 29.
 | 003 | [Storm scale table and lifecycle intensity (F3)](story-003-storm-scale-intensity.md) | Logic | Done | N/A |
 | 004 | [New scale in play: wind drag, lift and toss](story-004-scale-in-play-wind-lift-toss.md) | Integration | Done | ADR-0005 |
 | 005 | [Track motion, jogs and fixed substeps (F5)](story-005-track-motion-jogs-substeps.md) | Logic | Done | N/A |
-| 006 | [Director runtime driver and StormCell lifecycle events](story-006-runtime-driver-lifecycle-events.md) | Integration | Ready | ADR-0004 |
+| 006 | [Director runtime driver and StormCell lifecycle events](story-006-runtime-driver-lifecycle-events.md) | Integration | Done | ADR-0004 |
 | 007 | [Forecast model and HUD forecast panel (F4)](story-007-forecast-model-hud.md) | UI | Ready | N/A |
 | 008 | [Telegraph hooks: siren caption and environmental-intensity query](story-008-telegraph-hooks-siren-e.md) | Integration | Ready | ADR-0003 |
 | 009 | [Results: seed, build version, regime, "The big one got away"](story-009-results-seed-big-one.md) | UI | Ready | N/A |

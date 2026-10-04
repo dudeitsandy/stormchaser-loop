@@ -27,6 +27,32 @@ public class TornadoController : DisasterEntity
 
     private TornadoData TornadoData => _data as TornadoData;
 
+    // Director-driven mode (storm-director.md story 006): the StormDirector owns position, phase and intensity.
+    private bool _directorDriven;
+    private StormScale.Phase _directorPhase;
+    private float _directorIntensity;
+    private float _directorLean;
+
+    /// <summary>True when the Storm Director drives this tornado (no internal lifecycle or wander).</summary>
+    public bool DirectorDriven => _directorDriven;
+    /// <summary>Jog telegraph lean while the director reports one: −1 left, +1 right, 0 none (presentation).</summary>
+    public float JogLean => _directorDriven ? _directorLean : 0f;
+    /// <summary>The data asset this tornado was spawned with.</summary>
+    public TornadoData Data => TornadoData;
+
+    /// <summary>
+    /// Called by the Storm Director every frame: places the funnel and sets its F3 phase and intensity. The
+    /// director also destroys it when the cell ends.
+    /// </summary>
+    public void SetDirectorState(Vector3 position, StormScale.Phase phase, float intensity, float jogLean)
+    {
+        _directorDriven = true;
+        _directorPhase = phase;
+        _directorIntensity = Mathf.Clamp01(intensity);
+        _directorLean = jogLean;
+        transform.position = position;
+    }
+
     /// <summary>
     /// Capture harness only (<see cref="StormCaptureHarness"/>): pins the tornado at the start of Mature and
     /// stops it moving, so a 60 s performance capture is never cut short by the lifecycle.
@@ -41,14 +67,31 @@ public class TornadoController : DisasterEntity
     public float ConeScale => TornadoData != null ? TornadoData.ConeScale : 1f;
     public string EFRating => TornadoData != null ? TornadoData.EFRating : "EF?";
     /// <summary>0–1 lifecycle strength.</summary>
-    public float Intensity => _lifecycle != null ? _lifecycle.GetIntensity(_age) : 1f;
-    public TornadoLifecycle.Phase Phase => _lifecycle != null ? _lifecycle.GetPhase(_age) : TornadoLifecycle.Phase.Mature;
+    public float Intensity => _directorDriven ? _directorIntensity
+        : _lifecycle != null ? _lifecycle.GetIntensity(_age) : 1f;
+    public TornadoLifecycle.Phase Phase
+    {
+        get
+        {
+            if (_directorDriven)
+            {
+                switch (_directorPhase)
+                {
+                    case StormScale.Phase.Forming: return TornadoLifecycle.Phase.Forming;
+                    case StormScale.Phase.Mature: return TornadoLifecycle.Phase.Mature;
+                    default: return TornadoLifecycle.Phase.Dissipating;
+                }
+            }
+            return _lifecycle != null ? _lifecycle.GetPhase(_age) : TornadoLifecycle.Phase.Mature;
+        }
+    }
 
     /// <summary>F3 phase: Forming deals no damage or lift; Roping Out scales with intensity.</summary>
     public StormScale.Phase ScalePhase
     {
         get
         {
+            if (_directorDriven) return _directorPhase;
             switch (Phase)
             {
                 case TornadoLifecycle.Phase.Forming: return StormScale.Phase.Forming;
@@ -101,6 +144,13 @@ public class TornadoController : DisasterEntity
 
     private void Update()
     {
+        if (_directorDriven)
+        {
+            ApplyScale();
+            transform.Rotate(0f, _spinDegreesPerSecond * Time.deltaTime, 0f, Space.Self);
+            return;
+        }
+
         bool holding = HoldMature || HoldFormingIntensity >= 0f;
         if (HoldFormingIntensity >= 0f) _age = _lifecycle.FormSeconds * Mathf.Min(HoldFormingIntensity, 0.999f);
         else _age = HoldMature ? _lifecycle.FormSeconds : _age + Time.deltaTime;

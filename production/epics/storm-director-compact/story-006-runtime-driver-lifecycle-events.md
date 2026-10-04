@@ -1,7 +1,7 @@
 # Story 006: Director runtime driver and StormCell lifecycle events
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: Ready
+> **Status**: Done (2026-10-04)
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: 5 h (L)
@@ -70,7 +70,7 @@ The MonoBehaviour that runs the plan in compact mode: it replaces `DisasterSpawn
 **Story Type**: Integration
 **Required evidence**: Integration: automated PlayMode test (or a documented playtest) — `unity/StormChaserLoop3D/Assets/Tests/PlayMode/StormDirectorPlayTests.cs`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (`Tests/PlayMode/StormDirectorPlayTests.cs`, 7 cases)
 
 ---
 

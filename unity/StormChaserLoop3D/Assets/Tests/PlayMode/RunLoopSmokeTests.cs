@@ -42,10 +42,18 @@ public class RunLoopSmokeTests
             run.StartRun();
             Assert.AreEqual(RunManager.State.Running, run.Current);
 
-            // First spawn is 1.5s in; give it time to finish forming (3s) so it can do damage.
-            yield return new WaitForSeconds(5f);
-            Assert.Greater(DisasterEntity.Active.Count, 0, "A tornado should have spawned");
-            var tornado = (TornadoController)DisasterEntity.Active[0];
+            // The Storm Director's first cell can be ~10 s+ away, so place a known EF2 held Mature (it can damage).
+            var spawner = Object.FindAnyObjectByType<DisasterSpawner>();
+            spawner.Stop();
+            const BindingFlags Hidden = BindingFlags.NonPublic | BindingFlags.Instance;
+            var prefab = (TornadoController)typeof(DisasterSpawner).GetField("_tornadoPrefab", Hidden).GetValue(spawner);
+            var roster = (List<DisasterSpawner.RosterEntry>)typeof(DisasterSpawner).GetField("_roster", Hidden).GetValue(spawner);
+            TornadoData ef2 = roster.Select(e => e.Data).First(d => d != null && d.EFRating == "EF2");
+            var tornado = Object.Instantiate(prefab, truck.transform.position + new Vector3(0f, -0.5f, 45f), Quaternion.identity);
+            tornado.Initialize(ef2, truck.transform);
+            tornado.HoldMature = true;
+            yield return null;
+            yield return new WaitForFixedUpdate();
             Debug.Log($"[Smoke] {tornado.EFRating} intensity={tornado.Intensity:F2} radius={tornado.DamageRadius:F2}");
 
             // Park 20 units away, facing it: textbook PERFECT shot.

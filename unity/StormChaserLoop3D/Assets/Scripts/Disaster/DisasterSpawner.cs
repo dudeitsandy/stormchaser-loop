@@ -2,7 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>Spawns tornadoes ahead of the player during a run. Stronger EF ratings become likelier as the run goes on.</summary>
+/// <summary>
+/// Run-start entry point for storms. By default it hands the run to the <see cref="StormDirector"/>
+/// (storm-director.md, story 006), which installs itself on this GameObject. The pre-director random timer
+/// (tornadoes ahead of the player, stronger EFs later) remains behind URL <c>?spawner=legacy</c> or desktop
+/// <c>-spawner=legacy</c>, or by unticking Use Director.
+/// </summary>
 public class DisasterSpawner : MonoBehaviour
 {
     [Serializable]
@@ -32,6 +37,14 @@ public class DisasterSpawner : MonoBehaviour
     [SerializeField] private float _spawnArcDegrees = 70f;
     [SerializeField] private float _worldHalfExtent = 85f;
 
+    [Header("Storm Director")]
+    [Tooltip("Run storms from the Storm Director's seeded plan (default) instead of the legacy random timer.")]
+    [SerializeField] private bool _useDirector = true;
+    private StormDirector _director;
+
+    /// <summary>The director running storms, or null in legacy mode.</summary>
+    public StormDirector Director => _director;
+
     private readonly List<float> _early = new List<float>();
     private readonly List<float> _late = new List<float>();
     private float _nextSpawnTime = float.PositiveInfinity;
@@ -44,17 +57,44 @@ public class DisasterSpawner : MonoBehaviour
             _early.Add(entry.EarlyWeight);
             _late.Add(entry.LateWeight);
         }
+        if (_useDirector && !LegacyRequested())
+        {
+            _director = GetComponent<StormDirector>();
+            if (_director == null) _director = gameObject.AddComponent<StormDirector>();
+        }
     }
 
-    /// <summary>Starts spawning. Called by RunManager when the run begins.</summary>
+    /// <summary>Starts the run's storms. Called by RunManager when the run begins.</summary>
     public void Begin()
     {
+        if (_director != null)
+        {
+            var roster = new List<TornadoData>(_roster.Count);
+            foreach (RosterEntry entry in _roster) roster.Add(entry.Data);
+            Vector3 origin = _player != null ? _player.position : Vector3.zero;
+            _director.Begin(_tornadoPrefab, roster, origin, StormDirector.ResolveSeed());
+            return;
+        }
         _running = true;
         _nextSpawnTime = Time.time + _firstSpawnDelay;
     }
 
-    /// <summary>Stops spawning; existing tornadoes keep going.</summary>
-    public void Stop() => _running = false;
+    /// <summary>Stops spawning. With the director, live cells raise Ended (run end); legacy tornadoes keep going.</summary>
+    public void Stop()
+    {
+        _running = false;
+        if (_director != null) _director.EndRun();
+    }
+
+    private static bool LegacyRequested()
+    {
+        const string arg = "spawner=legacy";
+        foreach (string a in Environment.GetCommandLineArgs())
+            if (a == "-" + arg) return true;
+        foreach (string token in Application.absoluteURL.Split('?', '&', '#'))
+            if (token == arg) return true;
+        return false;
+    }
 
     private void Update()
     {
