@@ -21,7 +21,9 @@ tags, any unlock, and the seed to replay. Without results the roguelite loop has
 title, outside players bounce before their first storm.
 
 **Out of scope for M1** (`save-profile.md` UI Requirements, built with the full Save & Profile system after
-M1): the Profiles menu (3 slots), Rename, and the Album screen. The vehicle-damage "DAMAGED" / "CRITICAL"
+M1): the Profiles menu (3 slots), Rename, and the Album screen. M1 persists through a **Save & Profile stem**
+(Andy, 2026-10-04: profile + device file, no ReadOnly state), so the three read-only reason lines are post-M1;
+the write-failure toast and the storage banner (session-only fallback) apply. The vehicle-damage "DAMAGED" / "CRITICAL"
 stage flash is HUD, not a run screen: today the HP label reads CRITICAL (`HudController`); a DAMAGED flash goes
 to a future HUD spec (`/ux-design hud`).
 

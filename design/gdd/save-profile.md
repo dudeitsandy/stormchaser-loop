@@ -5,6 +5,10 @@
 > **Last Updated**: 2026-10-01
 > **Last Verified**: 2026-10-01
 > **Implements Pillar**: 5 — Roguelite Identity & Cataclysm Heat (game-concept.md)
+> **M1 stem (2026-10-04, Andy):** M1 builds only a disposable stem (profile file: accomplishments, unlocks,
+> livery choice, best score; device file: Settings; tmp + rename writes; SchemaVersion 0). It is **not** this
+> spec: slots, album, migrations, ReadOnly / instance lock, checksums, `.bak`, Steam Cloud and the rest wait for
+> the full design and review after M1. Stem saves may be reset by the full build.
 
 ## Summary
 

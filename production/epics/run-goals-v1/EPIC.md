@@ -27,10 +27,7 @@ compact map; measured first) and browser save storage (see below).
 |-----|-----------------|-------------|
 | ADR-0005: Raycast vehicle architecture | Source of the drift, airtime (E2: counted above 1.8 m), near-miss and toss events the goals read | LOW |
 
-**Gap:** `save-profile.md` lists WebGL save storage (IndexedDB sync behaviour) as an open ADR question. This epic
-writes the first save file, so an `/architecture-decision` on browser save storage is recommended before the
-accomplishments-record story. Other stories do not depend on it. At `workflow: standard` only critical
-Foundation-layer ADRs are expected, so this is advisory.
+**Persistence (Andy, 2026-10-04):** M1 builds a Save & Profile **stem**, not `save-profile.md`. **M1 stem** (Andy, 2026-10-04): one profile file (accomplishments record, unlocks, `LastLoadout.livery`, best score, imported once from the PlayerPrefs `BestScoreStore`) and one device file (Settings), each written tmp + rename, `SchemaVersion` 0 (**disposable**: the full build may reset them; patch notes say so). Stable string IDs for goals and unlocks still apply. Gated by a ~1 h WebGL IndexedDB sync check; if it fails, M1 persistence is session-only. Nothing else from `save-profile.md` is in M1. No ADR is needed for the stem; the WebGL sync check (story 005) is the gate. The full Save & Profile design, review and ADR come after M1.
 
 ## GDD Requirements
 
@@ -57,7 +54,7 @@ No `tr-registry.yaml` exists yet; requirement IDs are local to this epic and cit
 | 002 | [Goal catalogue and seeded bounty draw](story-002-catalogue-bounty-draw.md) | Logic | Ready | N/A |
 | 003 | [Goal evaluation, bonuses and goal events](story-003-goal-evaluation.md) | Logic | Ready | N/A |
 | 004 | [Goal tracker in a live run](story-004-tracker-in-play.md) | Integration | Ready | ADR-0005 |
-| 005 | [Accomplishments record and first save slice](story-005-accomplishments-save-slice.md) | Integration | **Blocked** (WebGL save ADR) | missing |
+| 005 | [Accomplishments record and first save slice](story-005-accomplishments-save-slice.md) | Integration | Ready (WebGL sync check first) | N/A (M1 stem) |
 | 006 | [KTVR livery reward](story-006-livery-reward.md) | Integration | Ready (after 005) | N/A |
 | 007 | [HUD bounty list and career-goal pop-up](story-007-hud-bounties-popup.md) | UI | Ready | N/A |
 | 008 | [Achievability check before release](story-008-achievability-check.md) | Config/Data | Ready | N/A |

@@ -26,8 +26,9 @@ depend on the Run Goals v1 epic.
 |-----|-----------------|-------------|
 | — | No ADR governs these screens | — |
 
-Settings and the paint choice persist through Save & Profile, so the same WebGL save-storage gap noted in
-`run-goals-v1` applies to the Settings story. Advisory at `workflow: standard`.
+Settings and the paint choice persist through the **Save & Profile M1 stem** (Andy, 2026-10-04; built in
+`run-goals-v1` story 005: device file for Settings, tmp + rename, SchemaVersion 0, session-only fallback if the
+WebGL sync check fails). Read-only save states are post-M1.
 
 ## GDD Requirements
 
@@ -37,7 +38,7 @@ Requirement IDs are local to this epic and cite the UX spec section.
 |----|-------------|--------------|
 | RS-R01 | Pause: P / Start / Esc, auto-pause on focus loss / fullscreen exit / controller disconnect, never auto-resume; RunManager owns time scale (Entry & Exit, States, Data) | N/A |
 | RS-R02 | Quit Run and Quit to Desktop (Windows only) with KEEP PLAYING default confirm; quit forfeits the run; Title Esc-Esc quits on Windows (Entry & Exit) | N/A |
-| RS-R03 | Settings v1 panel from Title and Pause; live apply; saved on close; resolution row Windows only (Layout, Interaction Map) | Gap: WebGL save ADR |
+| RS-R03 | Settings v1 panel from Title and Pause; live apply; saved on close; resolution row Windows only (Layout, Interaction Map) | N/A (M1 stem, run-goals-v1 story 005) |
 | RS-R04 | Wrecked beat: 0.3× time for 1.5 s real time, HUD fade, WRECKED slam; pause ignored (Transitions) | N/A |
 | RS-R05 | Results: two columns (one below 1000 px wide), goals column with short names, NEW, unlock banner, empty state, save toast / read-only lines, 1.0 s input lock (Layout, States) | N/A |
 | RS-R06 | Title: career strip, career page, paint toggle, profile-loading state, storage banner; O / Select settings key (Layout, States) | N/A |

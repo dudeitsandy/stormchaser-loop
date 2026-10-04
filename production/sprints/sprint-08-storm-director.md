@@ -18,7 +18,9 @@ results) are specified and complete.
 - Claude: ~26.5 h of epic stories + 2 h tuning. Codex: X7-09 telegraph presentation on `StormCell*` events.
 - Design freeze in effect (M1): no new GDDs. The re-scope uses the freeze's two M1 exceptions: the run-goals
   section of `event-system.md` and the run-screens UX spec.
-- Re-scoped work: ~5 h of Andy design sessions (run goals, run screens) + ~16 h Claude build.
+- Re-scoped work: ~5 h of Andy design sessions (run goals, run screens) + ~21–23 h Claude build: RG-2a in-run
+  goals ~10 h → Save & Profile **M1 stem** + WebGL sync check ~5–7 h → RG-2b persistence (record, livery, career
+  page, title toggle) ~4 h, plus RS-2. Fits the free capacity left by the early Storm Director finish.
 
 ## Gates (Andy)
 | Gate | When | Pass = | Result |
@@ -54,7 +56,7 @@ results) are specified and complete.
 | RG-2 | Claude | Run goals v1 build: stories via `/create-stories` once RG-1 is approved (goal model, tracking from existing events, HUD list, results tally) | Logic + UI | ~10 h | Blocked on RG-1 |
 | RS-1 | Andy + Claude | Run screens UX spec (`/ux-design`): title, pause/quit, wrecked, results; documents what's built, fills gaps, places run goals on results | Design | 2 h | After RG-1 |
 | RS-2 | Claude | Run screens build: gaps from RS-1 (pause/quit, wrecked state, results goal tally) | UI | ~6 h | Blocked on RS-1 |
-| PT-1 | Andy | Outside playtest round 1 on 0.7.5 with the tester brief (Google Doc), 3+ players; findings logged here | Playtest | — | Out with players |
+| PT-1 | Andy | Outside playtest round 1 on 0.7.5 with the tester brief (Google Doc), 3+ players; findings logged **in the repo** (this file) | Playtest | — | Out with players; **due 2026-10-11** |
 
 ### Not this sprint
 S8-C2 per-truck HP redesign → **deferred past M1** (Andy, 2026-10-04). Driving tuning pass → Sprint 9.
@@ -73,7 +75,7 @@ Bystander "VIEWER VIDEO" cellphone clip on the main storm's touchdown (Andy, 202
 |------|------------|
 | Tuning (regime weights, jog rate, forecast error) eats the sprint (R09) | Ship GDD placeholder values; tune only after G4 |
 | Claude and Codex both touching tornado code (R11) | Director code is Claude's; presentation reads `StormCell*` events and the query surface only |
-| Run-goals design grows into a progression system (re-scope) | v1 is in-run only: no unlocks, no meta, no saved goal history. Anything bigger goes to `production/backlog.md` |
+| Run-goals design grows into a progression system (re-scope) | Persistence is in M1 **only as the stem** (Andy, 2026-10-04): **M1 stem** (Andy, 2026-10-04): one profile file (accomplishments record, unlocks, `LastLoadout.livery`, best score, imported once from the PlayerPrefs `BestScoreStore`) and one device file (Settings), each written tmp + rename, `SchemaVersion` 0 (**disposable**: the full build may reset them; patch notes say so). Stable string IDs for goals and unlocks still apply. Gated by a ~1 h WebGL IndexedDB sync check; if it fails, M1 persistence is session-only. Nothing else from `save-profile.md` is in M1. No garage, Storm Dollars balance, slots or album. Anything bigger goes to `production/backlog.md` |
 
 ## Playtest findings (Andy, 2026-10-04, 0.7.5)
 - G4 storm tension and G5 durability both pass. Next: hand 0.7.5 to outside players for fresh eyes.
