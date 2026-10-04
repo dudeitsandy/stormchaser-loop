@@ -1,4 +1,33 @@
-# Sprint 7 — Build the Feel (2026-10-02 → 2026-10-15)
+# Sprint 7 — Build the Feel (2026-10-01 → closes at G3, no later than 2026-10-15)
+
+## Status (2026-10-04, producer audit)
+**ON TRACK.** All Claude Must-Haves are done except the S7-06 physics measurement. What's left needs Andy,
+not code: one 60–90 min session covering the G3 feel playtest, the Codex live acceptance checks (X7-01/02/03/04/06,
+X7-07), and the S7-06 G1-condition physics measurement. Sprint 7 closes when that session is logged.
+
+| ID | Status | Evidence / what's left |
+|----|--------|------------------------|
+| S7-00 | Done | 0.5.0 live (fd0be93) |
+| S7-01 | Done | G1 PASS w/ condition, 2 km kept (5c364fb) |
+| S7-02 | Done | ADR-0005 Accepted (dacca25) |
+| S7-03 | Done | e2f590f, fd64700, 92b3996 |
+| S7-04 | Done | b13cc65 |
+| S7-05 | Done | 07e0f14 |
+| S7-06 | Partial | Impacts raise events (8213fea); HP cost off pending S8-C2. **Open:** physics step ≤ 4 ms with real debris (X7-07 props) in WebGL |
+| S7-07 | Done | G2 PASS (e268cdc) |
+| X7-01 | Done | Superseded by X7-08 cab cam, shipped 0.7.3 (73a1cd6) |
+| X7-02 / X7-03 | Partial | Shipped 0.7.0; live trigger/listening check by Andy pending |
+| X7-04 | Partial | Single funnel + sky-first lifecycle (02ffda7, 885940b); fresh main/PiP capture pending |
+| X7-06 | Partial | GPU subchecks pass; Unity per-component CPU + max-pool budget pending |
+| S7-08 | Partial | Knock-loose delivered via Codex X7-07; `SurfaceTable` and Blender props → Sprint 9 |
+| X7-05, S7-09, S7-10 | Not started | → Sprint 9 (2 km world work) |
+| S7-11 | Done | systems-index backfill (1068872) |
+| S7-12 | Cut | Andy 2026-10-03 |
+| G3 | **Not run** | Blocks sprint close |
+
+**Unplanned but legitimate** (playtest-driven): solid scenery, brake assist, landing-wedge fix, X7-07 props,
+X7-08 cab cam, DJ title. **Unplanned and moved to Sprint 8:** the Storm Director compact epic (GDD approved
+2026-10-03; story 003 already in progress).
 
 ## Sprint Goal
 Turn Sprint 6's approved designs into a playable vertical slice: the **Rocket League-target truck**
@@ -80,13 +109,14 @@ the start so players see the new look while the feel work happens.
 | Andy-time bottleneck at gates | Medium | Medium | Gates are ≤ 30 min, batched; captures via F9 |
 
 ## Definition of Done
-- [ ] 0.5 Art Preview live on itch (html5 + windows), WebGL verified
-- [ ] G1 decided (2 km or 1 km) and recorded in ADR-0004
-- [ ] ADR-0005 accepted
+- [x] 0.5 Art Preview live on itch (html5 + windows), WebGL verified
+- [x] G1 decided (2 km or 1 km) and recorded in ADR-0004
+- [x] ADR-0005 accepted
 - [ ] New vehicle replaces `PlayerVehicle` 0.4 in the shipping scene; all GDD unit/PlayMode criteria
-      for S7-03–S7-06 pass; EditMode + PlayMode suites green
-- [ ] Truck model in game (G2 passed or commission started)
-- [ ] Codex X7-01–X7-04 done
+      for S7-03–S7-06 pass; EditMode + PlayMode suites green — *vehicle shipped in 0.6.0; open: PlayMode
+      33/34 (EF3 wind test, fixed by Storm Director story 003/004) and the S7-06 physics measurement*
+- [x] Truck model in game (G2 passed or commission started)
+- [ ] Codex X7-01–X7-04 done — *X7-01 done (via X7-08); X7-02/03/04 await Andy's live check*
 - [ ] G3 feel playtest run; findings logged for Sprint 8
 
 ## Release Log

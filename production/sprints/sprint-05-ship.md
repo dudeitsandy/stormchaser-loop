@@ -1,4 +1,4 @@
-# Sprint 5 — Ship It (2026-10-01 → 2026-10-14)
+# Sprint 5 — Ship It (2026-10-01; planned 10-01 → 10-14, closed same day with 0.4.0)
 
 ## Goal
 Put the Unity 3D build in front of players on itch.io as **Doomsday: Storm Season (prototype 0.4)**.

@@ -1,47 +1,52 @@
-# Milestone 1 — Vertical Slice
+# Milestone 1 — Vertical Slice 0.9
 
-**Target Date:** 2026-07-31 (estimated ~16 weeks at part-time pace)
+**Target Date:** 2026-11-16 (Sprints 8–10)
 **Status:** In Progress
+**Rewritten:** 2026-10-04 (producer audit). The original M1 (target 2026-07-31) described the Phaser-port
+slice: 90 s session, world-wide CRT post-FX, Phaser feel parity, cone-mesh tornado. ADR-0003, the
+Rocket League vehicle target (`vehicle-feel.md`) and the Storm Director (`storm-director.md`) replaced all
+four, so those criteria are retired, not failed. History is in git.
 
 ## Goal
 
-A fully playable 90-second Stormchaser Loop session running in Unity 6.3 LTS URP
-with the complete 3D visual target: low-poly world, pixel post-process filter,
-CRT post-FX stack, PiP photography mechanic, and gamepad support.
-
-Must match or exceed v0.3.0 Phaser gameplay feel. This is the internal milestone
-that validates the 3D pivot before investing in Steam integration.
+One compact run, from title screen to results, that answers the question "is this fun and tense?" with
+outside players: the Rocket League-feel truck, a Storm Director-driven sky of storms you can see coming,
+photos plus style goals that score, damage that matters, and a run that ends cleanly. Built on today's
+±85 m arena (compact mode). The 2 km streamed Epic world is **not** in this milestone.
 
 ## Success Criteria
 
-- [ ] 90-second session playable start to finish in Unity
-- [ ] All post-FX active: bloom (Kawase), CRT scanlines, film grain, chromatic aberration, teal-orange LUT
-- [ ] Player vehicle drives with physics-based feel matching Phaser v0.3.0
-- [ ] Tornado: EF0-EF5 lifecycle, cone mesh + GPU particles, correct movement behavior
-- [ ] PiP photography system: hold L1/camera key → right stick/mouse to aim → shoot
-- [ ] Photo quality scoring matches Phaser formula within 5% for equivalent skill
-- [ ] Procedural terrain: road + fields + at least 3 biomes, correct speed modifiers
-- [ ] HUD: speed, time, score, combo, health (UI Toolkit)
-- [ ] Minimap functional
-- [ ] TV weather alert system functional
-- [ ] Gamepad fully supported (PS5 DualSense + Xbox compatible)
-- [ ] 60 FPS on GTX 1060 equivalent with all post-FX enabled
-- [ ] Full scene flow: Title → Game → GameOver → Results
+- [ ] **Storm Director compact mode** running in the shipping build: all 9 stories in
+      `production/epics/storm-director-compact/` closed; EF3+ dangerous up close, EF5 rare (EF3 wind
+      PlayMode test green)
+- [ ] **Feel tuned from G3**: `vehicle-feel.md` feel criteria pass with Andy + 2 outside players; tuned
+      defaults recorded in the GDD
+- [ ] **Durability decided**: S8-C1 tuning shipped at minimum (light bumps cost 0 HP, HP cost back on);
+      S8-C2 per-truck HP redesign either shipped or explicitly deferred past M1
+- [ ] **Run goals v1**: THPS-style goal list in a run (style moves and storm goals score, not just photos);
+      designed in `event-system.md`, reviewed, implemented
+- [ ] **Run screens**: title, pause/quit and game-over/results flows designed (`/ux-design`) and built;
+      results show seed, regime and "the big one got away"
+- [ ] **WebGL budget holds**: no frame > 50 ms over a 3-min run with live storms, debris and presentation;
+      X7-06 3 ms presentation budget certified
+- [ ] **Outside playtest**: 0.9 on itch, at least 3 outside players, findings logged
 
-## Phases (from ADR-0001)
+## Out of scope for M1 (do not pull in)
 
-| Phase | Description | Sprint Target |
-|-------|-------------|---------------|
-| 1 | Unity project setup + URP post-FX pipeline | Sprint 1 |
-| 2 | Core systems port (vehicle, tornado, scoring) | Sprint 2–3 |
-| 3 | 3D environment (terrain, road, sky) | Sprint 3–4 |
-| 4 | Photography system (PiP camera, aim mechanic) | Sprint 4–5 |
-| 5 | UI rebuild (HUD, minimap, alerts, results) | Sprint 5–6 |
-| 6 | Vertical slice integration + polish | Sprint 7–8 |
+2 km streamed Epic world, roads (S7-09), per-tile scatter (X7-05), Tier B fracture (S7-10), Wildfire,
+Disaster Alchemy, Civilians & Rescue, Loadout/Garage/Storm Dollars meta loop, Story/Career mode, more
+worlds/biomes, Steam integration. These are the next milestone's candidates; `systems-index.md` tiers them.
 
-## Notes
+## Design freeze
 
-- Phaser v0.3.0 remains live on itch.io throughout this milestone
-- No Steam integration work during this milestone
-- Low-poly art style reduces 3D asset production cost
-- Procedural generation carries over from 2D (logic ports, mesh generation rebuilds)
+No new GDDs or concept docs until M1 closes, except the two M1 needs: the run-goals section of
+`event-system.md` and the run-screens UX spec. Playtest findings go to the backlog in the active sprint file.
+
+## Sprints
+
+| Sprint | Window | Focus |
+|--------|--------|-------|
+| 7 | 2026-10-01 → G3 | Vehicle feel build (closing: G3 + Codex live checks) |
+| 8 | 2026-10-06 → 10-19 | Storm Director compact epic + S8-C1 durability tuning |
+| 9 | 2026-10-20 → 11-02 | Run goals v1, run screens, S8-C2 decision |
+| 10 | 2026-11-03 → 11-16 | Integration, WebGL budget, outside playtest, 0.9 release |

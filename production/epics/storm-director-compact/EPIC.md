@@ -6,7 +6,7 @@
 > MonoBehaviour driver; replaces `DisasterSpawner`'s timer and rewires `TornadoController` / `TornadoData`
 > (`Scripts/Tornado`). HUD forecast in `Scripts/UI`; presentation stays in Codex's lane via `StormCell*` events.
 > No `architecture.md` exists yet; module mapped from the current code layout.
-> **Status**: Ready
+> **Status**: In Progress — scheduled in Sprint 8 (`production/sprints/sprint-08-storm-director.md`)
 > **Stories**: 9 stories (see table)
 
 ## Overview
@@ -61,7 +61,7 @@ far-field), 27, 29.
 |---|-------|------|--------|-----|
 | 001 | [Seeded plan RNG, regime draw and anchor EF (F1)](story-001-plan-rng-regime-draw.md) | Logic | Ready | N/A |
 | 002 | [Compact cell schedule and cap resolution (F2, Rule 12)](story-002-compact-schedule-caps.md) | Logic | Ready | N/A |
-| 003 | [Storm scale table and lifecycle intensity (F3)](story-003-storm-scale-intensity.md) | Logic | Ready | N/A |
+| 003 | [Storm scale table and lifecycle intensity (F3)](story-003-storm-scale-intensity.md) | Logic | In Progress | N/A |
 | 004 | [New scale in play: wind drag, lift and toss](story-004-scale-in-play-wind-lift-toss.md) | Integration | Ready | ADR-0005 |
 | 005 | [Track motion, jogs and fixed substeps (F5)](story-005-track-motion-jogs-substeps.md) | Logic | Ready | N/A |
 | 006 | [Director runtime driver and StormCell lifecycle events](story-006-runtime-driver-lifecycle-events.md) | Integration | Ready | ADR-0004 |
@@ -81,4 +81,4 @@ This epic is complete when:
 
 ## Next Step
 
-Run `/create-stories storm-director-compact` to break this epic into implementable stories.
+Stories exist. Work them in Sprint 8 order: 003 → 004 → 001 → 002 → 005 → 006 → 008, then 007, 009.

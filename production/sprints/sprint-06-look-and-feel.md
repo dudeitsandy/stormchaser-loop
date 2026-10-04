@@ -1,4 +1,4 @@
-# Sprint 6 — Look & Feel Gate (2026-10-02 → 2026-10-15)
+# Sprint 6 — Look & Feel Gate (2026-10-01; planned 10-02 → 10-15, closed same day at the art gate)
 
 ## Goal
 Answer the two questions that decide every asset we build next, with evidence instead of opinion:

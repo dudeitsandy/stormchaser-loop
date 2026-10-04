@@ -2,7 +2,7 @@
 
 > **Status**: Draft
 > **Created**: 2026-10-01
-> **Last Updated**: 2026-10-01
+> **Last Updated**: 2026-10-04
 > **Source Concept**: design/gdd/game-concept.md (derived from design/vision/vision-1.0.md)
 
 ---
@@ -36,12 +36,12 @@ biomes, and vehicles enter the index when their season is planned.
 |---|-------------|----------|----------|--------|------------|------------|
 | 1 | Input & Controls (inferred) | Core | MVP | Implemented | — | — |
 | 2 | Vehicle Feel | Core | MVP | Implemented | design/gdd/vehicle-feel.md | Input & Controls, Surfaces & Terrain Modifiers |
-| 3 | Camera & Aim (Storm Cam) | Core | MVP | In Design | design/gdd/vehicle-feel.md (Camera section) | Vehicle Feel |
+| 3 | Camera & Aim (Storm Cam) | Core | MVP | Implemented | design/gdd/vehicle-feel.md (Camera section) | Vehicle Feel |
 | 4 | Run Manager & Session Modes | Core | MVP | In Design | design/gdd/session-modes.md | Game Events Bus, Save & Profile |
 | 5 | Game Events Bus (inferred) | Core | MVP | Implemented | AGENTS.md (GameEvents contract) | — |
 | 6 | Tiled World Streaming | World | MVP | Implemented | docs/architecture/adr-0004-destructible-tiled-world.md | — |
 | 7 | Surfaces & Terrain Modifiers (inferred) | World | MVP | Designed | design/gdd/surfaces-terrain-modifiers.md | — |
-| 8 | Destructibles & Debris | World | Vertical Slice | Not Started | docs/architecture/adr-0004-destructible-tiled-world.md | Tiled World Streaming, Surfaces & Terrain Modifiers |
+| 8 | Destructibles & Debris | World | Vertical Slice | In Progress (Tier A knock-loose, X7-07) | docs/architecture/adr-0004-destructible-tiled-world.md | Tiled World Streaming, Surfaces & Terrain Modifiers |
 | 9 | Roads & POI Chunks (Heartland) | World | Vertical Slice | Not Started | — | Tiled World Streaming, Surfaces & Terrain Modifiers |
 | 10 | Wind Field | Gameplay | MVP | Implemented | design/gdd/vehicle-feel.md (F11/F12) | Disaster Entity Framework, Vehicle Feel |
 | 11 | Disaster Entity Framework | Gameplay | MVP | Implemented | design/gdd/disaster-entity-framework.md | Run Manager & Session Modes (SessionTimer); Tiled World Streaming (intended, not yet used in code) |
@@ -60,24 +60,24 @@ biomes, and vehicles enter the index when their season is planned.
 | 24 | Vehicle Loadout & Archetypes | Progression | Vertical Slice | Not Started | — | Vehicle Feel, Vehicle Damage |
 | 25 | Per-Run Modifiers | Progression | Alpha | Not Started | — | Run Manager & Session Modes, Four-Axis Scoring, Vehicle Loadout & Archetypes |
 | 26 | Cataclysm Heat | Progression | Alpha | In Design | design/gdd/economy-progression.md | Storm Dollars & HQ Garage, Per-Run Modifiers |
-| 27 | Save & Profile (inferred) | Persistence | MVP | In Review | design/gdd/save-profile.md | — (platform storage only) |
+| 27 | Save & Profile (inferred) | Persistence | MVP | In Review (revised after 2026-10-01 NEEDS REVISION; re-review after M1) | design/gdd/save-profile.md | — (platform storage only) |
 | 28 | Settings (inferred) | Persistence | Vertical Slice | Not Started | — | Save & Profile, Input & Controls |
 | 29 | HUD (inferred) | UI | MVP | Implemented | — | Four-Axis Scoring, Run Manager & Session Modes, Vehicle Damage |
 | 30 | Viewfinder / PiP & Camcorder Lens | UI | MVP | Implemented | docs/architecture/adr-0003-art-direction-stylized-world-retro-lens.md | Camera & Aim, Photo Documentation |
 | 31 | Run Screens (Title, Results, Newspaper Cover) | UI | MVP | Implemented | design/gdd/economy-progression.md (Newspaper Cover) | Four-Axis Scoring, Run Manager & Session Modes, Photo Documentation |
 | 32 | Garage & Pre-Run Screen (inferred) | UI | Vertical Slice | Not Started | — | Storm Dollars & HQ Garage, Vehicle Loadout & Archetypes, Per-Run Modifiers, Cataclysm Heat |
 | 33 | Off-Screen Disaster Indicators (inferred) | UI | MVP | Implemented | — | Disaster Entity Framework |
-| 34 | Procedural Audio (inferred) | Audio | Vertical Slice | Not Started | — | Vehicle Feel, Game Events Bus, Disaster Entity Framework |
+| 34 | Procedural Audio (inferred) | Audio | Vertical Slice | Implemented (X7-03; live check pending) | — | Vehicle Feel, Game Events Bus, Disaster Entity Framework |
 | 35 | Online Leaderboard | Meta | Alpha | Not Started | — | Four-Axis Scoring, Save & Profile, Run Manager & Session Modes |
 | 36 | Onboarding / First Run (inferred) | Meta | Alpha | Not Started | — | HUD, Run Manager & Session Modes, Dynamic Objectives & Events |
 | 37 | Accessibility (inferred) | Meta | Full Vision | Not Started | — | Settings, Input & Controls, HUD |
-| 38 | Storm Director | Gameplay | MVP | Approved | design/gdd/storm-director.md | Disaster Entity Framework, Tiled World Streaming, Run Manager & Session Modes |
+| 38 | Storm Director | Gameplay | MVP | In Progress (Approved; compact epic, Sprint 8) | design/gdd/storm-director.md | Disaster Entity Framework, Tiled World Streaming, Run Manager & Session Modes |
 
 **Status notes.** "Implemented" means code exists and ships in 0.6.0, not that it is
 feature-complete against its GDD. Run Manager (#4) has a working `RunManager` /
 `SessionTimer` but `session-modes.md` is not implemented in full. Photo Documentation
-(#16) covers `ScoringSystem` + `PhotoTrigger`; the camera-forward aim rework is S7-05.
-Procedural Audio (#34) has a Codex-owned `ProceduralAudio` stub; X7-03 is the real pass.
+(#16) covers `ScoringSystem` + `PhotoTrigger`; camera-forward aim shipped in S7-05 (0.7.2).
+Procedural Audio (#34) is Codex-owned `ProceduralAudio`; the X7-03 pass shipped in 0.7.0.
 Save & Profile (#27) is only `BestScoreStore` today. Destructibles (#8) is S7-08/S7-10;
 Roads (#9) is S7-09.
 
@@ -112,7 +112,7 @@ lives with Run Screens.
 | Tier | Definition | Target Milestone | Design Urgency |
 |------|------------|------------------|----------------|
 | **MVP** | The core loop: drive, chase, photograph, score, run ends. Without these you can't test "is this fun?" | Already playable (0.x on itch) | Design FIRST — mostly reverse-document what exists |
-| **Vertical Slice** | One complete Heartland run with all four scoring axes, damage, a second disaster, and the meta loop | Sprint 8–9 | Design SECOND |
+| **Vertical Slice** | One complete Heartland run with all four scoring axes, damage, a second disaster, and the meta loop | M1 (Vertical Slice 0.9, 2026-11-16) takes a compact subset; the rest follows M1 — see milestone-1 "Out of scope" | Design SECOND |
 | **Alpha** | Season 1 content-complete for Early Access: full disaster set + alchemy, modifiers, heat, leaderboard | Milestone 3 — Early Access | Design THIRD |
 | **Full Vision** | Polish and nice-to-haves | Post-EA | Design as needed |
 
@@ -237,7 +237,7 @@ GDD in review are listed so the order is complete; their work is `/design-review
 | 27 | Accessibility | Full Vision | Polish | accessibility-specialist | S |
 
 Not listed (designed and implemented, no further design work queued): Input & Controls,
-Vehicle Feel, Camera & Aim (in `vehicle-feel.md`; build is S7-05), Game Events Bus,
+Vehicle Feel, Camera & Aim (in `vehicle-feel.md`; shipped S7-05, 0.7.2), Game Events Bus,
 Tiled World Streaming, Wind Field, Photo Documentation, Viewfinder, Run Screens,
 Off-Screen Indicators.
 
@@ -270,10 +270,10 @@ None remain. Three near-cycles were broken by direction:
 
 | Metric | Count |
 |--------|-------|
-| Total systems identified | 37 |
+| Total systems identified | 38 |
 | Design docs started | 16 systems, covered by 7 GDDs + 2 ADRs + the AGENTS.md events contract |
-| Design docs reviewed | 1 (vehicle-feel.md) |
-| Design docs approved | 1 (vehicle-feel.md) |
+| Design docs reviewed | 4 (vehicle-feel, storm-director, save-profile, disaster-entity-framework) |
+| Design docs approved | 2 (vehicle-feel.md, storm-director.md) |
 | MVP systems designed | 11/17 |
 | Vertical Slice systems designed | 4/12 (3 unreviewed GDDs + ADR-0004 for Destructibles) |
 
@@ -287,3 +287,6 @@ None remain. Three near-cycles were broken by direction:
 - [ ] Design remaining MVP systems (next: `/design-system save-profile`)
 - [ ] Run `/design-review` on the five unreviewed GDDs (session-modes, photo-scoring, event-system, vehicle-damage, economy-progression)
 - [ ] Run `/gate-check technical-setup` when MVP systems are designed
+
+> **Design freeze (2026-10-04, M1):** until Milestone 1 closes, the only design work is the run-goals
+> section of `event-system.md` and the run-screens UX spec. Everything else in the order above waits.

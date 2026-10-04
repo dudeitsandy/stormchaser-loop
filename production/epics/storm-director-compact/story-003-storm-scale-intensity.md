@@ -1,7 +1,7 @@
 # Story 003: Storm scale table and lifecycle intensity (F3)
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: Ready
+> **Status**: In Progress (code + tests in working tree 2026-10-04, uncommitted)
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: 2–3 h (S)
