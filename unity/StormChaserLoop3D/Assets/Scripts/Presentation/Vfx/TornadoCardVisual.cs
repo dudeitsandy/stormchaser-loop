@@ -22,6 +22,9 @@ public sealed class TornadoCardVisual : MonoBehaviour
     private Transform _mass;
     private Transform _cloud;
     private bool _touchedDown;
+    private int _cellId = -1;
+    private bool _cellPeak, _cellRope, _cellEnded, _failedTouchdown;
+    private float _failedLength, _failedIntensity;
     private TornadoLifecycle.Phase _lastPhase;
     private float _ropeAge;
     private Vector3[] _debrisDropOrigins;
@@ -112,10 +115,50 @@ public sealed class TornadoCardVisual : MonoBehaviour
         for (int i = 0; i < count; i++) cards[i] = _assets.Create(_root, shape, name);
         return cards;
     }
-    private void OnEnable() => RenderPipelineManager.beginCameraRendering += OnCamera;
+    private void OnEnable()
+    {
+        RenderPipelineManager.beginCameraRendering += OnCamera;
+        GameEvents.StormCellForming += CellForming;
+        GameEvents.StormCellPeak += CellPeak;
+        GameEvents.StormCellRopeOut += CellRopeOut;
+        GameEvents.StormCellEnded += CellEnded;
+    }
     private void OnDisable()
     {
         RenderPipelineManager.beginCameraRendering -= OnCamera;
+        GameEvents.StormCellForming -= CellForming;
+        GameEvents.StormCellPeak -= CellPeak;
+        GameEvents.StormCellRopeOut -= CellRopeOut;
+        GameEvents.StormCellEnded -= CellEnded;
+        if (_root != null) _root.gameObject.SetActive(false);
+    }
+    private void CellForming(StormCellInfo cell)
+    {
+        if (_cellId >= 0 || _controller.EFRating != "EF" + cell.EF) return;
+        float distance = (transform.position - cell.Position).sqrMagnitude;
+        if (distance > 1f) return;
+        // Temporary association at spawn only. Prefer a future controller CellId query.
+        foreach (var disaster in DisasterEntity.Active)
+        {
+            if (disaster == _controller || !(disaster is TornadoController other) || other.EFRating != _controller.EFRating) continue;
+            if ((other.transform.position - cell.Position).sqrMagnitude <= distance + 0.0001f) return;
+        }
+        _cellId = cell.CellId;
+        _cellPeak = _cellRope = _cellEnded = _failedTouchdown = _touchedDown = false;
+    }
+    private void CellPeak(StormCellInfo cell) { if (cell.CellId == _cellId && !_cellRope && !_cellEnded) _cellPeak = true; }
+    private void CellRopeOut(StormCellInfo cell)
+    {
+        if (cell.CellId != _cellId || _cellRope || _cellEnded) return;
+        _cellRope = true;
+        _failedTouchdown = !_cellPeak;
+        _failedLength = _cloudHeight > 0f ? _visualHeight / _cloudHeight : 0f;
+        _failedIntensity = _controller.Intensity;
+    }
+    private void CellEnded(StormCellInfo cell)
+    {
+        if (cell.CellId != _cellId) return;
+        _cellEnded = true;
         if (_root != null) _root.gameObject.SetActive(false);
     }
     private void LateUpdate()
@@ -124,6 +167,9 @@ public sealed class TornadoCardVisual : MonoBehaviour
         _age += Time.deltaTime;
         float intensity = _previewWedge ? 1f : Mathf.Clamp01(_controller.Intensity);
         var phase = _controller.Phase;
+        if (!_previewWedge && _cellId >= 0)
+            phase = _cellEnded ? TornadoLifecycle.Phase.Done : _cellRope ? TornadoLifecycle.Phase.Dissipating :
+                _cellPeak ? TornadoLifecycle.Phase.Mature : TornadoLifecycle.Phase.Forming;
         if (!_previewWedge && phase == TornadoLifecycle.Phase.Dissipating)
         {
             if (_lastPhase != phase)
@@ -137,6 +183,8 @@ public sealed class TornadoCardVisual : MonoBehaviour
         _lastPhase = phase;
         if (!_previewWedge && phase == TornadoLifecycle.Phase.Mature) _touchedDown = true;
         var lifecycle = FunnelLifecycleVisual.Evaluate(phase, intensity, _touchedDown, _controller.DamageRadius > 0f);
+        if (!_previewWedge && _failedTouchdown && !_cellEnded)
+            lifecycle = FunnelLifecycleVisual.FailedTouchdown(_failedLength, intensity, _failedIntensity);
         _root.gameObject.SetActive(_previewWedge || phase != TornadoLifecycle.Phase.Done);
         // Controller changes its parent's scale every frame. Author dimensions in world units,
         // so intensity and EF size are applied once rather than multiplied by that scale again.

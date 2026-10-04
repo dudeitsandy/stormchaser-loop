@@ -15,6 +15,14 @@ public readonly struct FunnelLifecycleVisual
     private FunnelLifecycleVisual(float length, float width, float tilt, bool groundContact)
     { Length = length; Width = width; Tilt = tilt; GroundContact = groundContact; }
 
+    /// <summary>Retracts from the actual forming length; an early eviction must never extend the funnel.</summary>
+    public static FunnelLifecycleVisual FailedTouchdown(float formingLength, float intensity, float startingIntensity)
+    {
+        float length = Math.Max(0f, Math.Min(0.6f, formingLength));
+        float remaining = startingIntensity > 0f ? Math.Max(0f, Math.Min(1f, intensity / startingIntensity)) : 0f;
+        return new FunnelLifecycleVisual(length * remaining, 0.25f + 0.45f * remaining, 0f, false);
+    }
+
     /// <summary>Maps authoritative phase/intensity without changing gameplay lifecycle or damage.</summary>
     public static FunnelLifecycleVisual Evaluate(TornadoLifecycle.Phase phase, float intensity, bool touchedDown, bool damaging)
     {

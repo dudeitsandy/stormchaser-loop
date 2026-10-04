@@ -46,7 +46,7 @@ public sealed class WindCardVfx : MonoBehaviour
         _cards = new Card[Mathf.Clamp(_poolSize, 12, 96)];
         for (int i = 0; i < _cards.Length; i++)
         {
-            var shape = i % 5 == 0 ? CardVfxAssets.Shape.Debris :
+            var shape = i % 5 == 0 ? CardVfxAssets.Shape.AmbientDebris :
                 i % 3 == 0 ? CardVfxAssets.Shape.Dust : CardVfxAssets.Shape.Streak;
             _cards[i].Shape = shape;
             _cards[i].Transform = _assets.Create(transform, shape, "Wind" + shape);
@@ -54,7 +54,7 @@ public sealed class WindCardVfx : MonoBehaviour
         }
         _assets.SetColor(CardVfxAssets.Shape.Streak, _streakColor);
         _assets.SetColor(CardVfxAssets.Shape.Dust, _dustColor);
-        _assets.SetColor(CardVfxAssets.Shape.Debris, new Color(0.5f, 0.32f, 0.15f, 0.9f));
+        _assets.SetColor(CardVfxAssets.Shape.AmbientDebris, new Color(0.7f, 0.76f, 0.56f, 0.9f));
     }
     private void Start()
     {
@@ -87,7 +87,8 @@ public sealed class WindCardVfx : MonoBehaviour
     {
         using var sample = UpdateMarker.Auto();
         if (_vehicle == null || !_vehicle.InputEnabled) { Clear(); return; }
-        _wind = _stressPool ? Vector3.left * Mathf.Max(1f, _fullWindSpeed) : _vehicle.CurrentWind;
+        float exposure = _stressPool ? 1f : StormEnvironmentCues.Exposure;
+        _wind = (_stressPool ? Vector3.left : StormEnvironmentCues.WindBearing) * Mathf.Max(1f, _fullWindSpeed) * exposure;
         float dt = Time.deltaTime;
         for (int i = 0; i < _cards.Length; i++)
         {
@@ -103,11 +104,11 @@ public sealed class WindCardVfx : MonoBehaviour
             float t = card.Age / card.Lifetime;
             float fade = Mathf.Clamp01(t * 8f) * Mathf.Clamp01((1f - t) * 5f);
             Vector3 velocity = _wind * (card.Shape == CardVfxAssets.Shape.Streak ? 1f : 0.65f);
-            if (card.Shape == CardVfxAssets.Shape.Debris) velocity.y += 1f;
+            if (card.Shape == CardVfxAssets.Shape.AmbientDebris) velocity.y += 1f;
             card.Transform.position += velocity * dt;
             float size = card.Size * fade;
             card.Transform.localScale = card.Shape == CardVfxAssets.Shape.Streak
-                ? new Vector3(size * 3f, size * 0.35f, 1) : new Vector3(size, size * 0.7f, 1);
+                ? new Vector3(size * 3f * StormCueLevels.GustLength(exposure), size * 0.35f, 1) : new Vector3(size, size * 0.7f, 1);
         }
         int emissions = WindVfxEmission.Advance(_wind.magnitude, dt, _fullWindSpeed, _cardsPerSecond, ref _emissionRemainder);
         // Consume excess requests instead of allocating or accumulating a later burst.

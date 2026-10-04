@@ -41,7 +41,7 @@ public static class PresentationChecks {
     public static int Main() {
         int passed = 0;
         try {
-            foreach (var type in new[] { typeof(IndicatorGeometryTests), typeof(WindVfxEmissionTests), typeof(FunnelSurfaceGeometryTests), typeof(VehicleFeedbackLevelsTests), typeof(FunnelLifecycleVisualTests) }) {
+            foreach (var type in new[] { typeof(IndicatorGeometryTests), typeof(WindVfxEmissionTests), typeof(FunnelSurfaceGeometryTests), typeof(VehicleFeedbackLevelsTests), typeof(FunnelLifecycleVisualTests), typeof(StormCueTests) }) {
                 var fixture = Activator.CreateInstance(type);
                 foreach (var method in type.GetMethods()) {
                     foreach (TestCaseAttribute test in method.GetCustomAttributes(typeof(TestCaseAttribute), true)) {

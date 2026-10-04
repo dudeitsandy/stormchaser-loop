@@ -8,14 +8,20 @@ public sealed class ProceduralAudio : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float _effectsVolume = 0.55f;
     [SerializeField, Range(0f, 1f)] private float _engineVolume = 0.16f;
     [SerializeField, Range(0f, 1f)] private float _windVolume = 0.4f;
-    [SerializeField] private float _windRange = 65f;
+    [SerializeField, Range(0f, 1f)] private float _rumbleVolume = 0.18f;
+    [SerializeField, Range(0f, 1f)] private float _stormAlertVolume = 0.4f;
     [SerializeField, Range(0f, 1f)] private float _skidVolume = 0.24f;
     [SerializeField, Min(0f)] private float _landingThreshold = 2f;
     [SerializeField, Min(0f)] private float _impactCooldown = 0.1f;
     [SerializeField, Range(0f, 1f)] private float _boostVolume = 0.3f;
     private static readonly ProfilerMarker UpdateMarker = new ProfilerMarker("Presentation.Audio.Update");
     private PlayerVehicle _vehicle;
-    private AudioSource _effects, _engine, _wind, _skid, _vehicleEffects, _boost;
+    private AudioSource _effects, _engine, _wind, _skid, _vehicleEffects, _boost, _rumble, _stormAlert;
+    private AudioClip _formingAlert, _peakAlert;
+    private readonly StormCellCueTracker _stormCells = new StormCellCueTracker();
+    private readonly Queue<(int CellId, float Level)> _stormQueue = new Queue<(int, float)>();
+    private int _playingCellId = -1;
+    private bool _playingPeak;
     private AudioClip _shutter, _dryShutter, _hit, _finish, _wreck, _landing, _crunch, _toss, _boostStart;
     private float _load, _lastImpact = float.NegativeInfinity;
     private bool _wasBoosting;
@@ -37,6 +43,8 @@ public sealed class ProceduralAudio : MonoBehaviour
         _skid = Source(true);
         _vehicleEffects = Source(false);
         _boost = Source(true);
+        _rumble = Source(true);
+        _stormAlert = Source(false);
         _shutter = Clip("Shutter", 0.15f, 0);
         _dryShutter = Clip("DryShutter", 0.055f, 6);
         _hit = Clip("Damage", 0.35f, 1);
@@ -50,6 +58,9 @@ public sealed class ProceduralAudio : MonoBehaviour
         _toss = Clip("WindToss", 0.5f, 10);
         _boost.clip = Clip("BoostRoarLoop", 1f, 11);
         _boostStart = Clip("BoostIgnition", 0.22f, 12);
+        _rumble.clip = Clip("EF5LowRumble", 2f, 13);
+        _formingAlert = Clip("DistantStormRadioSiren", 2.5f, 14);
+        _peakAlert = Clip("AnchorTouchdownAlert", 0.5f, 15);
     }
     private void Start()
     {
@@ -77,6 +88,11 @@ public sealed class ProceduralAudio : MonoBehaviour
         GameEvents.Landed += Landed;
         GameEvents.VehicleImpact += Impact;
         GameEvents.Tossed += Tossed;
+        GameEvents.StormCellForming += CellForming;
+        GameEvents.StormCellPeak += CellPeak;
+        GameEvents.StormCellRopeOut += CellRopeOut;
+        GameEvents.StormCellEnded += CellEnded;
+        GameEvents.RunStarted += ClearStormCues;
     }
     private void OnDisable()
     {
@@ -88,6 +104,12 @@ public sealed class ProceduralAudio : MonoBehaviour
         GameEvents.Landed -= Landed;
         GameEvents.VehicleImpact -= Impact;
         GameEvents.Tossed -= Tossed;
+        GameEvents.StormCellForming -= CellForming;
+        GameEvents.StormCellPeak -= CellPeak;
+        GameEvents.StormCellRopeOut -= CellRopeOut;
+        GameEvents.StormCellEnded -= CellEnded;
+        GameEvents.RunStarted -= ClearStormCues;
+        ClearStormCues();
         if (_engine != null) _engine.Stop();
         if (_wind != null) _wind.Stop();
         if (_skid != null) _skid.Stop();
@@ -99,7 +121,44 @@ public sealed class ProceduralAudio : MonoBehaviour
     private void Shutter() => Play(_shutter);
     private void DryShutter() => Play(_dryShutter);
     private void Hit(int current, int maximum) => Play(_hit);
-    private void End(RunSummary summary) => Play(summary.Wrecked ? _wreck : _finish);
+    private void End(RunSummary summary) { ClearStormCues(); Play(summary.Wrecked ? _wreck : _finish); }
+    private void ClearStormCues()
+    {
+        _stormCells.Clear();
+        _stormQueue.Clear();
+        _playingCellId = -1;
+        _playingPeak = false;
+        if (_stormAlert != null) _stormAlert.Stop();
+        if (_rumble != null) { _rumble.Stop(); _rumble.volume = 0f; }
+    }
+    private void QueueStormCue(StormCellInfo cell)
+    {
+        if (!Running || _stormQueue.Count >= 8) return;
+        float distance = Vector3.Distance(_vehicle.transform.position, cell.Position);
+        _stormQueue.Enqueue((cell.CellId, Mathf.Clamp01(40f / Mathf.Max(40f, distance)) * 0.65f + 0.15f));
+    }
+    private void CellForming(StormCellInfo cell) { if (_stormCells.Forming(cell)) QueueStormCue(cell); }
+    private void CellPeak(StormCellInfo cell)
+    {
+        if (!_stormCells.Peak(cell) || !Running) return;
+        // Touchdown is immediate and preempts radio; do not delay it behind the queue.
+        _stormAlert.Stop();
+        _stormAlert.clip = _peakAlert;
+        _playingCellId = cell.CellId;
+        _playingPeak = true;
+        _stormAlert.volume = _stormAlertVolume;
+        _stormAlert.Play();
+    }
+    private void CellRopeOut(StormCellInfo cell)
+    {
+        _stormCells.RopeOut(cell);
+        if (_playingCellId == cell.CellId && !_playingPeak) _stormAlert.Stop();
+    }
+    private void CellEnded(StormCellInfo cell)
+    {
+        _stormCells.Ended(cell);
+        if (_playingCellId == cell.CellId) _stormAlert.Stop();
+    }
     private void Play(AudioClip clip)
     {
         _effects.volume = _effectsVolume;
@@ -149,13 +208,25 @@ public sealed class ProceduralAudio : MonoBehaviour
             absoluteSpeed, _vehicle.SlipAngle) : 0f;
         _skid.volume = Mathf.MoveTowards(_skid.volume, slip * _skidVolume, Time.unscaledDeltaTime * 2f);
         _skid.pitch = Mathf.Lerp(0.85f, 1.25f, speed);
-        float proximity = 0;
-        if (running)
-            foreach (var disaster in DisasterEntity.Active)
-                if (disaster is TornadoController tornado)
-                    proximity = Mathf.Max(proximity, Mathf.Clamp01(1f - Vector3.Distance(_vehicle.transform.position,
-                        tornado.transform.position) / Mathf.Max(1f, _windRange)) * tornado.Intensity);
-        _wind.volume = Mathf.MoveTowards(_wind.volume, proximity * _windVolume, Time.unscaledDeltaTime * 0.5f);
+        float exposure = running ? StormEnvironmentCues.Exposure : 0f;
+        _wind.volume = Mathf.MoveTowards(_wind.volume, exposure * _windVolume, Time.unscaledDeltaTime * 0.5f);
+        float rumble = running ? StormEnvironmentCues.Ef5Exposure : 0f;
+        if (rumble > 0f && !_rumble.isPlaying) _rumble.Play();
+        _rumble.volume = Mathf.MoveTowards(_rumble.volume, rumble * _rumbleVolume, Time.unscaledDeltaTime * 0.5f);
+        if (_rumble.volume == 0f && _rumble.isPlaying) _rumble.Stop();
+        if (!running) { _stormQueue.Clear(); _stormAlert.Stop(); }
+        else if (!_stormAlert.isPlaying && _stormQueue.Count > 0)
+        {
+            var cue = _stormQueue.Dequeue();
+            if (_stormCells.IsForming(cue.CellId))
+            {
+                _stormAlert.clip = _formingAlert;
+                _playingCellId = cue.CellId;
+                _playingPeak = false;
+                _stormAlert.volume = _stormAlertVolume * cue.Level;
+                _stormAlert.Play();
+            }
+        }
     }
     private AudioClip Clip(string name, float seconds, int kind)
     {
@@ -184,6 +255,14 @@ public sealed class ProceduralAudio : MonoBehaviour
                 case 10: value = filtered * 2f * Mathf.Sin(Mathf.PI * t / seconds); break;
                 case 11: value = filtered * 1.5f + Mathf.Sin(2 * Mathf.PI * 80 * t) * 0.3f; break;
                 case 12: value = filtered * 2f * Mathf.Sin(Mathf.PI * t / seconds) + noise * 0.2f * Mathf.Exp(-t * 30f); break;
+                case 13: value = Mathf.Sin(2 * Mathf.PI * 35 * t) * 0.45f + Mathf.Sin(2 * Mathf.PI * 55 * t) * 0.2f + filtered * 0.25f; break;
+                case 14:
+                    // Filtered radio chatter texture and a distant institutional two-tone siren; no spoken EF.
+                    float carrier = t < 1.25f ? 420f : 560f;
+                    float chatter = Mathf.Max(0f, Mathf.Sin(t * 31f)) * Mathf.Sin(2 * Mathf.PI * 190 * t);
+                    value = Mathf.Sin(2 * Mathf.PI * carrier * t) * 0.22f + chatter * 0.16f + filtered * 0.55f;
+                    break;
+                case 15: value = (Mathf.Sin(2 * Mathf.PI * 880 * t) + Mathf.Sin(2 * Mathf.PI * 1320 * t) * 0.3f) * Mathf.Exp(-t * 5f) * 0.45f; break;
                 default: value = filtered * 2f; break;
             }
             if (kind != 4)
