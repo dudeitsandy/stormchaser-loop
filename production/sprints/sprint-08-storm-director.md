@@ -1,6 +1,9 @@
 # Sprint 8 — Storm Director (2026-10-06 → 2026-10-19)
 
-> **Status:** Planned (draft 2026-10-04). Starts when Sprint 7 closes at G3.
+> **Status:** Built ahead of schedule (2026-10-04). Stories 001–009 were done and 0.7.4 shipped while Sprint 7
+> waited on G3. Open: S8-C1 (in progress), Codex X7-09/X7-10 live checks, G4 and G5. G4 runs in the combined
+> G3 + G4 session (`production/qa/g3-playtest-session.md`). **Re-scope after that session:** pull in Sprint 9's
+> M1 work (run goals v1, run screens, S8-C2 decision), since the epic left most of the two weeks free.
 > **Milestone:** M1 — Vertical Slice 0.9 (`production/milestones/milestone-1-vertical-slice.md`)
 
 ## Sprint Goal
@@ -59,8 +62,9 @@ Bystander "VIEWER VIDEO" cellphone clip on the main storm's touchdown (Andy, 202
 | Claude and Codex both touching tornado code (R11) | Director code is Claude's; presentation reads `StormCell*` events and the query surface only |
 
 ## Definition of Done
-- [ ] Stories 001–006 and 008 closed via `/story-done`; EditMode + PlayMode green, EF3 wind test included
-- [ ] Shipping build spawns storms from the Director, not `DisasterSpawner`'s timer
-- [ ] G4 run and findings logged
+- [x] Stories 001–006 and 008 closed via `/story-done`; EditMode + PlayMode green, EF3 wind test included
+      *(all 9 stories Done; 0.7.4: EditMode 288/288, PlayMode 47/47)*
+- [x] Shipping build spawns storms from the Director, not `DisasterSpawner`'s timer *(0.7.4)*
+- [ ] G4 run and findings logged (combined G3 + G4 session)
 - [ ] S8-C1 shipped, G5 passed
 - [ ] Release 0.8.0 to itch (html5 + windows), WebGL 0 console errors

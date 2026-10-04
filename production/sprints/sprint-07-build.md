@@ -1,9 +1,10 @@
 # Sprint 7 — Build the Feel (2026-10-01 → closes at G3, no later than 2026-10-15)
 
-## Status (2026-10-04, producer audit)
-**ON TRACK.** All Claude Must-Haves are done except the S7-06 physics measurement. What's left needs Andy,
-not code: one 60–90 min session covering the G3 feel playtest, the Codex live acceptance checks (X7-01/02/03/04/06,
-X7-07), and the S7-06 G1-condition physics measurement. Sprint 7 closes when that session is logged.
+## Status (updated 2026-10-04, evening)
+**CODE COMPLETE — waiting on Andy's session.** Every Claude Must-Have is done, including the S7-06 physics
+measurement, and both test suites are green (EditMode 288/288, PlayMode 47/47 in 0.7.4). What's left is the
+combined G3 + G4 session (`production/qa/g3-playtest-session.md`): the feel playtest, Codex live checks and
+decisions C1–C6. Sprint 7 closes when that session is logged.
 
 | ID | Status | Evidence / what's left |
 |----|--------|------------------------|
@@ -13,17 +14,18 @@ X7-07), and the S7-06 G1-condition physics measurement. Sprint 7 closes when tha
 | S7-03 | Done | e2f590f, fd64700, 92b3996 |
 | S7-04 | Done | b13cc65 |
 | S7-05 | Done | 07e0f14 |
-| S7-06 | Partial | Impacts raise events (8213fea); HP cost off pending S8-C2. **Open:** physics step ≤ 4 ms with real debris (X7-07 props) in WebGL |
+| S7-06 | Done | Impacts raise events (8213fea). G1 condition PASS: physics step max 1.20 ms vs 4 ms in WebGL (aba4810, `evidence/s7-06-physics.md`); light-debris caveat is Andy's call (C6). HP cost returns with S8-C1 |
 | S7-07 | Done | G2 PASS (e268cdc) |
 | X7-01 | Done | Superseded by X7-08 cab cam, shipped 0.7.3 (73a1cd6) |
 | X7-02 / X7-03 | Partial | Shipped 0.7.0; live trigger/listening check by Andy pending |
-| X7-04 | Partial | Single funnel + sky-first lifecycle (02ffda7, 885940b); fresh main/PiP capture pending |
+| X7-04 | Partial | Single funnel, sky-first lifecycle, then tall cloud-to-ground funnels in 0.7.4 (02ffda7, 885940b, c8cc901); Andy's live check pending |
+| X7-07 | Partial | Knock-loose props shipped 0.7.1–0.7.3; Andy's live check pending |
 | X7-06 | Partial | GPU subchecks pass; Unity per-component CPU + max-pool budget pending |
 | S7-08 | Partial | Knock-loose delivered via Codex X7-07; `SurfaceTable` and Blender props → Sprint 9 |
 | X7-05, S7-09, S7-10 | Not started | → Sprint 9 (2 km world work) |
 | S7-11 | Done | systems-index backfill (1068872) |
 | S7-12 | Cut | Andy 2026-10-03 |
-| G3 | **Not run** | Blocks sprint close |
+| G3 | **Not run** | Blocks sprint close; runs on 0.7.4 together with Sprint 8's G4 |
 
 **Unplanned but legitimate** (playtest-driven): solid scenery, brake assist, landing-wedge fix, X7-07 props,
 X7-08 cab cam, DJ title. **Unplanned and moved to Sprint 8:** the Storm Director compact epic (GDD approved
@@ -112,9 +114,9 @@ the start so players see the new look while the feel work happens.
 - [x] 0.5 Art Preview live on itch (html5 + windows), WebGL verified
 - [x] G1 decided (2 km or 1 km) and recorded in ADR-0004
 - [x] ADR-0005 accepted
-- [ ] New vehicle replaces `PlayerVehicle` 0.4 in the shipping scene; all GDD unit/PlayMode criteria
-      for S7-03–S7-06 pass; EditMode + PlayMode suites green — *vehicle shipped in 0.6.0; open: PlayMode
-      33/34 (EF3 wind test, fixed by Storm Director story 003/004) and the S7-06 physics measurement*
+- [x] New vehicle replaces `PlayerVehicle` 0.4 in the shipping scene; all GDD unit/PlayMode criteria
+      for S7-03–S7-06 pass; EditMode + PlayMode suites green — *0.7.4: EditMode 288/288, PlayMode 47/47
+      (EF3 wind test fixed by Storm Director 003/004); S7-06 physics PASS (aba4810)*
 - [x] Truck model in game (G2 passed or commission started)
 - [ ] Codex X7-01–X7-04 done — *X7-01 done (via X7-08); X7-02/03/04 await Andy's live check*
 - [ ] G3 feel playtest run; findings logged for Sprint 8

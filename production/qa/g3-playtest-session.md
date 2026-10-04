@@ -1,13 +1,15 @@
-# G3 Playtest Session — Sprint 7 close
+# G3 + G4 Playtest Session — Sprint 7 close, Sprint 8 gates
 
 > **Build:** 0.7.4 on itch (Storm Director live, 3-minute runs; updated 2026-10-04) (https://ghostweavelabs.itch.io/doomsday). html5 for outside players, windows
 > build for Andy's live checks.
 > **Length:** Andy ≈ 60–90 min. Outside players ≈ 15 min each, can be remote and async.
-> **Closes:** Sprint 7 (`production/sprints/sprint-07-build.md`). Results feed Sprint 8 and the
-> S8-C1 durability tuning.
+> **Closes:** Sprint 7 (`production/sprints/sprint-07-build.md`) and Sprint 8's G4 storm-tension gate
+> (0.7.4 already has the Storm Director). Results feed the Sprint 8 re-scope and the S8-C1 durability tuning.
+> If S8-C1 ships before the session, run G5 too (Part A2).
 > **Date run:** ____________
 
-The session has three parts. Part A is the G3 feel gate from `vehicle-feel.md` Acceptance Criteria.
+The session has three parts. Part A is the G3 feel gate from `vehicle-feel.md` Acceptance Criteria, and
+Part A2 is the G4 storm-tension gate (plus G5 durability if S8-C1 is in the build).
 Part B is Andy's live acceptance of Codex's shipped presentation work. Part C covers the measurements
 and decisions. Claude does the technical prep before the session so that Andy's time goes only to things
 that need a human.
@@ -16,7 +18,9 @@ that need a human.
 
 ## Before the session — Claude prep (no Andy time)
 
-- [x] Confirm 0.7.3 is still the live build on itch, and check html5 in Chrome for 0 console errors. *(2026-10-04: title shows PROTOTYPE 0.7.3, 0 errors, 2 known FSR-shader-stripped warnings; `evidence/g3-prep-itch-073-title.png`)*
+- [x] Confirm the live itch build and check html5 for 0 console errors. *(0.7.3 checked 2026-10-04,
+      `evidence/g3-prep-itch-073-title.png`; superseded by 0.7.4, verified at release with 0 WebGL console
+      errors, `evidence/v074_*.png`)*
 - [x] **S7-06 physics measurement (G1 condition).** *(2026-10-04: **PASS with a stress caveat.** Max step 1.20 ms,
       avg 0.25 ms, 0 steps over 4 ms across ~180 s of scripted boosted driving with 25 vehicle impacts; but debris
       peaked at only 3 awake bodies. `evidence/s7-06-physics.md`. Andy decides on the caveat in C6.)*
@@ -62,6 +66,29 @@ fail. Record it, and Andy calls it in C1.
 
 ---
 
+## Part A2 — G4 storm tension (Andy, 5 seeded runs, ≈ 20 min; fold into Part A's runs)
+
+From `sprint-08-storm-director.md` G4. Note each run's seed and regime from the results screen.
+
+| Run | Seed / regime | Storms visible before they mattered? | "Oh no" escape? | EF5 seen? Rare and imposing? |
+|---|---|---|---|---|
+| 1 | | | | |
+| 2 | | | | |
+| 3 | | | | |
+| 4 | | | | |
+| 5 | | | | |
+
+**G4 passes when** storms read before they matter on most runs, at least one run has a real "oh no" escape,
+and EF5 feels rare and imposing rather than common or pale. Codex already flagged the EF5 wedge as reading
+pale; note whether that's true.
+
+**G5 durability (only if S8-C1 is in the build):**
+- [ ] Light bumps cost nothing
+- [ ] A toss or a barn hit at speed clearly hurts
+- [ ] A full 3-minute run is survivable with care
+
+---
+
 ## Part B — Codex live acceptance (Andy, windows build, ≈ 20 min)
 
 Tick each item that fires correctly. Any item that fails becomes one line in AGENTS.md Requests for Codex.
@@ -87,9 +114,18 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 - [ ] One continuous funnel mass, no stacked ribbons, in both the main view and the viewfinder
 - [ ] The funnel descends from the cloud base while forming and retracts upward on rope-out
 
+- [ ] Tall cloud-to-ground funnels sway without detaching from the cloud (0.7.4)
+
 **X7-07 — knock-loose props**
 - [ ] Bales, mailboxes, signs and crates fly when hit; the truck keeps most of its speed
 - [ ] Trees, barns, silos and poles block solidly
+
+**X7-09 — storm telegraph presentation (Sprint 8)**
+- [ ] Forecast indicator and world cues point the right way; a jog visibly bows before the storm turns
+- [ ] EF5 reads dark and rumbles; the failed-touchdown cue reads as a storm that didn't drop
+
+**X7-10 — broadcast alert tones (Sprint 8)**
+- [ ] Three-tone warning on EF3+; a longer emergency tone for EF5, then radio static
 
 ---
 
@@ -105,7 +141,9 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 - [ ] **C6 — S7-06 physics caveat:** accept the PASS (≤ 1.2 ms with vehicle + tornado + props; G1 already covered
       60-piece debris at ≤ 1.5 ms), or do one deliberate prop-cluster smash with `?physProbe=1` on the local dev
       build and read the `[PHYS-RESULT]` line from the browser console
-- [ ] **C5 — Start Sprint 8** (`sprint-08-storm-director.md`): yes / adjust
+- [ ] **C7 — G4 verdict** (and G5, if run): PASS / tuning notes / FAIL
+- [ ] **C5 — Sprint 8 re-scope** (`sprint-08-storm-director.md`): the epic is done, so pull in run goals v1,
+      run screens and the S8-C2 decision from Sprint 9? yes / adjust
 
 ---
 
@@ -114,5 +152,5 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 - [ ] Log findings into `sprint-07-build.md` as "Playtest Notes — G3", in the same triage-table format as earlier passes
 - [ ] Record tuned defaults or new findings in `vehicle-feel.md`'s Playtest Tuning Log, and tick the Feel ACs that passed
 - [ ] File failed Part B items as Codex requests in AGENTS.md
-- [ ] Tick the Sprint 7 DoD rows, mark Sprint 7 closed, set Sprint 8 to Active
+- [ ] Tick the Sprint 7 DoD rows, mark Sprint 7 closed; log G4 (and G5) in Sprint 8 and re-scope it per C5
 - [ ] Commit the evidence to `production/qa/evidence/` (Andy's F9 captures from Part B, plus the physics and CPU results)
