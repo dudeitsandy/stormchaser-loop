@@ -30,6 +30,7 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 |----|------|------|------|--------|
 | S9-01 | Triage round 1 feedback into a tuning list: each complaint → the `vehicle-feel.md` knob(s) it maps to, with a proposed value. Andy picks | Analysis | 1.5 h | Blocked on PT-1 |
 | S9-02 | Feel pass: apply the chosen values (steer, grip, air/jump, landing), record them in `vehicle-feel.md` with the playtest that motivated each; PlayMode feel tests updated | Config/Data | 4 h | Blocked on S9-01 |
+| S9-02b | Camera default (Andy, 2026-10-04: "lower so it captures more of the sky, like Rocket League"): default pitch from 26.6° toward ≈ 10–12° so storms stay on screen, tuned with round 1 feedback; it becomes the SKY/CLASSIC preset split shipped with Settings (run-screens RS-2) | Config/Data | 1 h | With S9-02 |
 | S9-03 | 0.8.x release with the tuned feel; tester brief v2 (same questions plus "compared to last time") | Release | 1.5 h | Blocked on S9-02 |
 
 ### Must Have — Andy

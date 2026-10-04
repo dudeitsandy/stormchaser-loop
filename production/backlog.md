@@ -47,3 +47,23 @@ Possibly Rampage-style: runs travel through random generated towns and cities ac
 - Arcade scenario builder (share codes) and Epic 2 km chase: `design/gdd/session-modes.md` revision, after M1
 - S8-C2 per-truck HP redesign: Sprint 9 design task (`sprint-07-build.md` playtest notes)
 - Wildfire, Disaster Alchemy, Civilians & Rescue, meta loop: `design/gdd/systems-index.md` tiers, after M1
+
+---
+
+## More disasters: lightning, volcanoes, sharknado (Andy, 2026-10-04)
+
+**Idea:** new disaster types and combos beyond tornadoes: lightning storms, volcanoes, sharknados.
+
+**Fit with what's planned:**
+- **Lightning storms** (strongest fit, likely the first new disaster): part of the same supercells, so the
+  Storm Director can own them (strike timing seeded per cell, Rule 10). A hazard (near-strike damage / EMP) and
+  a photo subject (catching a strike in frame). `economy-progression.md` already references lightning: EMP
+  Deflector Shield absorbs strikes, Heat rank 2 "Dry Lightning", rank 3 "Blackout" (night, lit by lightning).
+- **Volcanoes:** tied to a biome (Canyon Faultline, `vision-1.0.md`) more than to storms; lava, ash fall and
+  ballistic debris. Pairs with the biomes entry above.
+- **Sharknado:** a tone call. As a serious disaster it fights the grounded chase; as an **unlockable modifier
+  day** ("SHARKNADO DAY", earned through career goals) it fits the Crazy Taxi DJ voice and gives the roguelite
+  reward loop a memorable prize.
+
+**Needs first:** the Disaster Alchemy / interaction design (out of M1 scope), a second `DisasterEntity` type,
+and for lightning a strike-photo scoring rule in `photo-scoring.md`.
