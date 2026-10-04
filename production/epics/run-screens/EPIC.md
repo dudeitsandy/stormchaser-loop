@@ -8,7 +8,7 @@
 > forfeit and quit; owns time scale), Settings applied in `Scripts/UI` with values from Save & Profile's device
 > settings file. No `architecture.md` exists yet; module mapped from the current code layout.
 > **Status**: Ready, scheduled in Sprint 8 (re-scope, task RS-2)
-> **Stories**: Not yet created — run `/create-stories run-screens`
+> **Stories**: 6 stories (see table)
 
 ## Overview
 
@@ -43,6 +43,19 @@ Requirement IDs are local to this epic and cite the UX spec section.
 | RS-R05 | Results: two columns (one below 1000 px wide), goals column with short names, NEW, unlock banner, empty state, save toast / read-only lines, 1.0 s input lock (Layout, States) | N/A |
 | RS-R06 | Title: career strip, career page, paint toggle, profile-loading state, storage banner; O / Select settings key (Layout, States) | N/A |
 | RS-R07 | All screens fit 960×600, 1280×800, 1920×1080; keyboard-only, gamepad-only and mouse reach every item; retained screenshots of every screen (Acceptance Criteria) | N/A |
+
+## Stories
+
+| # | Story | Type | Status | ADR |
+|---|-------|------|--------|-----|
+| 001 | [Pause menu and quitting](story-001-pause-and-quit.md) | Integration | Ready | N/A |
+| 002 | [Settings panel v1](story-002-settings-panel.md) | UI | Ready (needs run-goals-v1 005) | N/A |
+| 003 | [Wrecked slow-mo beat](story-003-wrecked-beat.md) | Visual/Feel | Ready | N/A |
+| 004 | [Results: two columns, goals and save messages](story-004-results-goals.md) | UI | Ready (needs run-goals-v1 004, 006) | N/A |
+| 005 | [Title: career strip, career page and paint toggle](story-005-title-career.md) | UI | Ready (needs run-goals-v1 005, 006) | N/A |
+| 006 | [Screen-size and input reachability pass](story-006-fit-and-reach-pass.md) | UI | Ready (last) | N/A |
+
+Order: 001 → 003 now (no goal dependencies); 002, 004, 005 as run-goals-v1 lands; 006 last.
 
 ## Definition of Done
 
