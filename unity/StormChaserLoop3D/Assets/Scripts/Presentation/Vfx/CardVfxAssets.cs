@@ -64,7 +64,16 @@ internal sealed class CardVfxAssets : IDisposable
     private Material GetMaterial(Shape shape)
     {
         if (_materials.TryGetValue(shape, out var cached)) return cached;
-        var template = Resources.Load<Material>("Presentation/VfxCardMaterial");
+        // A sky deck must survive terrain fog; otherwise its distant chase-camera strip
+        // turns back into the daylight fog color. Other cards keep ordinary world fog.
+        var template = Resources.Load<Material>(shape == Shape.Overcast
+            ? "Presentation/FarFieldStormMaterial" : "Presentation/VfxCardMaterial");
+        if (shape == Shape.Overcast && template == null)
+        {
+            Debug.LogWarning("Overcast deck requires Resources/Presentation/FarFieldStormMaterial (fog-exempt).");
+            _materials.Add(shape, null);
+            return null;
+        }
         var shader = template != null ? template.shader : Shader.Find("Universal Render Pipeline/Particles/Unlit");
         if (shader == null)
         {
@@ -88,6 +97,7 @@ internal sealed class CardVfxAssets : IDisposable
         material.renderQueue = (int)RenderQueue.Transparent;
         material.SetTexture("_BaseMap", BuildTexture(shape));
         material.SetColor("_BaseColor", Color.white);
+        if (shape == Shape.Overcast) material.SetFloat("_HorizonBlend", 0f);
         _materials.Add(shape, material);
         _owned.Add(material);
         return material;

@@ -3,6 +3,13 @@ using NUnit.Framework;
 public class StormCueTests
 {
     [Test]
+    public void OvercastAmbient_DropsMoreThanDirectLightAndRestoresBaseline()
+    {
+        Assert.That(StormCueLevels.AmbientBrightness(0f), Is.EqualTo(1f));
+        Assert.That(StormCueLevels.AmbientBrightness(1f), Is.EqualTo(0.2f).Within(0.0001f));
+        Assert.That(StormCueLevels.AmbientBrightness(1f), Is.LessThan(StormCueLevels.Brightness(1f)));
+    }
+    [Test]
     public void OutdoorSirens_IgnoreWeakStormsAndDuplicateWarningsDoNotExtendCycle()
     {
         var cycle = new OutdoorSirenCycle();

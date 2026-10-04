@@ -8,6 +8,8 @@ public static class StormCueLevels
     public static float Exposure(float summedWindMagnitude) => float.IsNaN(summedWindMagnitude) ? 0f : Math.Max(0f, Math.Min(1f, summedWindMagnitude / 20f));
     /// <summary>Sky/sun brightness reaches 40 percent of baseline at full exposure.</summary>
     public static float Brightness(float exposure) => 1f - 0.6f * Math.Max(0f, Math.Min(1f, exposure));
+    /// <summary>Overcast ambient falls to twenty percent, while direct light retains its separate response.</summary>
+    public static float AmbientBrightness(float storminess) => 1f - 0.8f * StorminessTarget(storminess);
     /// <summary>Exposure lengthens gusts without enlarging the fixed card pool.</summary>
     public static float GustLength(float exposure) => 1f + Math.Max(0f, Math.Min(1f, exposure));
     /// <summary>One cell's contribution to run-wide storminess; independent of player distance.</summary>

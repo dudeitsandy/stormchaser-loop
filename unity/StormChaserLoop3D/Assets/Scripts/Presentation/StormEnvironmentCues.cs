@@ -10,7 +10,10 @@ public sealed class StormEnvironmentCues : MonoBehaviour
     [SerializeField, Min(0.1f)] private float _stormRiseSeconds = 5f;
     [SerializeField, Min(0.1f)] private float _stormFallSeconds = 20f;
     [SerializeField, Min(47f)] private float _deckHeight = 48f;
-    [SerializeField, Min(180f)] private float _deckWidth = 440f;
+    [SerializeField, Min(180f)] private float _deckWidth = 2000f;
+    [SerializeField] private Color _stormOverhead = new Color(0.015f, 0.035f, 0.028f, 1f);
+    [SerializeField] private Color _stormHorizon = new Color(0.20f, 0.28f, 0.24f, 1f);
+    [SerializeField] private Color _deckUnderside = new Color(0.012f, 0.028f, 0.024f, 1f);
     private StormDirector _director;
     private float _storminess, _ambientIntensity;
     private Color _ambientSky, _ambientEquator, _ambientGround, _ambientLight;
@@ -27,6 +30,7 @@ public sealed class StormEnvironmentCues : MonoBehaviour
     private float _sunIntensity;
     private bool _captured;
     private int[] _colorProperties;
+    private int _horizonColorId;
     private Color[] _skyColors;
     private float _exposure, _ef5Exposure;
     private Vector3 _bearing;
@@ -67,6 +71,7 @@ public sealed class StormEnvironmentCues : MonoBehaviour
         _originalSky = RenderSettings.skybox;
         if (_originalSky != null)
         {
+            _horizonColorId = Shader.PropertyToID("_HorizonColor");
             _sky = new Material(_originalSky) { name = "StormSkyRuntime" };
             _colorProperties = new[] { Shader.PropertyToID("_TopColor"), Shader.PropertyToID("_HorizonColor"),
                 Shader.PropertyToID("_BottomColor"), Shader.PropertyToID("_SunColor"), Shader.PropertyToID("_SkyTint"),
@@ -137,27 +142,39 @@ public sealed class StormEnvironmentCues : MonoBehaviour
         {
             _deck.gameObject.SetActive(_storminess > 0.005f);
             _deck.localScale = new Vector3(1f, Mathf.Lerp(0.3f, 1f, _storminess), 1f);
-            _deckAssets.SetColor(CardVfxAssets.Shape.Overcast,
-                new Color(0.065f, 0.13f, 0.115f, _storminess * 0.96f));
+            Color underside = _deckUnderside;
+            underside.a = _storminess * 0.99f;
+            _deckAssets.SetColor(CardVfxAssets.Shape.Overcast, underside);
         }
-        RenderSettings.ambientIntensity = _ambientIntensity * StormCueLevels.Brightness(_storminess);
-        RenderSettings.ambientSkyColor = Grade(_ambientSky, _storminess);
-        RenderSettings.ambientEquatorColor = Grade(_ambientEquator, _storminess);
-        RenderSettings.ambientGroundColor = Grade(_ambientGround, _storminess);
-        RenderSettings.ambientLight = Grade(_ambientLight, _storminess);
+        RenderSettings.ambientIntensity = _ambientIntensity * StormCueLevels.AmbientBrightness(_storminess);
+        RenderSettings.ambientSkyColor = AmbientGrade(_ambientSky);
+        RenderSettings.ambientEquatorColor = AmbientGrade(_ambientEquator);
+        RenderSettings.ambientGroundColor = AmbientGrade(_ambientGround);
+        RenderSettings.ambientLight = AmbientGrade(_ambientLight);
         if (_sun != null)
         {
             _sun.intensity = _sunIntensity * StormCueLevels.Brightness(skyExposure);
             // Intensity supplies the darkening; the light's color supplies only the cast.
             _sun.color = Color.Lerp(_sunColor, _teal, skyExposure * _tealShift);
         }
-        if (_camera != null) _camera.backgroundColor = Grade(_background, skyExposure);
+        if (_camera != null) _camera.backgroundColor = Color.Lerp(Grade(_background, skyExposure), _stormOverhead, _storminess);
         if (_sky != null)
         {
             RenderSettings.skybox = _sky;
             for (int i = 0; i < _colorProperties.Length; i++)
-                if (_sky.HasProperty(_colorProperties[i])) _sky.SetColor(_colorProperties[i], Grade(_skyColors[i], skyExposure));
+                if (_sky.HasProperty(_colorProperties[i]))
+                {
+                    Color target = _colorProperties[i] == _horizonColorId ? _stormHorizon : _stormOverhead;
+                    _sky.SetColor(_colorProperties[i], Color.Lerp(Grade(_skyColors[i], skyExposure), target, _storminess));
+                }
         }
+    }
+    private Color AmbientGrade(Color original)
+    {
+        Color graded = Grade(original, _storminess);
+        graded *= StormCueLevels.AmbientBrightness(_storminess) / StormCueLevels.Brightness(_storminess);
+        graded.a = original.a;
+        return graded;
     }
     private void End(RunSummary summary) => Restore();
     private void Restore()
