@@ -90,6 +90,9 @@ the start so players see the new look while the feel work happens.
 - [ ] G3 feel playtest run; findings logged for Sprint 8
 
 ## Release Log
+- 2026-10-03 — **0.7.3 pushed** (html5 + windows): X7-08 viewfinder renders the roof cab cam (Codex), zoomed to
+  the ±15° scoring cone; X7-07 props accepted (`LooseSceneryPlayTests` 6/6). Evidence: EditMode 182/182,
+  PlayMode 33/34 (known EF3 wind failure), WebGL 0 console errors (`production/qa/evidence/v073_*.png`).
 - 2026-10-03 — **0.7.2 pushed** (html5 + windows): S7-05 camera (orbit/recenter, Storm Cam F14, camera-forward
   aim via roof `CamcorderMount`), landing-wedge fix (lifted wheel casts) + heavier jump, KTVR DJ title with
   Andy's key-art banner; Codex: knock-loose bales/mailboxes/signs/crates, sky-first tornado lifecycle, PiP on

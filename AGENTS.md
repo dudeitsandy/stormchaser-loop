@@ -116,7 +116,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | S7-07 Blender MCP + hero truck (G2) | Claude | todo |
 | X7-01 PiP follows camera | Codex | implemented — main camera pose synced before URP rendering; own FOV/lens retained; live orbit/Storm Cam acceptance pending |
 | X7-07 Knock-loose scenery | Codex | implemented — 32 requested / ≤40 new bodies, four prop types; native tests compiled; bale impact criterion resolved by Claude; live acceptance pending |
-| **X7-08 Viewfinder = roof cab cam (zoomed)** | Codex | implemented for 0.7.3 — CamcorderMount pose + VerticalFov, 0.3 m near clip; source/native tests compile, 37 managed cases pass; fresh cab-cam visual/native acceptance pending |
+| **X7-08 Viewfinder = roof cab cam (zoomed)** | Codex | done — verified by Claude, shipped in 0.7.3 |
 | 0.7.1 Scenery collision | Codex | implemented — static barns/silos/poles/tree trunks; 45 kg knock-loose fences; full source compiles; live collision/wheel acceptance pending |
 | X7-02 Vehicle VFX | Codex | 0.7 style pops ready — event-only DRIFT/AIR/NEAR MISS at 44% screen height; source compiles, 29 managed tests pass; candidate live trigger acceptance pending |
 | X7-03 Vehicle audio | Codex | partial — boost ignition/roar and EngineLoad wired; prior audio accepted; S7-04/06 live trigger acceptance pending |
