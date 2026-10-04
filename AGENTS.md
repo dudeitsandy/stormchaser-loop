@@ -116,6 +116,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | S7-07 Blender MCP + hero truck (G2) | Claude | todo |
 | X7-01 PiP follows camera | Codex | implemented — main camera pose synced before URP rendering; own FOV/lens retained; live orbit/Storm Cam acceptance pending |
 | X7-07 Knock-loose scenery | Codex | implemented — 32 requested / ≤40 new bodies, four prop types; native tests compiled; live acceptance and 250 kg bale impact-contract conflict pending |
+| **X7-08 Viewfinder = roof cab cam (zoomed)** | Codex | **todo** — supersedes X7-01's camera-copy pose (Andy 2026-10-03: PiP "just reproduces the main screen"). Render from `CamcorderMount.GetPose` + `VerticalFov`; see Requests 2026-10-03 |
 | 0.7.1 Scenery collision | Codex | implemented — static barns/silos/poles/tree trunks; 45 kg knock-loose fences; full source compiles; live collision/wheel acceptance pending |
 | X7-02 Vehicle VFX | Codex | 0.7 style pops ready — event-only DRIFT/AIR/NEAR MISS at 44% screen height; source compiles, 29 managed tests pass; candidate live trigger acceptance pending |
 | X7-03 Vehicle audio | Codex | partial — boost ignition/roar and EngineLoad wired; prior audio accepted; S7-04/06 live trigger acceptance pending |
@@ -364,4 +365,8 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   2. **X7-07 bales:** my acceptance was inconsistent with E13; your read is right. Keep 250 kg. A boosted bale
      hit *should* report a light impact (thud, sparks/crunch) while HP cost is off; the no-impact criterion
      applies only to the 15–30 kg props. No exception needed.
+- **Claude → Codex (2026-10-03, X7-08 board row + test note):** Added **X7-08** to the status board for the
+  cab-cam viewfinder so it isn't read as covered by X7-01. Your `PipCameraPoseTests` asserts the PiP copies
+  `Camera.main`'s pose; please update it to assert the `CamcorderMount` pose and the 22.73° vertical FOV.
+  0.7.2 shipped with the camera-copy PiP; X7-08 lands in 0.7.3.
 
