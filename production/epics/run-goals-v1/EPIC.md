@@ -8,7 +8,7 @@
 > slice built to `save-profile.md`'s rules. HUD bounty list and career pop-up in `Scripts/UI`; the `livery.ktvr`
 > material is Codex's lane. No `architecture.md` exists yet; module mapped from the current code layout.
 > **Status**: Ready, scheduled in Sprint 8 (re-scope, task RG-2)
-> **Stories**: Not yet created — run `/create-stories run-goals-v1`
+> **Stories**: 8 stories (see table)
 
 ## Overview
 
@@ -48,6 +48,21 @@ No `tr-registry.yaml` exists yet; requirement IDs are local to this epic and cit
 | RG-R08 | HUD: bounty list ticked live, career pop-up (Rule 8; `design/ux/run-screens.md`) | N/A |
 | RG-R09 | Persistence at run complete as one transaction; quit forfeits; write failure keeps progress and retries; read-only records nothing (Rule 9, Edge Cases) | Gap: WebGL save ADR |
 | RG-R10 | Achievability: every career goal completed once in a real run before release; `big_air` measured first (Acceptance Criteria) | N/A |
+
+## Stories
+
+| # | Story | Type | Status | ADR |
+|---|-------|------|--------|-----|
+| 001 | [Measure counted airtime and set the big-air threshold](story-001-airtime-measurement.md) | Integration | Ready | ADR-0005 |
+| 002 | [Goal catalogue and seeded bounty draw](story-002-catalogue-bounty-draw.md) | Logic | Ready | N/A |
+| 003 | [Goal evaluation, bonuses and goal events](story-003-goal-evaluation.md) | Logic | Ready | N/A |
+| 004 | [Goal tracker in a live run](story-004-tracker-in-play.md) | Integration | Ready | ADR-0005 |
+| 005 | [Accomplishments record and first save slice](story-005-accomplishments-save-slice.md) | Integration | **Blocked** (WebGL save ADR) | missing |
+| 006 | [KTVR livery reward](story-006-livery-reward.md) | Integration | Ready (after 005) | N/A |
+| 007 | [HUD bounty list and career-goal pop-up](story-007-hud-bounties-popup.md) | UI | Ready | N/A |
+| 008 | [Achievability check before release](story-008-achievability-check.md) | Config/Data | Ready | N/A |
+
+Order: 001 → 002 → 003 → 004 → (005 → 006) and 007 → 008.
 
 ## Definition of Done
 
