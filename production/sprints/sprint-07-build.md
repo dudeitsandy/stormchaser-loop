@@ -124,6 +124,10 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-04 — **0.7.6 pushed** (html5 + windows): Codex **outdoor warning sirens** (X8-01) and **run-wide storm
+  sky** (X8-02: overcast deck, near-black overhead for an EF5, eases back after rope-out). Evidence: EditMode
+  309/309, PlayMode 55/55, WebGL 0 console errors (`v076_sky_*.png`). Andy live check: sirens good, tones OK
+  pre-polish, funnel good. Pause / quit not in this build (run-screens RS-2, next).
 - 2026-10-04 — **0.7.5 pushed** (html5 + windows): **forecast panel** (story 007: nearest storms with bearing,
   `~EF` estimate past 150 m, ON GROUND / PEAK ETAs, anchor in amber; off-screen indicator agrees), **results
   screen** shows WEATHER regime, seed + version replay line, "THE BIG ONE GOT AWAY" (story 009), **durability

@@ -111,7 +111,7 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 - [ ] Metal crunch gets louder with impact severity
 
 **X7-04 — tornado reads as one funnel**
-- [ ] One continuous funnel mass, no stacked ribbons, in both the main view and the viewfinder
+- [x] One continuous funnel mass, no stacked ribbons, in both the main view and the viewfinder *(Andy, 0.7.6: "the funnel looks good")*
 - [ ] The funnel descends from the cloud base while forming and retracts upward on rope-out
 
 - [ ] Tall cloud-to-ground funnels sway without detaching from the cloud (0.7.4)
@@ -125,10 +125,10 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 - [ ] EF5 reads dark and rumbles; the failed-touchdown cue reads as a storm that didn't drop
 
 **X7-10 — broadcast alert tones (Sprint 8)**
-- [ ] Three-tone warning on EF3+; a longer emergency tone for EF5, then radio static
+- [x] Three-tone warning on EF3+; a longer emergency tone for EF5, then radio static *(Andy, 0.7.6: "ok for pre-polished audio"; polish later)*
 
 **X8-01 — outdoor warning sirens (Sprint 8)**
-- [ ] Sirens wail from a direction and get louder near a pole; 25 s per warning, continuous for an EF5
+- [x] Sirens wail from a direction and get louder near a pole; 25 s per warning, continuous for an EF5 *(Andy, 0.7.6: "sirens sound good")*
 
 **X8-02 — run-wide storm sky (Sprint 8)**
 - [ ] The whole sky darkens as storms build (near-black for an EF5) and eases back slowly after rope-out

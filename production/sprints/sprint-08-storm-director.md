@@ -61,7 +61,7 @@ results) are specified and complete.
 ### Carried over from Sprint 7 (closed 2026-10-04)
 | ID | Owner | Task | Est. | Status |
 |----|-------|------|------|--------|
-| CA-1 | Andy | Codex live acceptance pass, `production/qa/g3-playtest-session.md` Part B: X7-01/08, X7-02, X7-03, X7-04, X7-07, X7-09, X7-10, plus X8-01 sirens and X8-02 storm sky (add them to Part B). Fold into the next play session, ≈ 25 min | 25 min | Open |
+| CA-1 | Andy | Codex live acceptance pass, `production/qa/g3-playtest-session.md` Part B: X7-01/08, X7-02, X7-03, X7-04, X7-07, X7-09, X7-10, plus X8-01 sirens and X8-02 storm sky (add them to Part B). Fold into the next play session, ≈ 25 min | 25 min | **Partial** (0.7.6, 2026-10-04): X8-01 sirens, X7-10 tones (pre-polish OK), X7-04 funnel pass; sky, jog lean, X7-02/03/07 still to check |
 | CA-2 | Andy | Checklist C6: accept the S7-06 physics PASS caveat, or one `?physProbe=1` prop-cluster smash | 5 min | Open |
 
 ### Not this sprint
