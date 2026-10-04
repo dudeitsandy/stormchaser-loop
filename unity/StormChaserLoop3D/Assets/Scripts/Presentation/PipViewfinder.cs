@@ -5,14 +5,15 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 
-/// <summary>Low-resolution photo preview sharing the rendered gameplay camera's pose.</summary>
+/// <summary>Zoomed roof-mounted photo preview sharing the authoritative camcorder scoring pose.</summary>
 public sealed class PipViewfinder : MonoBehaviour
 {
     private static readonly ProfilerMarker UpdateMarker = new ProfilerMarker("Presentation.Pip.Update");
     [SerializeField] private int _textureWidth = 320;
     [SerializeField] private int _textureHeight = 240;
-    [SerializeField] private float _fieldOfView = 60f;
+    [SerializeField, Min(0.01f)] private float _nearClip = 0.3f;
     private PlayerVehicle _vehicle;
+    private CamcorderMount _mount;
     private Camera _main;
     private Camera _camera;
     private RenderTexture _texture;
@@ -29,6 +30,12 @@ public sealed class PipViewfinder : MonoBehaviour
     private void Start()
     {
         _vehicle = FindAnyObjectByType<PlayerVehicle>();
+        _mount = _vehicle != null ? _vehicle.GetComponent<CamcorderMount>() : null;
+        if (_mount == null)
+        {
+            Debug.LogWarning("PipViewfinder: CamcorderMount is required for the photo-scoring pose; preview disabled.");
+            return;
+        }
         var main = Camera.main;
         _main = main;
         var root = PresentationOverlay.Create(transform, "ViewfinderUI", 10);
@@ -43,7 +50,9 @@ public sealed class PipViewfinder : MonoBehaviour
         _camera.targetTexture = _texture;
         _camera.rect = new Rect(0, 0, 1, 1);
         _camera.usePhysicalProperties = false;
-        _camera.fieldOfView = _fieldOfView;
+        _camera.fieldOfView = _mount.VerticalFov;
+        _camera.aspect = CamcorderMount.Aspect;
+        _camera.nearClipPlane = Mathf.Max(0.01f, _nearClip);
         _camera.allowHDR = false;
         _camera.allowMSAA = false;
         _camera.enabled = false;
@@ -85,7 +94,7 @@ public sealed class PipViewfinder : MonoBehaviour
     {
         using var sample = UpdateMarker.Auto();
         if (_camera == null || _vehicle == null) return;
-        bool active = _vehicle.InputEnabled;
+        bool active = _vehicle.InputEnabled && _mount != null;
         _camera.enabled = active;
         _frame.style.display = active ? DisplayStyle.Flex : DisplayStyle.None;
         SyncPose();
@@ -101,9 +110,12 @@ public sealed class PipViewfinder : MonoBehaviour
     private void BeforeFrame(ScriptableRenderContext context, List<Camera> cameras) => SyncPose();
     private void SyncPose()
     {
-        if (_camera == null || _main == null) return;
-        _camera.transform.SetPositionAndRotation(_main.transform.position, _main.transform.rotation);
-        _camera.nearClipPlane = _main.nearClipPlane;
+        if (_camera == null || _main == null || _mount == null) return;
+        _mount.GetPose(out Vector3 position, out Quaternion rotation);
+        _camera.transform.SetPositionAndRotation(position, rotation);
+        _camera.fieldOfView = _mount.VerticalFov;
+        _camera.aspect = CamcorderMount.Aspect;
+        _camera.nearClipPlane = Mathf.Max(0.01f, _nearClip);
         _camera.farClipPlane = _main.farClipPlane;
         _camera.cullingMask = _main.cullingMask;
     }
