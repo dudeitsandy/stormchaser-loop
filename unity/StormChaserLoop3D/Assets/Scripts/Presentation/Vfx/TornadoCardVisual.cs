@@ -11,7 +11,14 @@ public sealed class TornadoCardVisual : MonoBehaviour
     [SerializeField, Range(6, 20)] private int _bandCount = 12;
     [SerializeField, Range(4, 20)] private int _dustCount = 8;
     [SerializeField, Range(0, 24)] private int _debrisCount = 12;
+    [Tooltip("Legacy prefab height floor in metres; no longer multiplied by EF scale. Cloud clearance below controls normal height.")]
     [SerializeField, Min(0.1f)] private float _height = 6f;
+    [Tooltip("Lowest cloud edge above the funnel's ground base, independent of EF width.")]
+    [SerializeField, Min(25f)] private float _minimumCloudClearance = 25f;
+    [SerializeField, Min(0f)] private float _cloudHeightVariation = 18.8f;
+    [SerializeField, Min(0.5f)] private float _cloudThickness = 2.4f;
+    [SerializeField, Range(0f, 0.3f)] private float _funnelBend = 0.1f;
+    [Tooltip("Width tuning: 2 preserves the damage-radius scale; cloud height never widens the funnel.")]
     [SerializeField, Min(0.1f)] private float _topRadius = 2f;
     [SerializeField] private float _swirlSpeed = 2.5f;
     [SerializeField] private Color _funnelColor = new Color(0.62f, 0.72f, 0.77f, 0.95f);
@@ -29,6 +36,10 @@ public sealed class TornadoCardVisual : MonoBehaviour
     private float _ropeAge;
     private Vector3[] _debrisDropOrigins;
     private float _visualHeight, _visualRadius, _cloudHeight, _ropeTilt;
+    private float _heightSample, _widthSample, _depthRatio, _shapePhase;
+    private Mesh _funnelMesh;
+    private Vector3[] _funnelVertices;
+    private int _segments;
     private Transform[] _dust, _debris;
     private CardVfxAssets _assets;
     private MeshRenderer _massRenderer;
@@ -101,7 +112,19 @@ public sealed class TornadoCardVisual : MonoBehaviour
         _assets = new CardVfxAssets();
         _root = new GameObject("IllustratedFunnel").transform;
         _root.SetParent(transform, false);
-        _mass = _assets.CreateFunnel(_root, Mathf.Clamp(_bandCount, 6, 20));
+        _segments = Mathf.Clamp(_bandCount, 6, 20);
+        _mass = _assets.CreateFunnel(_root, _segments);
+        Vector3 spawn = transform.position;
+        _heightSample = FunnelVisualDimensions.Variation(spawn.x, spawn.z, 71);
+        _widthSample = FunnelVisualDimensions.Variation(spawn.x, spawn.z, 73);
+        _depthRatio = Mathf.Lerp(0.7f, 1.15f, FunnelVisualDimensions.Variation(spawn.x, spawn.z, 79));
+        _shapePhase = FunnelVisualDimensions.Variation(spawn.x, spawn.z, 83) * Mathf.PI * 2f;
+        if (_mass != null)
+        {
+            _funnelMesh = _mass.GetComponent<MeshFilter>().sharedMesh;
+            _funnelVertices = new Vector3[(_segments + 1) * 2];
+            _funnelMesh.MarkDynamic();
+        }
         _cloud = _assets.Create(_root, CardVfxAssets.Shape.Cloud, "FunnelCloudBase");
         if (_mass != null) _massRenderer = _mass.GetComponent<MeshRenderer>();
         _massProperties = new MaterialPropertyBlock();
@@ -194,16 +217,19 @@ public sealed class TornadoCardVisual : MonoBehaviour
         _root.rotation = Quaternion.identity;
         float size = Mathf.Max(0.1f, _controller.ConeScale);
         float growth = _previewWedge ? 1f : lifecycle.Width;
-        float height = _previewWedge ? 20f : _height * size * lifecycle.Length;
-        float radius = _previewWedge ? 12f : _topRadius * size * growth;
-        _cloudHeight = _height * size;
+        _cloudHeight = FunnelVisualDimensions.CloudHeight(Mathf.Max(25f, Mathf.Max(_height, _minimumCloudClearance)),
+            _cloudThickness, _cloudHeightVariation, _heightSample);
+        bool wedge = _controller.EFRating == "EF5";
+        float crownRadius = FunnelVisualDimensions.CrownRadius(size, _topRadius, _widthSample);
+        float height = _previewWedge ? 20f : _cloudHeight * lifecycle.Length;
+        float radius = _previewWedge ? 12f : crownRadius * growth;
         _visualHeight = height;
         _visualRadius = radius;
         _ropeTilt = lifecycle.Tilt;
         if (_cloud != null && !_previewWedge)
         {
             _cloud.localPosition = Vector3.up * _cloudHeight;
-            _cloud.localScale = new Vector3(_topRadius * size * 3f, _height * size * 0.22f, 1);
+            _cloud.localScale = new Vector3(Mathf.Max(8f, crownRadius * 3f), _cloudThickness, 1);
             Color cloud = Color.Lerp(_funnelColor, _cloudColor, intensity);
             cloud.a = _cloudColor.a * (phase == TornadoLifecycle.Phase.Dissipating ? intensity : Mathf.Lerp(0.35f, 1f, intensity));
             _assets.SetColor(CardVfxAssets.Shape.Cloud, cloud);
@@ -213,6 +239,13 @@ public sealed class TornadoCardVisual : MonoBehaviour
         _assets.SetColor(CardVfxAssets.Shape.Funnel, funnel);
         if (_mass != null)
         {
+            if (!_previewWedge && _funnelMesh != null)
+            {
+                FunnelSurfaceGeometry.Deform(_funnelVertices, _segments, wedge ? 0.85f : 0.04f,
+                    _funnelBend, _funnelBend * _depthRatio * 0.6f, _shapePhase + _age * _swirlSpeed * 0.12f);
+                _funnelMesh.vertices = _funnelVertices;
+                _funnelMesh.RecalculateBounds();
+            }
             _mass.localScale = new Vector3(radius, height, 1);
             _massProperties.SetVector("_BaseMap_ST", new Vector4(1, 1, 0,
                 Mathf.Repeat(_age * _swirlSpeed * 0.08f, 1)));
@@ -256,7 +289,7 @@ public sealed class TornadoCardVisual : MonoBehaviour
             float t = Mathf.Repeat(i * 0.618f + _age * 0.12f, 1);
             float angle = _age * _swirlSpeed * (1f + i * 0.03f) + i * 2.4f;
             float r = _previewWedge ? 14.4f : radius * Mathf.Lerp(0.7f, 1.5f, t);
-            _debris[i].localPosition = new Vector3(Mathf.Cos(angle) * r, t * (_previewWedge ? 18f : height * 0.8f), Mathf.Sin(angle) * r);
+            _debris[i].localPosition = new Vector3(Mathf.Cos(angle) * r, t * (_previewWedge ? 18f : Mathf.Min(height * 0.8f, radius * 3f)), Mathf.Sin(angle) * r);
             _debris[i].localScale = Vector3.one * Mathf.Clamp(size * growth * (0.12f + i % 3 * 0.04f), 0.04f, 0.5f);
         }
         // EF is read from the same controller, with no independent rating or gameplay state.
@@ -279,9 +312,17 @@ public sealed class TornadoCardVisual : MonoBehaviour
             Quaternion facing = forward.sqrMagnitude > 0.001f ? Quaternion.LookRotation(forward, Vector3.up) : Quaternion.identity;
             _mass.rotation = facing * Quaternion.Euler(0, 0, _ropeTilt);
             _mass.position = _root.position + Vector3.up * _cloudHeight - _mass.up * _visualHeight;
-            _mass.localScale = new Vector3(_visualRadius, _visualHeight, 1);
+            float bearing = Mathf.Atan2(forward.x, forward.z) + _shapePhase;
+            float depth = _controller.EFRating == "EF5" ? Mathf.Max(1f, _depthRatio) : _depthRatio;
+            _mass.localScale = new Vector3(FunnelVisualDimensions.ProjectedRadius(_visualRadius, depth, bearing), _visualHeight, _visualRadius);
         }
-        if (_cloud != null && !_previewWedge) CardVfxAssets.FaceCamera(_cloud, camera, Mathf.Sin(_age * 0.2f) * 5f);
+        if (_cloud != null && !_previewWedge)
+        {
+            // No billboard roll/pitch: neither camera tilt nor a wide cloud can drag an edge below clearance.
+            Vector3 cloudForward = camera.transform.forward;
+            cloudForward.y = 0;
+            _cloud.rotation = cloudForward.sqrMagnitude > 0.001f ? Quaternion.LookRotation(cloudForward, Vector3.up) : Quaternion.identity;
+        }
         if (_previewWedge && _previewMass != null) CardVfxAssets.FaceCamera(_previewMass, camera);
         if (_previewWedge && _subVortices != null)
             foreach (var card in _subVortices) if (card != null) CardVfxAssets.FaceCamera(card, camera);

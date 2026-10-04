@@ -11,7 +11,7 @@ public sealed class PipViewfinder : MonoBehaviour
     private static readonly ProfilerMarker UpdateMarker = new ProfilerMarker("Presentation.Pip.Update");
     [SerializeField] private int _textureWidth = 320;
     [SerializeField] private int _textureHeight = 240;
-    [SerializeField, Min(0.01f)] private float _nearClip = 0.3f;
+    [SerializeField, Min(0.01f)] private float _nearClip = 1.5f;
     private PlayerVehicle _vehicle;
     private CamcorderMount _mount;
     private Camera _main;

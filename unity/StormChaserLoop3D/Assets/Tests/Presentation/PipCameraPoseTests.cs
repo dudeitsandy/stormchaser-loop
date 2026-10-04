@@ -43,7 +43,7 @@ public class PipCameraPoseTests
             Assert.That(preview.transform.position, Is.EqualTo(expectedPosition));
             Assert.That(Vector3.Distance(preview.transform.position, main.transform.position), Is.GreaterThan(1f));
             Assert.That(Quaternion.Angle(preview.transform.rotation, expectedRotation), Is.LessThan(0.01f));
-            Assert.That(preview.nearClipPlane, Is.EqualTo(0.3f));
+            Assert.That(preview.nearClipPlane, Is.EqualTo(1.5f));
             Assert.That(preview.farClipPlane, Is.EqualTo(main.farClipPlane));
             Assert.That(preview.cullingMask, Is.EqualTo(main.cullingMask));
             Assert.That(preview.fieldOfView, Is.EqualTo(mount.VerticalFov).Within(0.001f));
