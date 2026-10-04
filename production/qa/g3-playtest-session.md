@@ -1,6 +1,6 @@
 # G3 Playtest Session — Sprint 7 close
 
-> **Build:** 0.7.3 on itch (https://ghostweavelabs.itch.io/doomsday). html5 for outside players, windows
+> **Build:** 0.7.4 on itch (Storm Director live, 3-minute runs; updated 2026-10-04) (https://ghostweavelabs.itch.io/doomsday). html5 for outside players, windows
 > build for Andy's live checks.
 > **Length:** Andy ≈ 60–90 min. Outside players ≈ 15 min each, can be remote and async.
 > **Closes:** Sprint 7 (`production/sprints/sprint-07-build.md`). Results feed Sprint 8 and the
@@ -32,7 +32,7 @@ that need a human.
 screen, and that's all players get. Note exact quotes, especially "that's cheap", "floaty", "loose", "heavy".
 
 ### Message to outside players
-> Hey, can you play 5 runs of my storm-chaser prototype (browser, 90 seconds each)? Link: https://ghostweavelabs.itch.io/doomsday.
+> Hey, can you play 5 runs of my storm-chaser prototype (browser, 3 minutes each)? Link: https://ghostweavelabs.itch.io/doomsday.
 > Controller recommended, keyboard fine. Afterward tell me: (1) did the truck feel heavy? (2) did it feel
 > responsive? (3) anything that felt cheap or unfair? (4) one thing you'd change. Screenshots or a quick video
 > of anything weird would help.
