@@ -113,7 +113,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | S7-04 Verbs + input remap | Claude | done — jump, boost + refills, air control, E1–E3 gates, near-miss, RT/LT/A/B/X/RB map, title copy, HUD boost meter |
 | S7-05 Camera, Storm Cam, aim | Claude | done — `ChaseCameraRig` (orbit/recenter, Storm Cam F14), camera-forward framing-curve AimScore, HUD lock label |
 | S7-06 Wind force, toss, impacts, events | Claude | partial — F10 impacts raise `VehicleImpact` (HP cost off until S8-C2); G1 physics check waits on real debris (S7-08) |
-| S7-07 Blender hero truck (G2) | Claude | built — headless Blender script `tools/blender/build_pickup.py` → `Art/Vehicles/Pickup`, `TruckVisualBlender` on the truck (opt-in `?truck=blender`); **G2 pending Andy**. CamcorderMount moved to the model's roof camcorder (0, 0.66, 0.41) |
+| S7-07 Blender hero truck (G2) | Claude | built — headless Blender script `tools/blender/build_pickup.py` → `Art/Vehicles/Pickup`, `TruckVisualBlender` on the truck default truck since **G2 passed** 2026-10-03 (old cube truck via `?truck=cube`). CamcorderMount moved to the model's roof camcorder (0, 0.66, 0.41) |
 | X7-01 PiP follows camera | Codex | implemented — main camera pose synced before URP rendering; own FOV/lens retained; live orbit/Storm Cam acceptance pending |
 | X7-07 Knock-loose scenery | Codex | implemented — 32 requested / ≤40 new bodies, four prop types; native tests compiled; bale impact criterion resolved by Claude; live acceptance pending |
 | **X7-08 Viewfinder = roof cab cam (zoomed)** | Codex | done — verified by Claude, shipped in 0.7.3 |

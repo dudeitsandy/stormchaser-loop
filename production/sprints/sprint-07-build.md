@@ -14,7 +14,7 @@ the start so players see the new look while the feel work happens.
 | Gate | When | Pass = |
 |------|------|--------|
 | **G1 — WebGL streaming spike** ✅ PASS w/ condition (2026-10-01; 2 km kept) | After S7-01 | ADR-0004 Validation #1: no frame > 50 ms, no GC spike > 5 ms over a 3-min boosted drive across tiles, physics step ≤ 4 ms. **Fail → 1 km fallback** (same tile code) |
-| **G2 — Truck asset** | After S7-07 | Blender-MCP truck reads as a storm-chaser truck in ArtTest at gameplay distance; otherwise commission it |
+| **G2 — Truck asset** ✅ PASS (2026-10-03, Andy: "good enough for now"; final art pass later) | After S7-07 | Blender-MCP truck reads as a storm-chaser truck in ArtTest at gameplay distance; otherwise commission it |
 | **G3 — Feel playtest** | End of sprint | `vehicle-feel.md` Feel acceptance criteria (Andy + 2 outside players, 5 runs each) |
 
 ## Tasks
@@ -176,4 +176,19 @@ Tracked as an Open Question in `design/gdd/vehicle-damage.md`.
 | Driving still a little loose | Minor; revisit with G3 feel playtest | G3 |
 | Tornadoes sprout from and shrink into the ground; real ones come down from the sky | Presentation: funnel descends from a cloud base while Forming, retracts up on rope-out (matches `storm-director.md` Lifecycle) | Codex, AGENTS.md request 2026-10-03 |
 | Title tagline and rules text "so AI"; wants Burnout / Crazy Taxi energy | Rewritten: KTVR STORM RADIO DJ shouting rotating lines, "PRESS ANYTHING. GO GO GO." | Done, Claude |
+
+## Final Art Pass Backlog (hero pickup, deferred to the polish milestone)
+G2 passed on a placeholder-grade model on purpose: the script-built truck carries gameplay now, and the
+final pass upgrades it in place (`tools/blender/build_pickup.py`) or swaps in a commissioned model
+(`TruckVisualSelector` keeps any visual behind one switch). Logged so none of it is lost:
+- Wheels spin with speed and the fronts steer (they're already separate meshes pivoted at the hub).
+- Suspension travel on the visual body (bob, squat on throttle, dive on brake).
+- Decal sheet: tornado-warning diamond, chase-team livery, numbers. Our own designs, no real logos.
+- Damage stages (`vehicle-damage.md`): dents, cracked glass, lost light bar / mast as HP drops.
+- Beacon and light bar animate (emissive pulse); headlights at night (Heat 3 Blackout).
+- Anemometer cups spin with `CurrentWind`; vane points into the wind.
+- Higher-fidelity silhouette pass vs the Fennec / Tacoma references (more panel breaks, a camper-cap
+  variant), still within the WebGL budget.
+- Per-archetype vehicles (SUV / Storm Rig, interceptor, mesonet van) from the same script pipeline.
+- Reference photos stay local (gitignored): the repo is public.
 

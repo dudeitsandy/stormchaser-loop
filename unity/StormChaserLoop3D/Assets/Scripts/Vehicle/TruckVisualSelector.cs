@@ -2,22 +2,22 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Chooses the truck's look: the cube truck (<c>TruckVisual</c>) or the Blender hero pickup
-/// (<c>TruckVisualBlender</c>, S7-07). The cube truck stays the default until the G2 gate passes; the
-/// Blender truck is opt-in with URL <c>?truck=blender</c> or desktop <c>-truck=blender</c>, or by ticking
-/// <see cref="_useBlender"/>. Visual only: physics, colliders and the camcorder mount are unchanged.
+/// Chooses the truck's look: the Blender hero pickup (<c>TruckVisualBlender</c>, S7-07; default since G2
+/// passed 2026-10-03) or the old cube truck (<c>TruckVisual</c>), kept as a fallback via URL
+/// <c>?truck=cube</c> or desktop <c>-truck=cube</c>. Visual only: physics, colliders and the camcorder mount
+/// are unchanged.
 /// </summary>
 public class TruckVisualSelector : MonoBehaviour
 {
-    private const string Arg = "truck=blender";
+    private const string CubeArg = "truck=cube";
 
-    [Tooltip("Show the Blender pickup instead of the cube truck (G2 decision).")]
-    [SerializeField] private bool _useBlender;
+    [Tooltip("Show the Blender pickup (G2 passed 2026-10-03). Untick for the old cube truck.")]
+    [SerializeField] private bool _useBlender = true;
 
     /// <summary>True when the Blender pickup is showing.</summary>
     public bool UsingBlender { get; private set; }
 
-    private void Awake() => Apply(_useBlender || Requested());
+    private void Awake() => Apply(_useBlender && !CubeRequested());
 
     /// <summary>Shows the Blender pickup (true) or the cube truck (false).</summary>
     public void Apply(bool blender)
@@ -30,12 +30,12 @@ public class TruckVisualSelector : MonoBehaviour
         UsingBlender = blender;
     }
 
-    private static bool Requested()
+    private static bool CubeRequested()
     {
         foreach (string arg in Environment.GetCommandLineArgs())
-            if (arg == "-" + Arg) return true;
+            if (arg == "-" + CubeArg) return true;
         foreach (string token in Application.absoluteURL.Split('?', '&', '#'))
-            if (token == Arg) return true;
+            if (token == CubeArg) return true;
         return false;
     }
 }

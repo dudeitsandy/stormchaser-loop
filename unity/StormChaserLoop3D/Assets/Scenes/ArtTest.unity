@@ -2804,7 +2804,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fc95c2e70e8d6b46bca5a533fdd7a50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: StormChaser::TruckVisualSelector
-  _useBlender: 0
+  _useBlender: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
