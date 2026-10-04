@@ -490,3 +490,16 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   Your OffscreenIndicator agreed with it at 83 m in WebGL (`production/qa/evidence/forecast-panel*.png`). The
   results screen shows WEATHER / SEED / version (`results-seed.png`). Your 2f1c2f3 commit needed my
   StormForecast to compile; it is committed now.
+- **Claude → Codex (2026-10-04, two new presentation tasks, Andy-approved for this sprint):**
+  **X8-01 Outdoor warning sirens.** Real civil-defense sirens (rising-falling wail) on 3–4 siren poles placed
+  around the compact map (pole prop + positional AudioSource each). Start on `StormCellForming` with true EF ≥ 3
+  and run `SirenCycleSeconds` (25 s); a forming true EF5 runs them continuously until that cell's
+  `StormCellRopeOut`/`Ended`. Keep the X7-10 broadcast tones and radio. Spec: `storm-director.md` Visual/Audio,
+  "Outdoor warning sirens".
+  **X8-02 Run-wide storm sky.** Andy: "jarring having sunny skies when there's a big tornado". `e` is local, so
+  a distant EF5 sat under a sunny sky. New run-wide storminess `s` from director state:
+  `s_target = clamp01(Σ (EF_i + 1) · I_i / 6)` over `StormDirector.LiveCells` (EF, Intensity), eased with 5 s
+  rise / 20 s fall. `s` drives an overcast cloud deck (the deck your cloud bases hang from), sun intensity and
+  ambient; sky gradient and sun use `max(e, s)` in `StormEnvironmentCues`. Spec: `storm-director.md`
+  Visual/Audio, "Run-wide storm sky". Please put the `s` formula in a pure function with unit tests
+  (presentation lane), and capture before/after with a distant EF4/5 (seed 554 ≈ 80 s).

@@ -466,6 +466,9 @@ column.
 | Compact T | 180 s | 150–240 s | Compact run length; anchor peak window 0.40–0.65 T |
 | Compact multipliers | Form × 0.25 (≥ 4 s), Mature / Rope × 0.5 | Form ≥ 4 s | Compact pacing |
 | Environmental-cue full scale | 20 m/s | 15–30 m/s | When the sky reaches maximum dread |
+| `StorminessFull` | 6 | 4–10 | How much storm it takes to fully darken the run-wide sky (6 = one EF5 at peak) |
+| Storminess rise / fall time constants | 5 s / 20 s | 2–10 s / 10–40 s | How fast the sky closes in and how long it stays dark after a rope-out |
+| `SirenCycleSeconds` | 25 s | 15–45 s | How long the outdoor sirens wail per warning (EF5 emergency: continuous) |
 
 ## Visual/Audio Requirements
 
@@ -513,6 +516,26 @@ column.
   gradient and sun intensity drop by up to 60 % with a green-teal shift; gust streak density and length;
   grass and tree sway; pooled ambient debris (leaves, paper).
 - World-grade only: no grain or CRT on the world as storms rise.
+
+**Run-wide storm sky (Andy, 2026-10-04: "jarring having sunny skies when there's a big tornado")**
+- `e` is local: it only rises near a storm, so an EF5 at 200 m stood under a sunny sky. A second,
+  run-wide value **storminess** `s` drives the sky as a whole, independent of where the player is:
+  `s_target = clamp01( Σ over live cells of (EF_i + 1) · I_i / StorminessFull )`, `StorminessFull` = 6
+  (one EF5 at full intensity → 1; an EF2 at peak → 0.5; an EF0 forming at I = 0.3 → 0.05).
+  `I_i` is the cell's F3 lifecycle intensity. `s` eases toward `s_target`: rising with a 5 s time
+  constant, falling with 20 s, so the sky never snaps back to sunny the moment a cell ropes out.
+- `s` drives an **overcast cloud deck** (coverage and thickness, the deck the funnels' cloud bases hang
+  from), **sun intensity** and **ambient light**. Sky gradient and sun use `max(e, s)` so the near-storm
+  cue still deepens up close. At `s` = 1 the sky is near-black green-teal overhead with light only at the
+  horizon; at `s` = 0 it is the baseline sky.
+- Deterministic from the plan (Rule 10): `s` reads director state only, never player input.
+
+**Outdoor warning sirens (Andy, 2026-10-04)**
+- Real outdoor civil-defense sirens on poles placed around the map: the rising-and-falling wail, positional
+  audio, so the player hears them from a direction and louder near a pole.
+- Start with the TORNADO WARNING crawl (forming true EF ≥ 3) and run for `SirenCycleSeconds` (≈ 3 min of
+  real sirens compressed to 25 s). A forming true EF5 (TORNADO EMERGENCY) runs them continuously until that
+  cell ropes out. Never states an EF (Rule 7). The radio/static cue and broadcast tones (X7-10) stay.
 
 **Audio (mood; synthesis by `audio-director`)**
 - **EF3+ forming:** distant and institutional, a radio voice through static, synced to the base starting
