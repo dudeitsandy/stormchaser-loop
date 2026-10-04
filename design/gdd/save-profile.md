@@ -378,6 +378,7 @@ sequence in Core Rule 4.
 | Cataclysm Heat | Hard | `ModeUnlocks.heat`, `HighestHeatCleared` | No GDD yet |
 | Vehicle Loadout & Archetypes | Soft | Unlocks, `LastLoadout` | No GDD yet |
 | Run Screens (Newspaper Cover, Results) | Soft | Album entries and images | No GDD yet |
+| Run Goals v1 (`event-system.md` Run Goals) | Hard | **New field** `Accomplishments`: per mode, goal ID → first completion (seed, date, build version) and count; written in the run-complete checkpoint transaction with score and unlocks; quitting mid-run forfeits the run's goals like everything else. Goal-sourced unlocks (`livery.ktvr`) enter `Unlocks` like garage unlocks; the chosen livery is kept in `LastLoadout` (`livery`). First slice of this GDD to be built (Sprint 8 RG-2) | Added 2026-10-04 |
 | Settings (#28) | Hard | Device file (Settings owns values; Save owns the file) | No GDD yet |
 | Onboarding | Soft | `OnboardingFlags` | No GDD yet |
 | Online Leaderboard (#35) | Soft | Best scores (read-only) | No GDD yet |

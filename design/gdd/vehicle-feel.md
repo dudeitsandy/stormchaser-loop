@@ -379,6 +379,7 @@ Driving noise, response, and slide polish are deferred to the polish pass (Andy,
 | `photo-scoring.md` / `PhotoTrigger` | Hard | Camera-forward aim direction | AimScore redefined camera-forward (2026-10-01) |
 | `vehicle-damage.md` | Hard | Impact events with severity (F10) | Added (2026-10-01) |
 | `event-system.md` | Soft | Slide duration; Airborne flag + airtime | Added — Drift Framing Zone now satisfiable (2026-10-01) |
+| `event-system.md` Run Goals | Soft | `StyleEvent` (slide duration, airtime, near miss) and `Tossed` for `storm_drift`, `big_air`, `near_misses`, `toss_survivor` | Added 2026-10-04 |
 | `storm-director.md` | Hard (inverse: supplies inputs) | Owns the per-EF storm scale (peak wind, wind radius, damage radius) that F11/F12 read | Added 2026-10-01 |
 | `economy-progression.md` Tree 1 | Soft | Archetype stars → physics (F13) | Added (2026-10-01) |
 | HUD (Claude lane) | Soft | Boost meter value | — |

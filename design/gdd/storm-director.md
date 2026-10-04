@@ -430,6 +430,7 @@ jog per 32 s; a +75° jog at 8–12 m/s for 3 s moves the funnel ≈ 30 m off it
 |-----------|------|------------------------|-----------|
 | Wind Field / Vehicle Feel (`vehicle-feel.md` F11/F12) | Hard | Per-EF peak wind and radius; lift reads EF strength and radius | Added 2026-10-01; F12 sanity note updated |
 | Dynamic Objectives & Events (`event-system.md`) | Hard | Cell tracks and ETA for path projection; EF for event density | Added 2026-10-01 |
+| Run Goals v1 (`event-system.md` Run Goals) | Hard | Weather Plan (anchor, non-dropped cells, EFs) for bounty eligibility; `DirectorRng` **stream 3 reserved for bounties**; `StormCellForming` and phase for timed bounties and `ef4_peak` | Added 2026-10-04 |
 | Run Manager & Session Modes (`session-modes.md`) | Hard | Weather Plan replaces the Storm Front EF Escalation curve; cell count feeds T | Added 2026-10-01; escalation curve marked superseded |
 | Photo Documentation & Scoring (`photo-scoring.md`) | Soft | True EF revealed by a photo (forecast reveal); EF strength in score unchanged | Added 2026-10-02 |
 | HUD / Off-Screen Indicators | Soft | Forecast list and bearings | No GDD yet |

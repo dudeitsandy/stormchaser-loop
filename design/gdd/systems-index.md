@@ -52,7 +52,7 @@ biomes, and vehicles enter the index when their season is planned.
 | 16 | Photo Documentation | Gameplay | MVP | Implemented | design/gdd/photo-scoring.md | Camera & Aim, Disaster Entity Framework |
 | 17 | Four-Axis Scoring & Style Multiplier | Gameplay | MVP | In Design | design/gdd/photo-scoring.md (Documentation axis only) | Photo Documentation, Stunt & Style Detection, Game Events Bus |
 | 18 | Stunt & Style Detection | Gameplay | Vertical Slice | Not Started | — | Vehicle Feel, Game Events Bus |
-| 19 | Dynamic Objectives & Events | Gameplay | Vertical Slice | In Design | design/gdd/event-system.md | Run Manager & Session Modes, Disaster Entity Framework, Civilians, Destructibles & Debris |
+| 19 | Dynamic Objectives & Events | Gameplay | Vertical Slice | In Design; Run Goals v1 part In Review (2026-10-04) | design/gdd/event-system.md | Run Manager & Session Modes, Disaster Entity Framework, Civilians, Destructibles & Debris |
 | 20 | Civilians & Rescue (inferred) | Gameplay | Vertical Slice | Not Started | — | Tiled World Streaming, Disaster Entity Framework |
 | 21 | Vehicle Damage | Gameplay | Vertical Slice | In Design | design/gdd/vehicle-damage.md | Vehicle Feel, Game Events Bus |
 | 22 | Payload & Utility Modules | Gameplay | Alpha | Not Started | — | Vehicle Loadout & Archetypes, Destructibles & Debris, Civilians |

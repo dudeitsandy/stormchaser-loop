@@ -179,6 +179,9 @@ At the end of every run, the game generates a mock **retro newspaper or magazine
 - `vehicle-damage.md` — Repair Kit, Survivor perk, Heavy Bumper, Anchor Harpoon/Clamps, and
   EMP Deflector Shield all hook into that doc's HP/stage model; see its Dependencies section.
 - `save-profile.md` (Save & Profile) — the persistence layer this doc required: Storm Dollars balance, garage unlocks (stable string IDs), the purchase transaction, and the Newspaper Album (`perk.photojournalist` gates saving covers; AlbumCap 24 desktop / 16 WebGL). Designed 2026-10-01.
+- `event-system.md` Run Goals (2026-10-04) — a second unlock path: career-goal milestones grant unlock IDs
+  directly. Unlocks gain a **source** (Storm Dollars / goal / both); `livery.ktvr` (KTVR News paint job) is the
+  first goal-sourced unlock. Goal bonuses are score, so they convert to Storm Dollars 1:1 like photos.
 - `vision-1.0.md`'s Vehicle Archetypes table — Tree 1 unlock names must stay in sync with it
 - `vehicle-feel.md` F13 — Speed/Armor/Trick stars are now mechanical (top speed, mass, wind exposure,
   crash thresholds, air control, handbrake grip, style refill). Tree 1 stat deltas should be expressed
