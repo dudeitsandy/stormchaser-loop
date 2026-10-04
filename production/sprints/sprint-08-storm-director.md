@@ -44,6 +44,7 @@ back on with S8-C1 durability tuning.
 ### Not this sprint
 S8-C2 per-truck HP redesign → Sprint 9 (design task). Run goals and run screens → Sprint 9.
 Roads, scatter, Tier B fracture, Story/Career, new worlds → after M1.
+Bystander "VIEWER VIDEO" cellphone clip on the main storm's touchdown (Andy, 2026-10-04) → after M1, with the TV News bounties.
 
 ## Order of Work
 1. Finish 003 → 004 (closes the EF3 wind test, PlayMode suite green).

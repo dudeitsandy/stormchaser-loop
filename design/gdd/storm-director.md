@@ -84,7 +84,9 @@ choice to drive at it.
    - a **siren / radio cue** on forming EF3+ and on the anchor's peak. The siren keys on the **true** EF
      (like a warning system detecting rotation), but its caption never states an EF ("severe cell
      forming"), so it says a cell is dangerous, not how dangerous, and the forecast's ±1 still matters
-     (Andy, 2026-10-03);
+     (Andy, 2026-10-03). **Exception, EF5 (Andy, 2026-10-04):** a forming true EF5 escalates the warning to
+     **"TORNADO EMERGENCY"** (the real-world term for a violent tornado), with a harsher alert tone; still no
+     EF number. It is presented as a **KTVR News crawl** (lower-third ticker) with a broadcast attention tone;
    - **environmental cues** (sky darkening, gust amplitude, debris) rise monotonically with the wind
      strength at the player, W_player = Σ_i |W_i(player)|, the **sum of each cell's wind magnitude**,
      and are at maximum when W_player ≥ 20 m/s. Magnitudes add without cancelling, so a weak cell nearby
@@ -553,9 +555,11 @@ arrive, risk and escape.
   and "peak in ~N s" or "roping out". The anchor and the Heat 5 co-anchor always get a row and are
   highlighted. Shares the off-screen indicator's
   bearing logic.
-- **Radio caption:** a one-line caption when the siren or radio cue plays ("Tornado warning: severe cell
-  forming, bearing NW"; never an EF number, Rule 7), so the audio is also readable on screen
-  (accessibility).
+- **News crawl (was radio caption; Andy, 2026-10-04):** a KTVR News lower-third ticker when the siren or
+  radio cue plays ("★ TORNADO WARNING ★ SEVERE CELL FORMING · BEARING NW ★"; a forming EF5 escalates to a
+  red "TORNADO EMERGENCY"; never an EF number, Rule 7), so the audio is also readable on screen
+  (accessibility). Post-M1 idea, not in scope: a 3 s vertical "VIEWER VIDEO" bystander clip on the anchor's
+  touchdown (pairs with event-system.md TV News bounties).
 - **Results screen:** the seed and build version, the regime name ("Outbreak"), and "The big one got away
   (EF5)" when the anchor never peaked.
 - **Arcade setup:** shows each setting after clamping before the run starts, with clamped values marked.

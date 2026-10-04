@@ -33,8 +33,9 @@ Gives presentation what Rule 7 needs: the environmental intensity `e` from the s
 *From GDD `design/gdd/storm-director.md`, scoped to this story:*
 
 - [ ] AC-26 (Unit): with an EF0 5 m away and an EF5 Mature 30 m away, `e` = 1 at every relative bearing (2.72 + 20.24 m/s summed magnitudes)
-- [ ] AC-26 (Unit): the siren caption for a true EF5 contains no EF number ("Tornado warning: severe cell forming, bearing NW")
-- [ ] The caption appears on `StormCellForming` with true EF ≥ 3 and on the anchor's Peak; screenshot of the caption retained
+- [ ] AC-26 (Unit): the warning text for any true EF (EF3–EF5) contains no EF number or digit
+- [ ] The warning shows as a KTVR News lower-third crawl on `StormCellForming` with true EF ≥ 3 and on the anchor's Peak (Andy, 2026-10-04); screenshot retained
+- [ ] A forming true EF5 escalates the crawl to a red "TORNADO EMERGENCY" (no EF number); Unit: the EF5 crawl string contains "TORNADO EMERGENCY" and no digit; EF3–4 strings say "TORNADO WARNING"
 
 ---
 
