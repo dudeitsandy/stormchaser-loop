@@ -150,9 +150,26 @@ public class RunScreens : MonoBehaviour
         _overlay.Add(Spacer(28));
         _overlay.Add(Row("PHOTOS", summary.PhotosTaken.ToString()));
         _overlay.Add(Row("BEST SHOT", $"{summary.BestShot:N0}"));
-        _overlay.Add(Spacer(48));
+        AddStormBlock(summary.Storm);
+        _overlay.Add(Spacer(40));
         AddPrompt("ANY BUTTON  RETRY      ESC  TITLE");
         _overlay.style.display = DisplayStyle.Flex;
+    }
+
+    // storm-director.md UI Requirements (story 009): regime, the anchor that got away, seed + build for replay.
+    private void AddStormBlock(StormRunInfo storm)
+    {
+        if (!storm.Valid) return;
+        _overlay.Add(Row("WEATHER", storm.Regime));
+        if (storm.BigOneGotAwayEf >= 0)
+        {
+            _overlay.Add(Spacer(10));
+            _overlay.Add(MakeLabel($"THE BIG ONE GOT AWAY (EF{storm.BigOneGotAwayEf})", 24, Amber, bold: true, letterSpacing: 4));
+        }
+        _overlay.Add(Spacer(12));
+        _overlay.Add(MakeLabel($"SEED {storm.Seed}  ·  v{storm.BuildVersion}  ·  REPLAY WITH ?seed={storm.Seed}", 14, Dim, letterSpacing: 2));
+        if (storm.VersionMismatch)
+            _overlay.Add(MakeLabel("Different version: storms may differ.", 16, Alarm));
     }
 
     /// <summary>Hides whichever screen is showing.</summary>

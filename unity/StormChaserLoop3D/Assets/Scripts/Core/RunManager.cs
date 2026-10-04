@@ -127,7 +127,8 @@ public class RunManager : MonoBehaviour
 
         float previousBest = BestScoreStore.Load();
         BestScoreStore.TrySave(_score.TotalScore);
-        var summary = new RunSummary(_score.TotalScore, _score.PhotoCount, _score.BestShot, wrecked, previousBest);
+        StormRunInfo storm = _spawner.Director != null ? _spawner.Director.RunInfo() : default;
+        var summary = new RunSummary(_score.TotalScore, _score.PhotoCount, _score.BestShot, wrecked, previousBest, storm);
         GameEvents.RaiseRunEnded(summary);
 
         StartCoroutine(ShowResults(summary));

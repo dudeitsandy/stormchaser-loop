@@ -108,6 +108,77 @@ public class StormDirectorPlayTests
         Assert.IsFalse(Object.FindObjectsByType<TornadoController>().Any(t => t.DirectorDriven), "tornado destroyed at Ended");
     }
 
+    // ---------- Codex review 2026-10-04: long ticks, callback state, restart ----------
+
+    [UnityTest]
+    public IEnumerator SingleLongTick_RaisesEveryCrossedTransitionInOrder()
+    {
+        _director.enabled = false;
+        _director.BeginWithPlan(PlanOf(Cell(7, 2, StormCellRole.Anchor, 0.1f, 1f, 1f, 1f)), _prefab, _roster);
+        _director.Tick(3.7f); // spawns and jumps straight past Mature and rope-out to the end
+        yield return null;
+
+        CollectionAssert.AreEqual(new[] { "Forming:7", "Peak:7", "RopeOut:7", "Ended:7" }, _events);
+        Assert.IsTrue(_director.AnchorPeaked, "a full life peaked even though no frame landed in Mature");
+    }
+
+    [UnityTest]
+    public IEnumerator EarlyRopeAfterTouchdown_JumpedInOneTick_StillRaisesPeakBeforeRopeOut()
+    {
+        _director.enabled = false;
+        PlannedCell cell = Cell(4, 3, StormCellRole.Anchor, 0.1f, 1f, 10f, 2f);
+        cell.EarlyRopeTime = 1.5f; // 1.4 s into its life: touched down, then evicted
+        _director.BeginWithPlan(PlanOf(cell), _prefab, _roster);
+        _director.Tick(0.5f);
+        _director.Tick(1.5f); // Forming → past the early rope-out, never ticked while Mature
+        yield return null;
+
+        CollectionAssert.AreEqual(new[] { "Forming:4", "Peak:4", "RopeOut:4" }, _events);
+    }
+
+    [UnityTest]
+    public IEnumerator PeakAndRopeOutListeners_SeeTheTornadoAlreadyInItsNewPhase()
+    {
+        _director.enabled = false;
+        _director.BeginWithPlan(PlanOf(Cell(2, 2, StormCellRole.Anchor, 0.1f, 1f, 1f, 1f)), _prefab, _roster);
+        var seen = new List<StormScale.Phase>();
+        void Capture(StormCellInfo c) => seen.Add(_director.LiveCells[0].Tornado.ScalePhase);
+        GameEvents.StormCellPeak += Capture;
+        GameEvents.StormCellRopeOut += Capture;
+        try
+        {
+            _director.Tick(0.2f);
+            _director.Tick(1.0f); // age 1.1: Mature
+            _director.Tick(1.0f); // age 2.1: RopingOut
+        }
+        finally
+        {
+            GameEvents.StormCellPeak -= Capture;
+            GameEvents.StormCellRopeOut -= Capture;
+        }
+        yield return null;
+
+        CollectionAssert.AreEqual(new[] { StormScale.Phase.Mature, StormScale.Phase.RopingOut }, seen);
+    }
+
+    [UnityTest]
+    public IEnumerator SameSceneRestart_RemovesThePreviousRunsTornadoes()
+    {
+        _director.enabled = false;
+        WeatherPlan plan = PlanOf(Cell(0, 3, StormCellRole.Anchor, 0.1f, 1f, 30f, 2f));
+        _director.BeginWithPlan(plan, _prefab, _roster);
+        _director.Tick(0.5f);
+        _director.EndRun();
+        yield return null;
+        Assert.AreEqual(1, Object.FindObjectsByType<TornadoController>().Count(t => t.DirectorDriven),
+                        "the ended run's tornado stays for the results tableau");
+
+        _director.BeginWithPlan(PlanOf(Cell(0, 3, StormCellRole.Anchor, 5f, 1f, 30f, 2f)), _prefab, _roster);
+        yield return null;
+        Assert.AreEqual(0, Object.FindObjectsByType<TornadoController>().Count(t => t.DirectorDriven),
+                        "a restart removes it before new cells spawn");
+    }
+
     [UnityTest]
     public IEnumerator EvictedWhileForming_RaisesFormingRopeOutEnded_NoPeak_AndNeverHarms()
     {
@@ -209,6 +280,58 @@ public class StormDirectorPlayTests
         report(samples);
     }
 
+    // ---------- AC-25 / AC-4: results facts (story 009) ----------
+
+    [UnityTest]
+    public IEnumerator RunEndsBeforeAnchorIsMature_RunInfoSaysTheBigOneGotAway()
+    {
+        _director.enabled = false;
+        _director.BeginWithPlan(PlanOf(Cell(0, 4, StormCellRole.Anchor, 0.1f, 5f, 30f, 5f)), _prefab, _roster);
+        yield return RunFor(1f);
+        _director.EndRun();
+
+        StormRunInfo info = _director.RunInfo();
+        Assert.IsTrue(info.Valid);
+        Assert.AreEqual(4, info.BigOneGotAwayEf);
+        Assert.AreEqual("QUIET DAY", info.Regime);
+        Assert.AreEqual(Application.version, info.BuildVersion);
+    }
+
+    [UnityTest]
+    public IEnumerator AnchorPeaked_RunInfoHasNoGotAway()
+    {
+        _director.enabled = false;
+        _director.BeginWithPlan(PlanOf(Cell(0, 3, StormCellRole.Anchor, 0.1f, 0.5f, 30f, 5f)), _prefab, _roster);
+        yield return RunFor(1.5f);
+        _director.EndRun();
+        Assert.AreEqual(-1, _director.RunInfo().BigOneGotAwayEf);
+    }
+
+    [UnityTest]
+    public IEnumerator RunManagerEnd_SummaryCarriesSeedVersionAndRegime()
+    {
+        var run = Object.FindAnyObjectByType<RunManager>();
+        var spawner = Object.FindAnyObjectByType<DisasterSpawner>();
+        RunSummary? summary = null;
+        System.Action<RunSummary> onEnd = s => summary = s;
+        GameEvents.RunEnded += onEnd;
+        try
+        {
+            run.StartRun();
+            yield return null;
+            typeof(RunManager).GetMethod("EndRun", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(run, new object[] { false });
+            yield return null;
+        }
+        finally
+        {
+            GameEvents.RunEnded -= onEnd;
+        }
+        Assert.IsTrue(summary.HasValue);
+        Assert.IsTrue(summary.Value.Storm.Valid, "the director ran this run");
+        Assert.AreEqual(unchecked((long)spawner.Director.Plan.Seed), summary.Value.Storm.Seed);
+        Assert.AreEqual(StormDirector.RegimeName(spawner.Director.Plan.Regime), summary.Value.Storm.Regime);
+    }
+
     // ---------- AC-28: per-frame cost ----------
 
     [UnityTest]
@@ -220,8 +343,9 @@ public class StormDirectorPlayTests
         yield return RunFor(3f); // both spawned and Mature: no events during the measured window
 
         const int frames = 600;
+        var watch = new Stopwatch(); // allocated before the baseline so only director garbage is counted
         long before = GC.GetAllocatedBytesForCurrentThread();
-        var watch = Stopwatch.StartNew();
+        watch.Start();
         for (int i = 0; i < frames; i++) _director.Tick(1f / 60f);
         watch.Stop();
         long allocated = GC.GetAllocatedBytesForCurrentThread() - before;

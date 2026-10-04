@@ -1,7 +1,7 @@
 # Story 009: Results: seed, build version, regime, "The big one got away"
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: Ready
+> **Status**: Done (2026-10-04; WebGL seed 554 with `v=0.7.3`, 0 console errors)
 > **Layer**: Core
 > **Type**: UI
 > **Estimate**: 1–2 h (S)
@@ -64,7 +64,7 @@ Makes runs shareable and the anchor's miss legible: the results screen shows the
 **Story Type**: UI
 **Required evidence**: UI: retained screenshot of each screen touched in `production/qa/evidence/` (+ unit tests for the model) — PlayMode check + screenshot `production/qa/evidence/results-seed.png`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (`Tests/PlayMode/StormDirectorPlayTests.cs`: got-away, peaked, RunManager summary); screenshot `production/qa/evidence/results-seed.png` (WEATHER LONE GIANT, SEED 554 · v0.7.4, version-mismatch line). The anchor peaked in that run, so the "got away" line is covered by the PlayMode test, not the screenshot
 
 ---
 

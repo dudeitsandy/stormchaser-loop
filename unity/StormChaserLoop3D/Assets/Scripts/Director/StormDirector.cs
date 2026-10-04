@@ -38,6 +38,8 @@ public sealed class StormDirector : MonoBehaviour
     [SerializeField] private float _steerBackHalfExtent = 90f;
 
     private readonly List<LiveStormCell> _live = new List<LiveStormCell>(8);
+    /// <summary>Tornadoes left standing by <see cref="EndRun"/> for the results tableau; removed on the next run.</summary>
+    private readonly List<TornadoController> _retired = new List<TornadoController>(8);
     private TornadoController _prefab;
     private readonly TornadoData[] _dataByEf = new TornadoData[6];
     private int _nextPlanned;
@@ -50,6 +52,51 @@ public sealed class StormDirector : MonoBehaviour
     public float RunTime { get; private set; }
     /// <summary>Cells currently spawned and not yet ended (read-only for HUD / presentation).</summary>
     public IReadOnlyList<LiveStormCell> LiveCells => _live;
+    /// <summary>The run's F4 forecast (seeded biases, hysteresis); null before the first run.</summary>
+    public StormForecast Forecast { get; private set; }
+    /// <summary>True once the anchor reached Mature this run.</summary>
+    public bool AnchorPeaked { get; private set; }
+
+    /// <summary>
+    /// Results-screen facts for this run (story 009): seed, build, regime and, when the anchor never peaked,
+    /// its EF ("The big one got away").
+    /// </summary>
+    public StormRunInfo RunInfo()
+    {
+        if (Plan == null) return default;
+        int anchorEf = -1;
+        foreach (PlannedCell c in Plan.Cells)
+            if (c.Role == StormCellRole.Anchor) { anchorEf = c.Ef; break; }
+        return new StormRunInfo(unchecked((long)Plan.Seed), Application.version, RegimeName(Plan.Regime),
+                                anchorEf >= 0 && !AnchorPeaked ? anchorEf : -1, ReplayVersionMismatch());
+    }
+
+    /// <summary>Display name of a regime for the results screen.</summary>
+    public static string RegimeName(Regime regime)
+    {
+        switch (regime)
+        {
+            case Regime.Quiet: return "QUIET DAY";
+            case Regime.LoneGiant: return "LONE GIANT";
+            case Regime.Sequence: return "SEQUENCE";
+            case Regime.Outbreak: return "OUTBREAK";
+            default: return "CHAOS";
+        }
+    }
+
+    /// <summary>
+    /// True when a replay link names a build version (URL <c>v=</c>, desktop <c>-v=</c>) different from this
+    /// one: identical plans are only guaranteed within one version (Edge Cases).
+    /// </summary>
+    public static bool ReplayVersionMismatch()
+    {
+        string v = null;
+        foreach (string arg in Environment.GetCommandLineArgs())
+            if (arg.StartsWith("-v=", StringComparison.Ordinal)) v = arg.Substring(3);
+        foreach (string token in Application.absoluteURL.Split('?', '&', '#'))
+            if (token.StartsWith("v=", StringComparison.Ordinal)) v = token.Substring(2);
+        return !string.IsNullOrEmpty(v) && v != Application.version;
+    }
 
     /// <summary>Starts a run: builds the compact plan from <paramref name="seed"/> around <paramref name="origin"/>.</summary>
     public void Begin(TornadoController prefab, IReadOnlyList<TornadoData> roster, Vector3 origin, long seed)
@@ -63,8 +110,11 @@ public sealed class StormDirector : MonoBehaviour
     public void BeginWithPlan(WeatherPlan plan, TornadoController prefab, IReadOnlyList<TornadoData> roster)
     {
         if (State == DirectorState.Running) EndRun();
+        RemoveRetired();
         BindData(prefab, roster);
         Plan = plan;
+        Forecast = new StormForecast(unchecked((long)plan.Seed));
+        AnchorPeaked = false;
         RunTime = 0f;
         _live.Clear();
         _order = new List<PlannedCell>(plan.Cells.Count);
@@ -75,13 +125,27 @@ public sealed class StormDirector : MonoBehaviour
         State = DirectorState.Running;
     }
 
-    /// <summary>Run over (timer, wreck, quit): every live cell raises Ended once; nothing else spawns.</summary>
+    /// <summary>
+    /// Run over (timer, wreck, quit): every live cell raises Ended once; nothing else spawns. The tornadoes stay
+    /// in the scene behind the results screen and are destroyed when the next run begins.
+    /// </summary>
     public void EndRun()
     {
         if (State != DirectorState.Running) return;
-        for (int i = 0; i < _live.Count; i++) EndCell(_live[i], destroy: false);
+        for (int i = 0; i < _live.Count; i++)
+        {
+            EndCell(_live[i], destroy: false);
+            if (_live[i].Tornado != null) _retired.Add(_live[i].Tornado);
+        }
         _live.Clear();
         State = DirectorState.Complete;
+    }
+
+    private void RemoveRetired()
+    {
+        for (int i = 0; i < _retired.Count; i++)
+            if (_retired[i] != null) Destroy(_retired[i].gameObject);
+        _retired.Clear();
     }
 
     private void Update()
@@ -126,6 +190,11 @@ public sealed class StormDirector : MonoBehaviour
         Advance(cell);
     }
 
+    /// <summary>
+    /// Moves a cell to its current age. The tornado is updated first so event listeners see the new state, then
+    /// every lifecycle boundary crossed since the last tick is raised once, in order (Peak, RopeOut, Ended), so a
+    /// long frame that jumps a whole phase still delivers it.
+    /// </summary>
     private void Advance(LiveStormCell cell)
     {
         PlannedCell p = cell.Cell;
@@ -134,9 +203,13 @@ public sealed class StormDirector : MonoBehaviour
         cell.Intensity = cell.Track.IntensityAt(cell.Age);
         cell.Phase = PhaseAt(p, cell.Age);
 
-        if (cell.Phase == StormScale.Phase.Mature && !cell.PeakRaised)
+        cell.Track.IsTelegraphingAt(cell.Age, out float lean);
+        cell.Tornado.SetDirectorState(cell.Position, cell.Phase, cell.Intensity, lean);
+
+        if (!cell.PeakRaised && TouchedDown(p, cell.Age))
         {
             cell.PeakRaised = true;
+            if (p.Role == StormCellRole.Anchor) AnchorPeaked = true;
             GameEvents.RaiseStormCellPeak(cell.Info);
         }
         bool declining = cell.Phase == StormScale.Phase.RopingOut || cell.Phase == StormScale.Phase.FailedTouchdown;
@@ -146,11 +219,11 @@ public sealed class StormDirector : MonoBehaviour
             GameEvents.RaiseStormCellRopeOut(cell.Info);
         }
 
-        cell.Track.IsTelegraphingAt(cell.Age, out float lean);
-        cell.Tornado.SetDirectorState(cell.Position, cell.Phase, cell.Intensity, lean);
-
         if (cell.Age >= p.EndTime - p.SpawnTime) EndCell(cell, destroy: true);
     }
+
+    /// <summary>True once a cell has reached Mature by <paramref name="age"/>; a failed touchdown never does.</summary>
+    public static bool TouchedDown(PlannedCell p, float age) => !p.FailedTouchdown && age >= p.Form;
 
     /// <summary>F3 phase of a planned cell at an age (early rope-out and failed touchdown included).</summary>
     public static StormScale.Phase PhaseAt(PlannedCell p, float age)

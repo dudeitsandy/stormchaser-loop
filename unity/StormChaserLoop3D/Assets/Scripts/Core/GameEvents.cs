@@ -47,17 +47,45 @@ public readonly struct RunSummary
     public readonly float BestShot;
     public readonly bool Wrecked;
     public readonly float PreviousBest;
+    /// <summary>Storm Director facts for the results screen (default when the legacy spawner ran).</summary>
+    public readonly StormRunInfo Storm;
 
-    public RunSummary(float score, int photosTaken, float bestShot, bool wrecked, float previousBest)
+    public RunSummary(float score, int photosTaken, float bestShot, bool wrecked, float previousBest,
+                      StormRunInfo storm = default)
     {
         Score = score;
         PhotosTaken = photosTaken;
         BestShot = bestShot;
         Wrecked = wrecked;
         PreviousBest = previousBest;
+        Storm = storm;
     }
 
     public bool IsNewBest => Score > PreviousBest;
+}
+
+/// <summary>Run-level storm facts for the results screen (storm-director.md UI Requirements, story 009).</summary>
+public readonly struct StormRunInfo
+{
+    /// <summary>False when no director ran (legacy spawner): the results screen omits the storm block.</summary>
+    public readonly bool Valid;
+    public readonly long Seed;
+    public readonly string BuildVersion;
+    public readonly string Regime;
+    /// <summary>The anchor's EF when it never reached Mature ("The big one got away"), otherwise −1.</summary>
+    public readonly int BigOneGotAwayEf;
+    /// <summary>True when the replay link named a different build version.</summary>
+    public readonly bool VersionMismatch;
+
+    public StormRunInfo(long seed, string buildVersion, string regime, int bigOneGotAwayEf, bool versionMismatch)
+    {
+        Valid = true;
+        Seed = seed;
+        BuildVersion = buildVersion;
+        Regime = regime;
+        BigOneGotAwayEf = bigOneGotAwayEf;
+        VersionMismatch = versionMismatch;
+    }
 }
 
 /// <summary>Role of a storm cell in the Weather Plan (storm-director.md Rule 3).</summary>

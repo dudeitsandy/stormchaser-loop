@@ -192,4 +192,17 @@ public class ScheduleTests
         Assert.AreEqual(Plan(777, 3).Serialize(), Plan(777, 3).Serialize());
         Assert.AreNotEqual(Plan(777, 3).Serialize(), Plan(778, 3).Serialize());
     }
+    [Test]
+    public void Serialize_PlansDifferingOnlyInLifecycle_AreDifferent()
+    {
+        string Of(float mature, float ropeIntensity)
+        {
+            var plan = new WeatherPlan { Seed = 9, Duration = 180f, Compact = true };
+            plan.Cells.Add(new PlannedCell { Id = 0, Ef = 3, Role = StormCellRole.Anchor, Form = 10f, Mature = mature,
+                                             Rope = 8f, EarlyRopeTime = 40f, EarlyRopeStartIntensity = ropeIntensity });
+            return plan.Serialize();
+        }
+        Assert.AreNotEqual(Of(30f, 1f), Of(31f, 1f), "Mature length");
+        Assert.AreNotEqual(Of(30f, 1f), Of(30f, 0.5f), "early rope-out start intensity");
+    }
 }

@@ -44,6 +44,16 @@ public class HudController : MonoBehaviour
     private float _crawlUntil;
     private float _crawlX;
     private readonly Queue<(string text, bool emergency)> _crawlQueue = new Queue<(string, bool)>();
+
+    // Forecast panel (storm-director.md UI Requirements, story 007).
+    private const int ForecastNearest = 3;
+    private const float ForecastRefresh = 0.2f;
+    private StormDirector _director;
+    private VisualElement _forecastPanel;
+    private readonly List<Label> _forecastRows = new List<Label>();
+    private Label _forecastMore;
+    private float _nextForecast;
+    private readonly List<ForecastRow> _forecastScratch = new List<ForecastRow>(8);
     private ChaseCameraRig _cameraRig;
     private string _stormCamShown;
     private Label _hpTitle;
@@ -103,6 +113,7 @@ public class HudController : MonoBehaviour
         right.Add(_timeLabel);
         right.Add(_scoreLabel);
         right.Add(_filmLabel);
+        BuildForecastPanel(right);
         root.Add(right);
 
         // Top-left column: truck HP, then the boost meter, stacked by layout so they never overlap.
@@ -207,6 +218,7 @@ public class HudController : MonoBehaviour
         UpdateWindMeter();
         UpdateStormCam();
         UpdateNewsCrawl();
+        UpdateForecast();
         UpdateBoostMeter();
 
         if (!Mathf.Approximately(_scoreAccumulator.TotalScore, _lastScore))
@@ -289,6 +301,78 @@ public class HudController : MonoBehaviour
         _windLabel.style.color = Color.Lerp(HpFull, HpHit, t);
         _windLabel.style.opacity = Mathf.Lerp(0.75f, 1f, pulse);
         _windLabel.style.scale = new Scale(Vector3.one * Mathf.Lerp(1f, 1.25f, t));
+    }
+
+    private void BuildForecastPanel(VisualElement parent)
+    {
+        var spawner = FindAnyObjectByType<DisasterSpawner>();
+        _director = spawner != null ? spawner.Director : null;
+        _forecastPanel = new VisualElement { pickingMode = PickingMode.Ignore };
+        _forecastPanel.style.marginTop = 8;
+        _forecastPanel.style.alignItems = Align.FlexEnd;
+        _forecastPanel.style.display = DisplayStyle.None;
+        for (int i = 0; i < ForecastNearest + 2; i++)
+        {
+            Label row = MakePanelLabel("", 15);
+            row.style.marginBottom = 2;
+            row.style.display = DisplayStyle.None;
+            _forecastRows.Add(row);
+            _forecastPanel.Add(row);
+        }
+        _forecastMore = MakePanelLabel("", 13);
+        _forecastMore.style.color = BoostOff;
+        _forecastMore.style.display = DisplayStyle.None;
+        _forecastPanel.Add(_forecastMore);
+        parent.Add(_forecastPanel);
+    }
+
+    // Nearest 3 cells plus the anchor and co-anchor (always shown, highlighted), then "+N more".
+    private void UpdateForecast()
+    {
+        if (_forecastPanel == null || _director == null || Time.unscaledTime < _nextForecast) return;
+        _nextForecast = Time.unscaledTime + ForecastRefresh;
+        var live = _director.LiveCells;
+        if (_director.State != StormDirector.DirectorState.Running || live.Count == 0 || _director.Forecast == null)
+        {
+            _forecastPanel.style.display = DisplayStyle.None;
+            return;
+        }
+        Vector3 player = _vehicle != null ? _vehicle.transform.position : Vector3.zero;
+        _forecastScratch.Clear();
+        for (int i = 0; i < live.Count; i++) _forecastScratch.Add(_director.Forecast.Evaluate(live[i], player));
+        _forecastScratch.Sort((a, b) => a.Distance.CompareTo(b.Distance));
+
+        int shown = 0;
+        for (int i = 0; i < _forecastScratch.Count && shown < _forecastRows.Count; i++)
+        {
+            ForecastRow r = _forecastScratch[i];
+            bool keyCell = r.Role != StormCellRole.Satellite;
+            if (i >= ForecastNearest && !keyCell) continue;
+            Label label = _forecastRows[shown++];
+            label.text = ForecastText(r);
+            label.style.color = keyCell ? HpFull : Color.white;
+            label.style.unityFontStyleAndWeight = keyCell ? FontStyle.Bold : FontStyle.Normal;
+            label.style.display = DisplayStyle.Flex;
+        }
+        for (int i = shown; i < _forecastRows.Count; i++) _forecastRows[i].style.display = DisplayStyle.None;
+        int more = _forecastScratch.Count - shown;
+        _forecastMore.text = more > 0 ? $"+{more} more" : "";
+        _forecastMore.style.display = more > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+        _forecastPanel.style.display = DisplayStyle.Flex;
+    }
+
+    /// <summary>"NW  ~EF3  85 m  PEAK ~45s" (no "~" inside 150 m, where the estimate is exact).</summary>
+    public static string ForecastText(ForecastRow r)
+    {
+        string ef = (r.Uncertain ? "~EF" : "EF") + r.ShownEf;
+        string status;
+        switch (r.Status)
+        {
+            case ForecastStatus.Forming: status = $"PEAK ~{r.EtaSeconds:0}s"; break;
+            case ForecastStatus.OnGround: status = $"ON GROUND ~{r.EtaSeconds:0}s"; break;
+            default: status = "ROPING OUT"; break;
+        }
+        return $"{r.Bearing,-2}  {ef}  {r.Distance:0} m  {status}";
     }
 
     private void BuildNewsCrawl(VisualElement root)

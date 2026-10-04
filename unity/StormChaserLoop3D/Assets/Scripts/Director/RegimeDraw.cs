@@ -175,7 +175,10 @@ public sealed class WeatherPlan
             if (i > 0) sb.Append(',');
             sb.Append(ChaosEfs[i].ToString(CultureInfo.InvariantCulture));
         }
-        sb.Append(";T=").Append(F(Duration)).Append(";cells=");
+        sb.Append(";T=").Append(F(Duration)).Append(Compact ? ";compact" : "")
+          .Append(";S=").Append(SatellitesDrawn.ToString(CultureInfo.InvariantCulture))
+          .Append('-').Append(SatellitesDroppedEarly.ToString(CultureInfo.InvariantCulture))
+          .Append(";delta=").Append(F(SequenceDelta)).Append(";cells=");
         foreach (PlannedCell c in Cells)
         {
             sb.Append('[').Append(c.Id.ToString(CultureInfo.InvariantCulture)).Append(',').Append(c.Role)
@@ -183,7 +186,8 @@ public sealed class WeatherPlan
               .Append(',').Append(F(c.Position.x)).Append(',').Append(F(c.Position.y))
               .Append(",t").Append(F(c.DesiredTime)).Append('>').Append(F(c.SpawnTime))
               .Append(c.Dropped ? ",dropped" : "")
-              .Append(c.EarlyRopeTime >= 0f ? ",rope@" + F(c.EarlyRopeTime) : "")
+              .Append(",life").Append(F(c.Form)).Append('/').Append(F(c.Mature)).Append('/').Append(F(c.Rope))
+              .Append(c.EarlyRopeTime >= 0f ? ",rope@" + F(c.EarlyRopeTime) + "x" + F(c.EarlyRopeStartIntensity) : "")
               .Append(']');
         }
         return sb.ToString();

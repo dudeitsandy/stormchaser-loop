@@ -1,7 +1,7 @@
 # Story 007: Forecast model and HUD forecast panel (F4)
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: Ready
+> **Status**: Done (2026-10-04; WebGL seed 554, 0 console errors)
 > **Layer**: Core
 > **Type**: UI
 > **Estimate**: 3 h (M)
@@ -67,7 +67,7 @@ The deliberately uncertain forecast: each cell shows a bearing, an EF estimate t
 **Story Type**: UI
 **Required evidence**: UI: retained screenshot of each screen touched in `production/qa/evidence/` (+ unit tests for the model) — Unit `Assets/Tests/Director/ForecastTests.cs` + screenshot `production/qa/evidence/forecast-panel.png`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (`Tests/Director/ForecastTests.cs`, 8 cases); screenshots `production/qa/evidence/forecast-panel.png` (EF1 inside 150 m, exact) and `forecast-panel-ef5.png` (EF2 + highlighted EF5 anchor, ON GROUND ETAs, TORNADO EMERGENCY crawl)
 
 ---
 
