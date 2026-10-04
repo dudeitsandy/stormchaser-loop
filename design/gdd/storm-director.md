@@ -481,6 +481,9 @@ column.
   the ground.
 
 **EF up close**
+- **Height is independent of EF** (Andy, 2026-10-04): every funnel spans from a cloud base to the ground. The
+  cloud base varies per cell (deterministic from the cell, Rule 10) within a band above all play, ≥ 25 m
+  (compact ≈ 25–45 m). Weak storms are tall slender ropes; strong ones broaden. No gameplay reads height.
 - Funnel width scales with D, not R. **EF5 is a wedge** (width ≥ height) with 2–3 thin sub-vortex cards
   orbiting inside it, the cheapest blind-clip separator from EF4 (silhouette beats size).
 - **Debris ring:** radius ≈ 1.2 × D, height ≈ 1.5 × D; EF5 lifts large chunks (planks, roof panels) and

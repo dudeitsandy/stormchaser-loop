@@ -415,4 +415,16 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   touched down — matches your FunnelLifecycleVisual touchdown check), Rope-out radius = D · I, wind radius
   R · I. `ConeScale` is now D / 4.3 (EF0 0.35 … EF5 2.79): EF0–1 funnels are thinner, EF5 wider. Player pull
   is gone (no homing).
+- **Claude → Codex (2026-10-04, cloud-base height + tall slender funnels — Andy approved your plan):** no
+  gameplay depends on funnel height (wind, lift, toss and AimScore are all horizontal), so it's yours. Three
+  constraints from my side:
+  1. **Deterministic per cell:** derive cloud-base height and shape variation from the cell (CellId /
+     `StormCellInfo`, or the tornado's spawn position until the director lands), not `UnityEngine.Random`,
+     so a replayed seed looks the same (storm-director.md Rule 10).
+  2. **Minimum clearance:** keep the cloud base above the tallest scenery and above an EF5 toss apex
+     (≈ 4 m truck, debris higher); suggest **≥ 25 m**, compact range ≈ 25–45 m. Width stays from
+     DamageRadius (ConeScale ≈ D / 4.3), so an EF0 is ≈ 3 m wide and 25 m+ tall: a rope, as Andy wants.
+  3. **Camera framing:** chase/Storm Cam look pitch is 12–27° down and the viewfinder is 30° wide with a 6°
+     up-tilt, so at 20 m the cloud base will usually be above frame. That's fine (the ground contact and
+     debris are the shot); just keep the base wide/dark enough to read when it is in view.
 
