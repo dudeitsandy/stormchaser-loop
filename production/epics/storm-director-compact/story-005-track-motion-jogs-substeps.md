@@ -4,7 +4,7 @@
 > **Status**: Ready
 > **Layer**: Core
 > **Type**: Logic
-> **Estimate**: [fill before sprint planning]
+> **Estimate**: 3 h (M)
 > **Manifest Version**: N/A (no control manifest yet; workflow: standard)
 > **Last Updated**: [set by /dev-story when implementation begins]
 
@@ -43,6 +43,8 @@ Deterministic storm tracks that never read the player: hash-noise wander, the He
 - F5: `dθ/dt = n(t) · ω_EF`, `n = 2 · noise(seed_i, 0.25 t) − 1` (director hash noise, not Mathf.PerlinNoise); θ0 within ±60° of the bearing to world centre; `v = v_track · k_H · lerp(0.4, 1, I)`.
 - Jogs pre-rolled at plan time: rate `λ0 · clamp01((u − 0.6)/0.4)` over the plan-time lifetime; turn ±U(40°, 110°) eased over 1.5 s, × 1.5 burst for 3 s, 1 s tilt telegraph; refractory 4.5 s.
 - Compact steer-back at ±90 m is evaluated inside each substep (frame-rate independent).
+
+**Performance**: ≤ 0.02 ms per cell per frame; substeps are 20 Hz pure math, 0 B GC
 
 ---
 

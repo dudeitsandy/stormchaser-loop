@@ -4,7 +4,7 @@
 > **Status**: Ready
 > **Layer**: Core
 > **Type**: Logic
-> **Estimate**: [fill before sprint planning]
+> **Estimate**: 2–3 h (S)
 > **Manifest Version**: N/A (no control manifest yet; workflow: standard)
 > **Last Updated**: [set by /dev-story when implementation begins]
 
@@ -34,6 +34,7 @@ Replaces the flat sqrt EF wind scale with the GDD's strongly non-linear per-EF t
 
 - [ ] AC-10: the table is strictly monotonic in D, R, P; P/21.5 > 1 for EF3+; base track speed ≤ 8.6 m/s (≤ 10.75 with k_H); W(15 m) = 8.1 ±0.05 m/s for EF3 and 38.3 ±0.1 for EF5; W = 0 for I < 0.01 with no NaN or infinity
 - [ ] AC-10b: EF5 Forming has zero lift and damage radius at every d; Rope-out I = 0.5 gives axis lift 0.5 × 2.295 ±0.01, damage radius 6.0 ±0.05 m and zero lift at d ≥ 17.5 m; I = 0.25 gives axis lift < 0.7; a cell evicted at Forming I0 = 0.4 enters Rope-out at 0.4, reaches 0 after 0.4 × Rope, and keeps zero lift and damage throughout
+- [ ] Data migration: `TornadoData_EF0–5` assets carry the F3 values (D, R, P, Form/Mature/Rope, v_track, ω); `TornadoController` no longer has `_windScaleBase`, `_windScalePerSqrtEF` or `_baseDamageRadius`, and `_playerPull` is 0 (asserted in a unit test over the six assets)
 
 ---
 
@@ -42,6 +43,8 @@ Replaces the flat sqrt EF wind scale with the GDD's strongly non-linear per-EF t
 - `StormScale` pure functions: `W(d) = P · I · (1 − d/(R · I))²` for d < R · I; inflow 0.537 W, swirl 0.843 W; guard I < 0.01.
 - Phase gating: Forming I = age/Form, no lift or damage; Rope-out lift = I · F12(d at radius R · I), damage radius D · I; early rope-out `I = I0 · (1 − t/(I0 · Rope))`; failed touchdown keeps lift and damage at 0.
 - Add per-EF fields to `TornadoData` (D, R, P, Form/Mature/Rope, v_track, ω) and update the six `TornadoData_EF*.asset` files from the F3 table. Remove `_windScaleBase`, `_windScalePerSqrtEF`, radius-per-ConeScale and `_baseDamageRadius`; `_playerPull` → 0; keep inflow/swirl as direction ratios. ConeScale becomes visual-only (≈ D/4.3).
+
+**Performance**: no impact expected — W(d) is a few multiplies per disaster per query, at the same call sites as today
 
 ---
 

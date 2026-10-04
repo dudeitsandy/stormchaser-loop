@@ -4,7 +4,7 @@
 > **Status**: Ready
 > **Layer**: Core
 > **Type**: Logic
-> **Estimate**: [fill before sprint planning]
+> **Estimate**: 3 h (M)
 > **Manifest Version**: N/A (no control manifest yet; workflow: standard)
 > **Last Updated**: [set by /dev-story when implementation begins]
 
@@ -44,6 +44,8 @@ First slice of the director: a deterministic, seeded integer PRNG owned by the d
 - New `Scripts/Director/` (StormChaser asmdef), plain C#: `DirectorRng` (seeded integer PRNG, e.g. xorshift/PCG; never `UnityEngine.Random`, `System.Random` or `Mathf.PerlinNoise`), `RegimeDraw`; values in a `StormDirectorProfile` ScriptableObject (weights, slopes, tables — data-driven).
 - F1: `w_r(H) = w0_r · exp(s_r · H)`; EF5 share `p5_0(r) · (1 + 0.4H)` taken from the lowest tier; Heat 5 Sequence/Outbreak floor moves EF2/EF3 mass onto EF4.
 - Serialize the plan deterministically (fixed field order, invariant culture) so AC-1 can compare bytes.
+
+**Performance**: no runtime impact — plan generation runs once at run start (AC-27 budget ≤ 2 ms desktop applies when Epic lands)
 
 ---
 

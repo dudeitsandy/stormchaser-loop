@@ -4,7 +4,7 @@
 > **Status**: Ready
 > **Layer**: Core
 > **Type**: Integration
-> **Estimate**: [fill before sprint planning]
+> **Estimate**: 2–3 h (S)
 > **Manifest Version**: N/A (no control manifest yet; workflow: standard)
 > **Last Updated**: [set by /dev-story when implementation begins]
 
@@ -44,6 +44,8 @@ Wires the F3 scale into `TornadoController` so the real truck feels it: EF3 drag
 - `TornadoController.GetWindAt`, `GetLiftFractionAt` and `DamageRadius` read the F3 table and intensity from story 003; vehicle F11/F12 unchanged (ADR-0005: forces computed in VehicleModel, applied by PlayerVehicle).
 - Test seam: `HoldMature` exists; add a way to hold Forming at a chosen I for AC-19.
 - Re-run the full PlayMode suite: wind changes touch the smoke, scenery and camera tests.
+
+**Performance**: no impact expected — swaps the wind/lift formula at existing call sites; full PlayMode suite re-run covers regressions
 
 ---
 

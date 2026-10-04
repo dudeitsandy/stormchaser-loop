@@ -4,7 +4,7 @@
 > **Status**: Ready
 > **Layer**: Core
 > **Type**: Integration
-> **Estimate**: [fill before sprint planning]
+> **Estimate**: 5 h (L)
 > **Manifest Version**: N/A (no control manifest yet; workflow: standard)
 > **Last Updated**: [set by /dev-story when implementation begins]
 
@@ -44,6 +44,8 @@ The MonoBehaviour that runs the plan in compact mode: it replaces `DisasterSpawn
 - `StormDirector` driver states Idle → Planning → Running → Complete (GDD States and Transitions); the Run Manager starts and ends it; the director never ends a run.
 - Read-only query surface for HUD and presentation (cells with EF, role, phase, I, position); no per-frame events.
 - Arena bounds come from today's compact arena (ADR-0004: compact mode, no streaming ring). Spawner roster weights are retired.
+
+**Performance**: AC-28: ≤ 0.10 ms per frame desktop with live cells, 0 B GC steady state
 
 ---
 

@@ -4,7 +4,7 @@
 > **Status**: Ready
 > **Layer**: Core
 > **Type**: UI
-> **Estimate**: [fill before sprint planning]
+> **Estimate**: 3 h (M)
 > **Manifest Version**: N/A (no control manifest yet; workflow: standard)
 > **Last Updated**: [set by /dev-story when implementation begins]
 
@@ -43,6 +43,8 @@ The deliberately uncertain forecast: each cell shows a bearing, an EF estimate t
 
 - F4: `σ(d) = 0.7 · clamp01((d − 150)/650)`; `EF_shown = clamp(round(EF + clamp(b_i · σ, −1, 1)), 0, 5)`; ETA factor `1 + clamp(b_t, ±1.5) · (0.033 + 0.267 g)`, rounded to 5 s; b_i and b_t seeded per cell.
 - HUD in `HudController` (Claude lane), sharing the off-screen indicator's bearing logic; gamepad-readable and legible on Steam Deck.
+
+**Performance**: HUD rows update ≤ 5 Hz; no per-frame allocation (cache labels, StringBuilder for text)
 
 ---
 

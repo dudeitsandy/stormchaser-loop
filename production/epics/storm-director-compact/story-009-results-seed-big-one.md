@@ -4,7 +4,7 @@
 > **Status**: Ready
 > **Layer**: Core
 > **Type**: UI
-> **Estimate**: [fill before sprint planning]
+> **Estimate**: 1–2 h (S)
 > **Manifest Version**: N/A (no control manifest yet; workflow: standard)
 > **Last Updated**: [set by /dev-story when implementation begins]
 
@@ -40,6 +40,8 @@ Makes runs shareable and the anchor's miss legible: the results screen shows the
 ## Implementation Notes
 
 - `RunScreens.ShowResults` gains a seed / version / regime line; `RunSummary` carries them from the director. A seed replay entry point (e.g. a URL or command-line `seed=`) is enough for AC-4 in compact.
+
+**Performance**: no impact — results screen only
 
 ---
 

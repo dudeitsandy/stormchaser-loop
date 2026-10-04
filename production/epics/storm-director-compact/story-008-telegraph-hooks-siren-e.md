@@ -4,7 +4,7 @@
 > **Status**: Ready
 > **Layer**: Core
 > **Type**: Integration
-> **Estimate**: [fill before sprint planning]
+> **Estimate**: 2 h (S)
 > **Manifest Version**: N/A (no control manifest yet; workflow: standard)
 > **Last Updated**: [set by /dev-story when implementation begins]
 
@@ -42,6 +42,8 @@ Gives presentation what Rule 7 needs: the environmental intensity `e` from the s
 
 - `e = clamp01(Σ|W_i(player)| / 20)`; physics keeps the vector sum. Expose it on the director query surface and tell Codex in AGENTS.md to switch X7-09's provider.
 - The caption is HUD (Claude lane); audio stays Codex's. Bearing is an 8-point compass from the player to the cell.
+
+**Performance**: e is summed once per frame over live cells; 0 B GC
 
 ---
 

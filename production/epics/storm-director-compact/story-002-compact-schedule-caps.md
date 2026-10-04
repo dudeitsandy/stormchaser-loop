@@ -4,7 +4,7 @@
 > **Status**: Ready
 > **Layer**: Core
 > **Type**: Logic
-> **Estimate**: [fill before sprint planning]
+> **Estimate**: 4 h (M)
 > **Manifest Version**: N/A (no control manifest yet; workflow: standard)
 > **Last Updated**: [set by /dev-story when implementation begins]
 
@@ -44,6 +44,8 @@ Turns a drawn regime into a compact-mode Weather Plan: T = 180 s, the anchor pea
 - F2 compact: T fixed at 180 s; `t_peak = U(0.40, 0.65) · T`; `t_a = t_peak − Form(EF_a)`; Δ = U(17, 28) s; drop any Sequence slot with t < 5 s.
 - Spawn points: bearing + distance from P0 (truck start, the arena origin). In compact the only invalid spot is outside ±85 m; reroll up to 8 times, then the nearest valid point on the same bearing (Edge Cases). Compact Outbreak satellites satisfy both 40–85 m from P0 and within 120 m of the anchor.
 - Cap resolution is a plan-time simulation using each cell's Form + Mature + Rope lifetime; it never reads the player.
+
+**Performance**: no runtime impact — plan-time only; cap resolution simulates a few cells once per run
 
 ---
 
