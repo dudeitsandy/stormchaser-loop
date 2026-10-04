@@ -1,6 +1,6 @@
 # UX Spec: Run Screens (Title, Pause, Settings, Quit, Wrecked, Results)
 
-> **Status**: Designed (2026-10-04), awaiting `/ux-review`
+> **Status**: Reviewed 2026-10-04 — NEEDS REVISION (3 blockers, 4 advisories) fixed same day; re-review NOT ASSESSED (no accessibility tier, no pattern library), 0 issues
 > **Author**: Andy + Claude (ux-designer)
 > **Last Updated**: 2026-10-04
 > **Journey Phase(s)**: run start, mid-run interruption, run end (no player-journey map yet)
@@ -19,6 +19,11 @@ banks nothing (`save-profile.md`). **Wrecked** turns failure into a moment
 instead of a cut. **Results** answers "how did I do, what did I achieve, what's new": score, goals with NEW
 tags, any unlock, and the seed to replay. Without results the roguelite loop has no payoff screen; with a slow
 title, outside players bounce before their first storm.
+
+**Out of scope for M1** (`save-profile.md` UI Requirements, built with the full Save & Profile system after
+M1): the Profiles menu (3 slots), Rename, and the Album screen. The vehicle-damage "DAMAGED" / "CRITICAL"
+stage flash is HUD, not a run screen: today the HP label reads CRITICAL (`HudController`); a DAMAGED flash goes
+to a future HUD spec (`/ux-design hud`).
 
 ---
 
@@ -57,7 +62,7 @@ hides it because a browser tab cannot be closed by the game. No screen is more t
 |---|---|---|
 | Title → Run | Any key / button **except** the Career and livery keys (C / Y, L / X) | New seed unless `?seed=N` |
 | Title ↔ Career page | C / Y opens; C / Y or Esc / B closes | Overlay on Title |
-| Title ↔ Settings | S / Select opens; Esc / B closes (changes apply live, saved on close) | Overlay on Title |
+| Title ↔ Settings | O / Select opens; Esc / B closes (changes apply live, saved on close) | Overlay on Title |
 | Title → Desktop (Windows only) | Esc, then Esc again to confirm ("QUIT GAME? ESC AGAIN") | Profile already saved at the last checkpoint |
 | Pause → Run | P / Start / Esc, or **Resume** | Unfreezes exactly where it stopped |
 | Pause ↔ Settings | **Settings** | Same panel as Title; Esc / B returns to Pause, still frozen |
@@ -81,8 +86,8 @@ TITLE (built: banner, season line, KTVR radio slam lines, controls, BEST, prompt
 │        controls (4 lines)   BEST 1,249        │
 │  NEW ▸ CAREER 4/10 ▪▪▪▪▫ 1 MORE: KTVR PAINT   │
 │  NEW ▸ C / Y  CAREER      PAINT ◂ KTVR ▸ L/X  │  ← paint line only once owned
-│   S / SELECT SETTINGS    ESC QUIT (Windows)   │
-│            PRESS ANYTHING. GO GO GO.          │  ← C, Y, L, X, S, Select, Esc don't start the run
+│   O / SELECT SETTINGS    ESC QUIT (Windows)   │
+│            PRESS ANYTHING. GO GO GO.          │  ← C, Y, L, X, O, Select, Esc don't start the run
 └──────────────────────────────────────────────┘
 
 CAREER PAGE (overlay on Title; C / Y or Esc / B closes)
@@ -136,7 +141,7 @@ RESULTS (two columns)
 │ SESSION OVER/WRECKED  │ GOALS                │
 │        1,650          │ ✓ BIG AIR   +150  NEW│
 │ BEST 1,249 → NEW BEST │ ✓ PRO SCORE       NEW│
-│ PHOTOS 9 BEST SHOT 400│ KTVR ✓ ROPE-OUT  +200│
+│ PHOTOS 9 BEST SHOT 400│ KTVR ✓ ROPE-OUT  +200│  ← results use short names (≤ 16)
 │ WEATHER  LONE GIANT   │      ✕ WARNED STORM  │
 │ THE BIG ONE GOT AWAY  │ CAREER 5/10          │
 ├───────────────────────┴──────────────────────┤
@@ -147,6 +152,10 @@ RESULTS (two columns)
 ```
 
 ### Layout Zones
+
+**Target sizes:** 960×600 (itch WebGL embed, the smallest), 1280×800 (Steam Deck), 1920×1080. Below 1000 px
+wide, Results stacks into one column (goals under the score block) and the Title career strip drops the
+reward-name text to "1 MORE". Panels are anchored to a 16 px safe margin.
 
 | Screen | Zones |
 |---|---|
@@ -176,7 +185,9 @@ RESULTS (two columns)
 | WEATHER, THE BIG ONE GOT AWAY, seed/version line, version-mismatch line | Results | Built (story 009) |
 | Goals column (goals + bounties this run, bonuses, NEW, career count) | Results | New |
 | Unlock banner | Results | New |
-| "PROGRESS NOT SAVED" line (save failed) | Results | New |
+| Save-write toast "COULDN'T SAVE — PROGRESS KEPT, WILL RETRY" (`save-profile.md` string) | Results / any checkpoint | New |
+| Read-only reason line (one of the three `save-profile.md` "Progress not saved (...)" strings) | Results | New |
+| Storage banner "PROGRESS WON'T BE SAVED IN THIS BROWSER MODE." (`save-profile.md` string) | Title | New |
 
 Glyph note: the HUD font lacks ★ (found in story 008) and may lack ✓ / ✕ / ▪ / ◂ ▸. Fallbacks: "DONE",
 "MISS", "#", "<" ">". Verify in WebGL before relying on any glyph.
@@ -197,10 +208,11 @@ Glyph note: the HUD font lacks ★ (found in story 008) and may lack ✓ / ✕ /
 
 | State / Variant | Trigger | What Changes |
 |---|---|---|
+| Title, profile loading | Boot until the profile load completes (async on WebGL / IndexedDB) | Career strip and BEST line hidden (no placeholder text); start, Settings and quit work; Career page and paint toggle wait for the load |
 | Title, default | Profile loaded | Career strip shows count, reward progress and the next reward; BEST line |
 | Title, first launch | Empty profile | "CAREER 0/10 · 5 GOALS UNLOCK KTVR PAINT"; no BEST line; no paint toggle |
 | Title, livery owned | `livery.ktvr` in unlocks | Paint toggle line appears (STOCK / KTVR) |
-| Title, storage unavailable | Profile load failed or browser storage blocked | Dim line "PROGRESS WON'T SAVE IN THIS BROWSER"; play is unaffected |
+| Title, storage unavailable | Browser storage blocked / ReadOnly profile | Banner "PROGRESS WON'T BE SAVED IN THIS BROWSER MODE." (`save-profile.md` string, uppercased); play is unaffected |
 | Title, WebGL | Browser build | No Esc-to-quit hint or behaviour |
 | Career page, complete | 10 / 10 | Header "CAREER COMPLETE"; reward line shows the unlock as earned |
 | HUD, no bounties | Legacy spawner (`?spawner=legacy`) or no plan | KTVR WANTS block hidden |
@@ -214,7 +226,8 @@ Glyph note: the HUD font lacks ★ (found in story 008) and may lack ✓ / ✕ /
 | Results, no goals | No goal or bounty completed | Goals column: "NO GOALS THIS RUN" + career count |
 | Results, first-ever completion | `FirstEver` | NEW tag (amber) on that row |
 | Results, unlock earned | Reward threshold crossed this run | Unlock banner in the footer |
-| Results, save failed | Run-complete checkpoint write failed | "PROGRESS NOT SAVED" replaces the NEW tags; unlock banner hidden (not granted until saved) |
+| Results, save write failed | Run-complete checkpoint write failed after its one retry | Toast "COULDN'T SAVE — PROGRESS KEPT, WILL RETRY"; NEW tags and the unlock banner still show (progress is kept in memory and retried, `save-profile.md`) |
+| Results, profile read-only | Slot is ReadOnly (NewerSchema / MigrationFailed / InstanceLock) | The matching reason line replaces the NEW tags: "PROGRESS NOT SAVED (THIS SAVE IS FROM A NEWER VERSION)." · "PROGRESS NOT SAVED (THIS SAVE COULDN'T BE UPDATED)." · "PROGRESS NOT SAVED (THIS PROFILE IS OPEN IN ANOTHER WINDOW)." Unlock banner hidden (nothing banked) |
 | Results, legacy / no plan | No storm info | Storm block hidden (built, story 009) |
 
 ---
@@ -225,9 +238,9 @@ Mapping interactions for keyboard/mouse and full gamepad (Platform Target). Touc
 
 | Component | Keyboard | Mouse | Gamepad | Feedback | Outcome |
 |---|---|---|---|---|---|
-| Title: start run | Any key except C, S, L, Esc | Click | Any button except Y, Select, X | Prompt flash, engine rev | Run starts |
+| Title: start run | Any key except C, O, L, Esc | Click | Any button except Y, Select, X | Prompt flash, engine rev | Run starts |
 | Title: Career page | C | — | Y | Page fade-in | Career overlay open / closed |
-| Title: Settings | S | — | Select (View) | Panel fade-in | Settings overlay |
+| Title: Settings | O (Options; S is brake) | — | Select (View) | Panel fade-in | Settings overlay |
 | Title: paint toggle (owned only) | L | Click the arrows | X | Truck on title swaps paint, tick sound | `LastLoadout.livery` saved |
 | Title: quit (Windows) | Esc, Esc again | — | — | "QUIT GAME? ESC AGAIN" | App exits |
 | Pause open / Resume | P or Esc | — | Start | Instant freeze, 0.15 s dim | Paused / resumed |
@@ -256,7 +269,7 @@ goals tally. Menu sounds (move tick, pick clunk) are a Codex presentation reques
 | Unlocks (livery owned) | `save-profile.md` `Unlocks` | Read | |
 | Chosen livery | `save-profile.md` `LastLoadout.livery` | **Write** | Persistent write on toggle |
 | Settings values | `save-profile.md` device settings file | **Write** | Persistent write on panel close |
-| Save available / last save failed | Save & Profile | Read | Drives the storage-unavailable and PROGRESS NOT SAVED states |
+| Profile loaded, slot state (ReadOnly + reason), last write failed | Save & Profile | Read | Drives the loading, storage-banner, write-toast and read-only states |
 | Paused | `RunManager` (owns pause, time scale, audio pause) | Read | **The UI never sets time scale itself** |
 | Platform (Windows vs WebGL) | `Application.platform` | Read | Hides quit-to-desktop and resolution on WebGL |
 | Time left | `SessionTimer` | Read | Freezes while paused |
@@ -337,8 +350,13 @@ Built in regardless:
 ## Localization Considerations
 
 English only for M1. Layout-critical elements (HIGH PRIORITY if translated; plan for +40 % length):
-- Results goals column: goal names up to ≈ 22 characters plus bonus and NEW.
-- HUD bounty list: one line per bounty at the left-column width.
+- Results goals column: **short names, ≤ 16 characters**, plus bonus and NEW. Bounty short names: `point_blank_ef5`
+  POINT-BLANK, `warning_cell` WARNED STORM, `before_touchdown` CAUGHT FORMING, `rope_out` ROPE-OUT, `close_call`
+  CLOSE CALL, `double_near_miss` DOUBLE MISS, `drift_by` DRIFT-BY. Career short names: ROOKIE, PRO, SICK,
+  EF4 AT PEAK, POINT BLANK, TOSS SURVIVOR, STORM DRIFT, BIG AIR, NEAR MISSES, FRONT PAGE.
+- HUD bounty list: full text, ≤ 28 characters (longest today: "SHOOT THE NEXT WARNED STORM", 27).
+- Fixed `save-profile.md` strings (toast, banner, read-only lines) are the longest messages; they wrap to two
+  lines at 960 px width.
 - Settings labels (left column) and the quit confirm line.
 Numbers use the current culture's `N0` formatting (a German system shows "1.249"); decide in RS-2 whether
 scores should be culture-invariant.
@@ -358,7 +376,12 @@ scores should be culture-invariant.
 - [ ] Wrecked: slow-mo lasts 1.5 ± 0.1 s of real time, then Results with the WRECKED header; pause is ignored
       during it
 - [ ] Results goals column lists each completion with its bonus, NEW on first-ever completions, the unlock banner
-      when earned, "NO GOALS THIS RUN" when none, and "PROGRESS NOT SAVED" when the save fails
+      when earned, and "NO GOALS THIS RUN" when none
+- [ ] A failed save write (simulated) shows the toast "COULDN'T SAVE — PROGRESS KEPT, WILL RETRY" and still shows NEW tags; a ReadOnly profile
+      shows its exact reason line from `save-profile.md` and no NEW tags or unlock banner
+- [ ] Title during the WebGL profile load shows no career strip or BEST line, and a run can still be started
+- [ ] Every screen in this spec fits with no overlap or clipped text at 960×600, 1280×800 and 1920×1080; Results is
+      one column at 960×600
 - [ ] Results ignore input for the first 1.0 s
 - [ ] First launch: Title reads "CAREER 0/10 · 5 GOALS UNLOCK KTVR PAINT"; the paint toggle appears only once owned
 - [ ] Keyboard-only, gamepad-only and mouse can each reach every menu item

@@ -337,7 +337,8 @@ that checkpoint, usable next run.
 | A timed bounty's window **expires** | `BountyFailed` raised; shown struck through; no penalty. It does not re-arm on a later warning |
 | `warning_cell`'s named cell **ends before it can be photographed** (early rope-out inside the window) | It can still be photographed while roping out; once it has Ended the bounty fails |
 | No TORNADO WARNING fires all run (its EF3+ cell was evicted before forming) | `warning_cell` stays open and fails at run end; no penalty |
-| **Save fails** (WebGL storage blocked or full, write error) | The run plays normally; the record stays in memory and is retried at the next checkpoint. Results show "PROGRESS NOT SAVED" instead of NEW tags |
+| **Save write fails** (disk or storage full, write error) | The run plays normally; the record and unlock stay in memory and are retried (`save-profile.md`: "Couldn't save — progress kept, will retry"). Results still show NEW tags and the unlock |
+| **Profile is read-only** (newer version, migration failed, open in another window) or browser storage blocked | Goals still pay in-run bonuses but nothing is recorded or unlocked; Results show `save-profile.md`'s reason-specific "Progress not saved (...)" line instead of NEW tags |
 | **Livery earned** this run | Granted at the run-complete checkpoint; usable from the next run. Results show the unlock |
 | **Old save** without an accomplishments record | Loads with an empty record (migration default). Goal or unlock IDs this build doesn't know are kept (`save-profile.md` Core Rules) |
 | A **reward threshold is lowered** in a later build, or goals are added | Re-checked at every checkpoint, so qualifying profiles get the unlock at their next run end |
@@ -402,8 +403,8 @@ that checkpoint, usable next run.
       run (seed recorded). Measured first, before `big_air` is built: counted airtime from a jump, a boosted
       jump off the steepest terrain, and a toss on the compact map. If no route reaches `MinStyleSeconds`,
       `big_air` is swapped for another style goal before RG-2 ships
-- [ ] A failed save (simulated storage error) leaves the run playable and the results show "PROGRESS NOT
-      SAVED"
+- [ ] A failed save write (simulated) leaves the run playable, shows the retry toast and keeps the NEW tags; a
+      ReadOnly profile records nothing and Results show its reason line
 
 **UI (retained screenshots in `production/qa/evidence/`)**
 - [ ] HUD with 3 bounties, one ticked and one failed; career-goal pop-up
