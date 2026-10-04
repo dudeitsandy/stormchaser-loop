@@ -131,19 +131,22 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 
 ## Part C — Decisions (Andy, ≈ 10 min)
 
-- [ ] **C1 — G3 verdict:** PASS / PASS with tuning notes for Sprint 8 / FAIL (one more feel pass first)
+- [x] **C1 — G3 verdict:** PASS / PASS with tuning notes for Sprint 8 / FAIL (one more feel pass first)
+      → **PASS with tuning notes** (Andy, 2026-10-04 on 0.7.5: "will need to tune driving at some point a little
+      more"). The driving pass is Sprint 9 S9-01/02, fed by outside playtest round 1.
 - [x] **C2 — Hay bale conflict:** resolved 2026-10-03 (Claude, Codex acked): (a) a 250 kg bale registers a
       light impact with no HP cost; `LooseSceneryPlayTests` covers it. Andy can still overrule here.
 - [ ] **C3 — X7-06 budget:** accept the GPU/browser evidence (0.68 ms mean / 1.58 ms p95 under strong wind)
       as enough for now and move the Unity CPU capture to Sprint 10's WebGL budget criterion, or block on it now
-- [ ] **C4 — Durability input for S8-C1:** after these runs, how many hits should a careful run survive?
-      ____  How about a reckless one? ____
+- [x] **C4 — Durability input for S8-C1:** after these runs, how many hits should a careful run survive?
+      → settled by S8-C1 (Pickup 6 HP, light bumps free) passing G5 on 0.7.5. S8-C2 deferred past M1.
 - [ ] **C6 — S7-06 physics caveat:** accept the PASS (≤ 1.2 ms with vehicle + tornado + props; G1 already covered
       60-piece debris at ≤ 1.5 ms), or do one deliberate prop-cluster smash with `?physProbe=1` on the local dev
       build and read the `[PHYS-RESULT]` line from the browser console
-- [ ] **C7 — G4 verdict** (and G5, if run): PASS / tuning notes / FAIL
-- [ ] **C5 — Sprint 8 re-scope** (`sprint-08-storm-director.md`): the epic is done, so pull in run goals v1,
-      run screens and the S8-C2 decision from Sprint 9? yes / adjust
+- [x] **C7 — G4 verdict** (and G5, if run): PASS / tuning notes / FAIL → **G4 PASS, G5 PASS** (Andy, 2026-10-04, 0.7.5)
+- [x] **C5 — Sprint 8 re-scope** (`sprint-08-storm-director.md`): the epic is done, so pull in run goals v1,
+      run screens and the S8-C2 decision from Sprint 9? yes / adjust → **yes** (2026-10-04): run goals + run
+      screens in Sprint 8; S8-C2 deferred past M1 (Andy); driving pass in Sprint 9 (`sprint-09-feel-and-playtest.md`)
 
 ---
 
@@ -152,5 +155,5 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 - [ ] Log findings into `sprint-07-build.md` as "Playtest Notes — G3", in the same triage-table format as earlier passes
 - [ ] Record tuned defaults or new findings in `vehicle-feel.md`'s Playtest Tuning Log, and tick the Feel ACs that passed
 - [ ] File failed Part B items as Codex requests in AGENTS.md
-- [ ] Tick the Sprint 7 DoD rows, mark Sprint 7 closed; log G4 (and G5) in Sprint 8 and re-scope it per C5
+- [ ] Tick the Sprint 7 DoD rows, mark Sprint 7 closed; ~~log G4 (and G5) in Sprint 8 and re-scope it per C5~~ (done 2026-10-04)
 - [ ] Commit the evidence to `production/qa/evidence/` (Andy's F9 captures from Part B, plus the physics and CPU results)

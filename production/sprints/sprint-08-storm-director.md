@@ -1,21 +1,24 @@
-# Sprint 8 — Storm Director (2026-10-06 → 2026-10-19)
+# Sprint 8 — Storm Director + Run Goals (2026-10-06 → 2026-10-19)
 
-> **Status:** Built ahead of schedule (2026-10-04). Stories 001–009 were done and 0.7.4 shipped while Sprint 7
-> waited on G3. Open: S8-C1 (in progress), Codex X7-09/X7-10 live checks, G4 and G5. G4 runs in the combined
-> G3 + G4 session (`production/qa/g3-playtest-session.md`). **Re-scope after that session:** pull in Sprint 9's
-> M1 work (run goals v1, run screens, S8-C2 decision), since the epic left most of the two weeks free.
+> **Status:** Storm Director half done ahead of schedule (2026-10-04): stories 001–009 and S8-C1 shipped in
+> 0.7.4/0.7.5, G4 and G5 passed. **Re-scoped 2026-10-04 (C5 = yes):** the open two weeks take Sprint 9's M1
+> work: run goals v1 (design, then build) and run screens. S8-C2 is **deferred past M1** (Andy, 2026-10-04:
+> the interim 6 HP passed G5). The driving pass moves to Sprint 9 so outside-player feedback can feed it.
 > **Milestone:** M1 — Vertical Slice 0.9 (`production/milestones/milestone-1-vertical-slice.md`)
 
 ## Sprint Goal
 Replace random tornado spawning with the Storm Director in compact mode, so every run has a readable
 weather plan, storms you can see coming, and EF3+ storms that are actually dangerous. Turn collision HP
-back on with S8-C1 durability tuning.
+back on with S8-C1 durability tuning. *(Done.)* **Added by the re-scope:** every run carries a short
+Tony Hawk-style goal list that scores alongside photos, and the run screens (title, pause/quit, wrecked,
+results) are specified and complete.
 
 ## Capacity
 - 2 weeks, Andy 8–10 h/week; Claude + Codex implement.
 - Claude: ~26.5 h of epic stories + 2 h tuning. Codex: X7-09 telegraph presentation on `StormCell*` events.
-- Design freeze in effect (M1): no new GDDs. The only design work allowed this sprint is answering the
-  epic's open tuning questions from playtest data.
+- Design freeze in effect (M1): no new GDDs. The re-scope uses the freeze's two M1 exceptions: the run-goals
+  section of `event-system.md` and the run-screens UX spec.
+- Re-scoped work: ~5 h of Andy design sessions (run goals, run screens) + ~16 h Claude build.
 
 ## Gates (Andy)
 | Gate | When | Pass = | Result |
@@ -44,8 +47,17 @@ back on with S8-C1 durability tuning.
 | S8-C1 | Claude | Durability tuning within the current model: severity threshold so light bumps cost 0 HP, Pickup Max HP raised, F10 HP cost back on; values in `vehicle-damage.md` | 2 h — **Done** (Pickup 6 HP, Light 15.5 / Severe 23.25 m/s, HP on; G5 next) |
 | X7-09 | Codex | Storm telegraph presentation on `StormCell*` events (world cues, storm audio, failed touchdown) | Codex lane |
 
+### Re-scope (2026-10-04): pulled in from Sprint 9
+| ID | Owner | Task | Type | Est. | Status |
+|----|-------|------|------|------|--------|
+| RG-1 | Andy + Claude | Run goals v1 design: new section in `event-system.md` (how many goals per run, seeded or not, goal types from style moves + storms, HUD and results display, scoring next to photos), then `/design-review` | Design | 3 h | Next |
+| RG-2 | Claude | Run goals v1 build: stories via `/create-stories` once RG-1 is approved (goal model, tracking from existing events, HUD list, results tally) | Logic + UI | ~10 h | Blocked on RG-1 |
+| RS-1 | Andy + Claude | Run screens UX spec (`/ux-design`): title, pause/quit, wrecked, results; documents what's built, fills gaps, places run goals on results | Design | 2 h | After RG-1 |
+| RS-2 | Claude | Run screens build: gaps from RS-1 (pause/quit, wrecked state, results goal tally) | UI | ~6 h | Blocked on RS-1 |
+| PT-1 | Andy | Outside playtest round 1 on 0.7.5 with the tester brief (Google Doc), 3+ players; findings logged here | Playtest | — | Out with players |
+
 ### Not this sprint
-S8-C2 per-truck HP redesign → Sprint 9 (design task). Run goals and run screens → Sprint 9.
+S8-C2 per-truck HP redesign → **deferred past M1** (Andy, 2026-10-04). Driving tuning pass → Sprint 9.
 Roads, scatter, Tier B fracture, Story/Career, new worlds → after M1.
 Bystander "VIEWER VIDEO" cellphone clip on the main storm's touchdown (Andy, 2026-10-04) → after M1, with the TV News bounties.
 
@@ -54,12 +66,14 @@ Bystander "VIEWER VIDEO" cellphone clip on the main storm's touchdown (Andy, 202
 2. 001 → 002 → 005 (pure model, all EditMode).
 3. 006 → 008 (driver + events; Codex X7-09 follows), then G4.
 4. S8-C1 + G5 alongside; 007 and 009 if capacity holds.
+5. *(Re-scope)* RG-1 → RG-2; RS-1 once RG-1 settles the results layout → RS-2. PT-1 runs in parallel.
 
 ## Risks
 | Risk | Mitigation |
 |------|------------|
 | Tuning (regime weights, jog rate, forecast error) eats the sprint (R09) | Ship GDD placeholder values; tune only after G4 |
 | Claude and Codex both touching tornado code (R11) | Director code is Claude's; presentation reads `StormCell*` events and the query surface only |
+| Run-goals design grows into a progression system (re-scope) | v1 is in-run only: no unlocks, no meta, no saved goal history. Anything bigger goes to `production/backlog.md` |
 
 ## Playtest findings (Andy, 2026-10-04, 0.7.5)
 - G4 storm tension and G5 durability both pass. Next: hand 0.7.5 to outside players for fresh eyes.
@@ -73,4 +87,6 @@ Bystander "VIEWER VIDEO" cellphone clip on the main storm's touchdown (Andy, 202
 - [x] Shipping build spawns storms from the Director, not `DisasterSpawner`'s timer *(0.7.4)*
 - [x] G4 run and findings logged: **passed** (Andy, 2026-10-04, on 0.7.5); external players next
 - [x] S8-C1 shipped, G5 passed (Andy, 2026-10-04, on 0.7.5)
-- [ ] Release 0.8.0 to itch (html5 + windows), WebGL 0 console errors
+- [ ] *(Re-scope)* Run goals v1 designed, reviewed and built; a run shows its goals and the results tally them
+- [ ] *(Re-scope)* Run screens spec approved; pause/quit and wrecked state built; screenshot of each screen
+- [ ] Release 0.8.0 to itch (html5 + windows) with run goals, WebGL 0 console errors
