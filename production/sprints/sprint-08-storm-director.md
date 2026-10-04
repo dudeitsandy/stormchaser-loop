@@ -18,10 +18,10 @@ back on with S8-C1 durability tuning.
   epic's open tuning questions from playtest data.
 
 ## Gates (Andy)
-| Gate | When | Pass = |
-|------|------|--------|
-| **G4 — Storm tension playtest** | After story 006 + 008 | Andy plays 5 seeded runs: storms visible before they matter, at least one "oh no" escape, EF5 feels rare and imposing |
-| **G5 — Durability** | After S8-C1 | Light bumps cost nothing; a tossed truck or a barn hit at speed hurts; a full run is survivable with care |
+| Gate | When | Pass = | Result |
+|------|------|--------|--------|
+| **G4 — Storm tension playtest** | After story 006 + 008 | Andy plays 5 seeded runs: storms visible before they matter, at least one "oh no" escape, EF5 feels rare and imposing | **Passed** 2026-10-04 (0.7.5) |
+| **G5 — Durability** | After S8-C1 | Light bumps cost nothing; a tossed truck or a barn hit at speed hurts; a full run is survivable with care | **Passed** 2026-10-04 (0.7.5) |
 
 ## Tasks
 
@@ -61,10 +61,16 @@ Bystander "VIEWER VIDEO" cellphone clip on the main storm's touchdown (Andy, 202
 | Tuning (regime weights, jog rate, forecast error) eats the sprint (R09) | Ship GDD placeholder values; tune only after G4 |
 | Claude and Codex both touching tornado code (R11) | Director code is Claude's; presentation reads `StormCell*` events and the query surface only |
 
+## Playtest findings (Andy, 2026-10-04, 0.7.5)
+- G4 storm tension and G5 durability both pass. Next: hand 0.7.5 to outside players for fresh eyes.
+- **Driving needs another tuning pass** ("a little more", not blocking). Earlier notes still open: jump a
+  touch floaty, steering a little loose (G3). Candidate for Sprint 9: a focused `vehicle-feel.md` pass on
+  grip/steer/air values, with outside-player feedback as input.
+
 ## Definition of Done
 - [x] Stories 001–006 and 008 closed via `/story-done`; EditMode + PlayMode green, EF3 wind test included
       *(all 9 stories Done; 0.7.4: EditMode 288/288, PlayMode 47/47)*
 - [x] Shipping build spawns storms from the Director, not `DisasterSpawner`'s timer *(0.7.4)*
-- [ ] G4 run and findings logged (combined G3 + G4 session)
-- [ ] S8-C1 shipped, G5 passed
+- [x] G4 run and findings logged: **passed** (Andy, 2026-10-04, on 0.7.5); external players next
+- [x] S8-C1 shipped, G5 passed (Andy, 2026-10-04, on 0.7.5)
 - [ ] Release 0.8.0 to itch (html5 + windows), WebGL 0 console errors
