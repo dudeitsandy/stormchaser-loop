@@ -127,6 +127,12 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 **X7-10 — broadcast alert tones (Sprint 8)**
 - [ ] Three-tone warning on EF3+; a longer emergency tone for EF5, then radio static
 
+**X8-01 — outdoor warning sirens (Sprint 8)**
+- [ ] Sirens wail from a direction and get louder near a pole; 25 s per warning, continuous for an EF5
+
+**X8-02 — run-wide storm sky (Sprint 8)**
+- [ ] The whole sky darkens as storms build (near-black for an EF5) and eases back slowly after rope-out
+
 ---
 
 ## Part C — Decisions (Andy, ≈ 10 min)
@@ -136,7 +142,8 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
       more"). The driving pass is Sprint 9 S9-01/02, fed by outside playtest round 1.
 - [x] **C2 — Hay bale conflict:** resolved 2026-10-03 (Claude, Codex acked): (a) a 250 kg bale registers a
       light impact with no HP cost; `LooseSceneryPlayTests` covers it. Andy can still overrule here.
-- [ ] **C3 — X7-06 budget:** accept the GPU/browser evidence (0.68 ms mean / 1.58 ms p95 under strong wind)
+- [x] **C3 — X7-06 budget:** *resolved 2026-10-04: M1's criterion reworded to whole-frame WebGL budgets
+      measured headlessly; the per-component CPU capture runs only if that fails.* Original question: accept the GPU/browser evidence (0.68 ms mean / 1.58 ms p95 under strong wind)
       as enough for now and move the Unity CPU capture to Sprint 10's WebGL budget criterion, or block on it now
 - [x] **C4 — Durability input for S8-C1:** after these runs, how many hits should a careful run survive?
       → settled by S8-C1 (Pickup 6 HP, light bumps free) passing G5 on 0.7.5. S8-C2 deferred past M1.

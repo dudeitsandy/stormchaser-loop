@@ -1,10 +1,11 @@
 # Sprint 7 — Build the Feel (2026-10-01 → closes at G3, no later than 2026-10-15)
 
-## Status (updated 2026-10-04, evening)
-**CODE COMPLETE — waiting on Andy's session.** Every Claude Must-Have is done, including the S7-06 physics
-measurement, and both test suites are green (EditMode 288/288, PlayMode 47/47 in 0.7.4). What's left is the
-combined G3 + G4 session (`production/qa/g3-playtest-session.md`): the feel playtest, Codex live checks and
-decisions C1–C6. Sprint 7 closes when that session is logged.
+## Status: CLOSED 2026-10-04
+Every Claude Must-Have is done, both suites green (EditMode 288/288, PlayMode 47/47 in 0.7.4), S7-06 physics
+PASS. **G3 passed with tuning notes** (Andy alone, 0.7.5, checklist C1). The outside-player half of the feel
+criteria moves to Sprint 9's **G6**, which must include 2 outside players. **Carried to Sprint 8:** the Codex
+live acceptance pass (CA-1, checklist Part B) and decision C6 (CA-2). X7-02/03/04/06/07 stay "implemented,
+acceptance pending" until CA-1 runs. X7-06 is reframed in M1 as whole-frame budgets (2026-10-04).
 
 | ID | Status | Evidence / what's left |
 |----|--------|------------------------|
@@ -25,7 +26,7 @@ decisions C1–C6. Sprint 7 closes when that session is logged.
 | X7-05, S7-09, S7-10 | Not started | → Sprint 9 (2 km world work) |
 | S7-11 | Done | systems-index backfill (1068872) |
 | S7-12 | Cut | Andy 2026-10-03 |
-| G3 | **Not run** | Blocks sprint close; runs on 0.7.4 together with Sprint 8's G4 |
+| G3 | **Passed with tuning notes** | Andy, 2026-10-04 on 0.7.5 (C1); outside-player criteria → Sprint 9 G6 |
 
 **Unplanned but legitimate** (playtest-driven): solid scenery, brake assist, landing-wedge fix, X7-07 props,
 X7-08 cab cam, DJ title. **Unplanned and moved to Sprint 8:** the Storm Director compact epic (GDD approved
@@ -118,8 +119,9 @@ the start so players see the new look while the feel work happens.
       for S7-03–S7-06 pass; EditMode + PlayMode suites green — *0.7.4: EditMode 288/288, PlayMode 47/47
       (EF3 wind test fixed by Storm Director 003/004); S7-06 physics PASS (aba4810)*
 - [x] Truck model in game (G2 passed or commission started)
-- [ ] Codex X7-01–X7-04 done — *X7-01 done (via X7-08); X7-02/03/04 await Andy's live check*
-- [ ] G3 feel playtest run; findings logged for Sprint 8
+- [ ] Codex X7-01–X7-04 done — *X7-01 done (via X7-08); X7-02/03/04 implemented, live check carried to
+      Sprint 8 CA-1*
+- [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
 - 2026-10-04 — **0.7.5 pushed** (html5 + windows): **forecast panel** (story 007: nearest storms with bearing,

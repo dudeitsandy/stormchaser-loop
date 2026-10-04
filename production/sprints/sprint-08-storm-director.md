@@ -52,11 +52,17 @@ results) are specified and complete.
 ### Re-scope (2026-10-04): pulled in from Sprint 9
 | ID | Owner | Task | Type | Est. | Status |
 |----|-------|------|------|------|--------|
-| RG-1 | Andy + Claude | Run goals v1 design: new section in `event-system.md` (how many goals per run, seeded or not, goal types from style moves + storms, HUD and results display, scoring next to photos), then `/design-review` | Design | 3 h | Next |
-| RG-2 | Claude | Run goals v1 build: stories via `/create-stories` once RG-1 is approved (goal model, tracking from existing events, HUD list, results tally) | Logic + UI | ~10 h | Blocked on RG-1 |
-| RS-1 | Andy + Claude | Run screens UX spec (`/ux-design`): title, pause/quit, wrecked, results; documents what's built, fills gaps, places run goals on results | Design | 2 h | After RG-1 |
-| RS-2 | Claude | Run screens build: gaps from RS-1 (pause/quit, wrecked state, results goal tally) | UI | ~6 h | Blocked on RS-1 |
+| RG-1 | Andy + Claude | Run goals v1 design: new section in `event-system.md` (how many goals per run, seeded or not, goal types from style moves + storms, HUD and results display, scoring next to photos), then `/design-review` | Design | 3 h | **Done**: RG section in `event-system.md` (056170f), review NEEDS REVISION, fixed same day |
+| RG-2 | Claude | Run goals v1 build: stories via `/create-stories` once RG-1 is approved (goal model, tracking from existing events, HUD list, results tally) | Logic + UI | ~10 h | **Ready**: epic `run-goals-v1`, 8 stories (22de7d8); story 005 = Save & Profile stem |
+| RS-1 | Andy + Claude | Run screens UX spec (`/ux-design`): title, pause/quit, wrecked, results; documents what's built, fills gaps, places run goals on results | Design | 2 h | **Done**: `design/ux/run-screens.md` (59c9a76, review fixes 5bdce65) |
+| RS-2 | Claude | Run screens build: gaps from RS-1 (pause/quit, wrecked state, results goal tally) | UI | ~6 h | **Ready**: epic `run-screens` (91568a0); stories not yet created |
 | PT-1 | Andy | Outside playtest round 1 on 0.7.5 with the tester brief (Google Doc), 3+ players; findings logged **in the repo** (this file) | Playtest | — | Out with players; **due 2026-10-11** |
+
+### Carried over from Sprint 7 (closed 2026-10-04)
+| ID | Owner | Task | Est. | Status |
+|----|-------|------|------|--------|
+| CA-1 | Andy | Codex live acceptance pass, `production/qa/g3-playtest-session.md` Part B: X7-01/08, X7-02, X7-03, X7-04, X7-07, X7-09, X7-10, plus X8-01 sirens and X8-02 storm sky (add them to Part B). Fold into the next play session, ≈ 25 min | 25 min | Open |
+| CA-2 | Andy | Checklist C6: accept the S7-06 physics PASS caveat, or one `?physProbe=1` prop-cluster smash | 5 min | Open |
 
 ### Not this sprint
 S8-C2 per-truck HP redesign → **deferred past M1** (Andy, 2026-10-04). Driving tuning pass → Sprint 9.

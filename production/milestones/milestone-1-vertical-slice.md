@@ -28,8 +28,11 @@ photos plus style goals that score, damage that matters, and a run that ends cle
       designed in `event-system.md`, reviewed, implemented
 - [ ] **Run screens**: title, pause/quit and game-over/results flows designed (`/ux-design`) and built;
       results show seed, regime and "the big one got away" *(results part done in 0.7.5, story 009)*
-- [ ] **WebGL budget holds**: no frame > 50 ms over a 3-min run with live storms, debris and presentation;
-      X7-06 3 ms presentation budget certified
+- [ ] **WebGL budget holds**: over a 3-min run with live storms, debris and full presentation (storm sky,
+      sirens, PiP), no frame > 50 ms and p95 frame ≤ 33.3 ms on the reference laptop (Radeon 890M, Chrome),
+      physics step ≤ 4 ms (`?physProbe=1`). Measured headlessly, no Profiler session needed *(reworded
+      2026-10-04: X7-06's per-component 3 ms CPU breakdown is a diagnostic, run only if this fails, and
+      otherwise moves to the post-M1 performance pass)*
 - [ ] **Outside playtest**: 0.9 on itch, at least 3 outside players, findings logged
 
 ## Out of scope for M1 (do not pull in)
