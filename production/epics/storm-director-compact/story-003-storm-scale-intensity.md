@@ -1,7 +1,7 @@
 # Story 003: Storm scale table and lifecycle intensity (F3)
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: In Progress (code + tests in working tree 2026-10-04, uncommitted)
+> **Status**: Done (2026-10-04)
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: 2–3 h (S)
@@ -68,7 +68,7 @@ Replaces the flat sqrt EF wind scale with the GDD's strongly non-linear per-EF t
 **Story Type**: Logic
 **Required evidence**: Logic: automated test must exist and pass — `unity/StormChaserLoop3D/Assets/Tests/Director/StormScaleTests.cs`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing
 
 ---
 

@@ -1,7 +1,7 @@
 # Story 004: New scale in play: wind drag, lift and toss
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: Ready
+> **Status**: Done (2026-10-04)
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: 2–3 h (S)
@@ -68,7 +68,7 @@ Wires the F3 scale into `TornadoController` so the real truck feels it: EF3 drag
 **Story Type**: Integration
 **Required evidence**: Integration: automated PlayMode test (or a documented playtest) — `unity/StormChaserLoop3D/Assets/Tests/PlayMode/StormScalePlayTests.cs` + the existing EF3 smoke test
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing
 
 ---
 

@@ -1,8 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Tornado disaster: wanders on a slow Perlin-driven heading, leans toward the player so encounters
-/// happen, and runs a forming → mature → dissipating lifecycle that scales size, speed, and danger.
+/// Tornado disaster: wanders on a slow heading (never toward the player — storm-director.md Rule 5) and
+/// runs a forming → mature → dissipating lifecycle. Wind, lift and damage come from the per-EF storm scale
+/// (<see cref="StormScale"/>, F3) on its <see cref="TornadoData"/>.
 /// </summary>
 public class TornadoController : DisasterEntity
 {
@@ -12,28 +13,7 @@ public class TornadoController : DisasterEntity
     [SerializeField] private float _dissipateSeconds = 4f;
 
     [Header("Movement")]
-    [Tooltip("0 = pure wander, 1 = beeline at the player.")]
-    [Range(0f, 1f)] [SerializeField] private float _playerPull = 0.3f;
-    [Tooltip("Max heading drift in degrees/sec.")]
-    [SerializeField] private float _wanderTurnRate = 35f;
     [SerializeField] private float _worldHalfExtent = 90f;
-
-    [Header("Danger")]
-    [Tooltip("Intensity below which the funnel cannot hurt the player.")]
-    [SerializeField] private float _harmlessBelowIntensity = 0.4f;
-    [SerializeField] private float _baseDamageRadius = 1.2f;
-    [SerializeField] private float _damageRadiusPerConeScale = 1.3f;
-
-    [Header("Wind (see WindField.Vortex)")]
-    [SerializeField] private float _windRadiusBase = 14f;
-    [SerializeField] private float _windRadiusPerConeScale = 10f;
-    [Tooltip("Peak inward pull at the funnel, units/sec, before EF scaling.")]
-    [SerializeField] private float _windInflow = 7f;
-    [Tooltip("Peak sideways swirl at the funnel, units/sec, before EF scaling.")]
-    [SerializeField] private float _windSwirl = 11f;
-    [Tooltip("EF wind scale = Base + PerSqrtEF × sqrt(EF strength). Defaults: EF0 1.25×, EF3 1.69×, EF5 2.0×.")]
-    [SerializeField] private float _windScaleBase = 0.5f;
-    [SerializeField] private float _windScalePerSqrtEF = 0.75f;
 
     [Header("Visual")]
     [SerializeField] private float _spinDegreesPerSecond = 240f;
@@ -52,30 +32,52 @@ public class TornadoController : DisasterEntity
     /// stops it moving, so a 60 s performance capture is never cut short by the lifecycle.
     /// </summary>
     public bool HoldMature { get; set; }
+
+    /// <summary>
+    /// Test/harness seam: when ≥ 0, pins the tornado in Forming at this intensity (0–1) and stops it moving
+    /// (storm-director.md AC-19). Negative = off.
+    /// </summary>
+    public float HoldFormingIntensity { get; set; } = -1f;
     public float ConeScale => TornadoData != null ? TornadoData.ConeScale : 1f;
     public string EFRating => TornadoData != null ? TornadoData.EFRating : "EF?";
     /// <summary>0–1 lifecycle strength.</summary>
     public float Intensity => _lifecycle != null ? _lifecycle.GetIntensity(_age) : 1f;
     public TornadoLifecycle.Phase Phase => _lifecycle != null ? _lifecycle.GetPhase(_age) : TornadoLifecycle.Phase.Mature;
 
-    public override float DamageRadius =>
-        Intensity < _harmlessBelowIntensity ? 0f : (_baseDamageRadius + _damageRadiusPerConeScale * ConeScale) * Intensity;
+    /// <summary>F3 phase: Forming deals no damage or lift; Roping Out scales with intensity.</summary>
+    public StormScale.Phase ScalePhase
+    {
+        get
+        {
+            switch (Phase)
+            {
+                case TornadoLifecycle.Phase.Forming: return StormScale.Phase.Forming;
+                case TornadoLifecycle.Phase.Mature: return StormScale.Phase.Mature;
+                default: return StormScale.Phase.RopingOut;
+            }
+        }
+    }
 
-    /// <summary>Radius of the wind field at current intensity.</summary>
-    public float WindRadius => (_windRadiusBase + _windRadiusPerConeScale * ConeScale) * Intensity;
+    /// <summary>F3 damage radius: 0 while Forming, D when Mature, D · I while roping out.</summary>
+    public override float DamageRadius =>
+        TornadoData != null ? StormScale.DamageRadius(ScalePhase, TornadoData.DamageRadius, Intensity) : 0f;
+
+    /// <summary>Radius of the wind field at current intensity (R · I).</summary>
+    public float WindRadius => TornadoData != null ? TornadoData.WindRadius * Intensity : 0f;
 
     public override float GetLiftFractionAt(Vector3 position, float exposure, float liftCoefficient)
     {
+        if (TornadoData == null) return 0f;
         Vector3 d = position - transform.position;
         d.y = 0f;
-        return VehicleModel.LiftFraction(exposure, ThreatMultiplier, Intensity, d.magnitude, WindRadius, liftCoefficient);
+        return StormScale.Lift(ScalePhase, exposure, ThreatMultiplier, Intensity, d.magnitude, TornadoData.WindRadius,
+                               liftCoefficient);
     }
 
     public override Vector3 GetWindAt(Vector3 position)
     {
-        float strength = (_windScaleBase + _windScalePerSqrtEF * Mathf.Sqrt(ThreatMultiplier)) * Intensity;
-        return WindField.Vortex(position - transform.position, WindRadius,
-            _windInflow * strength, _windSwirl * strength);
+        if (TornadoData == null) return Vector3.zero;
+        return StormScale.Wind(position - transform.position, TornadoData.PeakWind, TornadoData.WindRadius, Intensity);
     }
 
     /// <summary>Call right after Instantiate, before the first Update.</summary>
@@ -99,14 +101,16 @@ public class TornadoController : DisasterEntity
 
     private void Update()
     {
-        _age = HoldMature ? _lifecycle.FormSeconds : _age + Time.deltaTime;
+        bool holding = HoldMature || HoldFormingIntensity >= 0f;
+        if (HoldFormingIntensity >= 0f) _age = _lifecycle.FormSeconds * Mathf.Min(HoldFormingIntensity, 0.999f);
+        else _age = HoldMature ? _lifecycle.FormSeconds : _age + Time.deltaTime;
         if (_lifecycle.GetPhase(_age) == TornadoLifecycle.Phase.Done)
         {
             Destroy(gameObject);
             return;
         }
 
-        if (!HoldMature) Move(Time.deltaTime);
+        if (!holding) Move(Time.deltaTime);
         ApplyScale();
         transform.Rotate(0f, _spinDegreesPerSecond * Time.deltaTime, 0f, Space.Self);
     }
@@ -114,18 +118,12 @@ public class TornadoController : DisasterEntity
     private void Move(float dt)
     {
         float noise = Mathf.PerlinNoise(_noiseSeed, _age * 0.25f) * 2f - 1f;
-        _heading += noise * _wanderTurnRate * dt;
+        float turnRate = TornadoData != null ? TornadoData.TurnRateDeg : 20f;
+        _heading += noise * turnRate * dt;
 
-        Vector3 wander = Quaternion.Euler(0f, _heading, 0f) * Vector3.forward;
-        Vector3 dir = wander;
-
-        if (_target != null)
-        {
-            Vector3 toTarget = _target.position - transform.position;
-            toTarget.y = 0f;
-            if (toTarget.sqrMagnitude > 1f)
-                dir = Vector3.Slerp(wander, toTarget.normalized, _playerPull);
-        }
+        // No homing (Rule 5): the track never reads the player. Story 005 replaces this wander with the
+        // director's deterministic track model.
+        Vector3 dir = Quaternion.Euler(0f, _heading, 0f) * Vector3.forward;
 
         // Steer back inside the world when near the edge.
         Vector3 pos = transform.position;

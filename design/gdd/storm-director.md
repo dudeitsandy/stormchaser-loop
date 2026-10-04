@@ -629,7 +629,9 @@ arrive, risk and escape.
   THEN horizontal displacement > 0.5 m and `Tossed` is not raised.
 - **AC-12 [PlayMode]** GIVEN a Mature EF5 and the truck parked 5 m away, THEN `Tossed` fires within 1 s.
 - **AC-13 [PlayMode]** EF4: Tossed within 1 s at 5.0 m (lift 0.75); not Tossed after 2 s at 8.0 m
-  (lift 0.55). EF5: not Tossed at 17 m (lift 0.61).
+  (lift 0.55). EF5: the live lift at 17 m is 0.61 (< 0.7). *Clarified 2026-10-04 (story 004): a truck
+  parked at 17 m does not stay there; the EF5 inflow drags it into the 15.7 m toss zone within ≈ 2 s, which
+  is intended, so the 17 m case checks the lift field, not a parked truck.*
 
 **Forecast (Rule 7, F4)**
 - **AC-14 [Unit]** For every EF, any bias in [−3, 3] and any d ≤ 150 m, the shown EF equals the true EF;

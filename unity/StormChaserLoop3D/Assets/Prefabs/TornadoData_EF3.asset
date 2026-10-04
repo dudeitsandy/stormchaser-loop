@@ -14,7 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TornadoData
   ThreatClass: 0
   BehaviorPattern: 0
-  MoveSpeed: 10
+  MoveSpeed: 6.5
   EFRating: EF3
   StrengthMultiplier: 2.5
-  ConeScale: 1.5
+  DamageRadius: 5
+  WindRadius: 34
+  PeakWind: 26
+  FormSeconds: 35
+  MatureSeconds: 60
+  RopeSeconds: 20
+  TurnRateDeg: 12
+  ConeScale: 1.163
