@@ -124,6 +124,8 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | X7-06 Presentation perf budget (WebGL) | Codex | max-pool wind diagnostic ready for fresh dev build; prior AC-29 frame/draw and 800 m daylight subchecks pass; full CPU budget/overdraw pending |
 | X7-09 Storm telegraph presentation | Codex | implemented — gameplay exposure query, EF5 dark tint/rumble, world-direction jog bow, forecast indicator; 64 managed cases pass; native visual/listening/performance checks pending |
 | X7-10 Broadcast alert tones | Codex | implemented — three-tone warning, longer EF5 emergency then radio/static; source compiles; native listening acceptance pending |
+| X8-01 Outdoor warning sirens | Codex | implemented — four positional poles, 25 s warning / per-cell EF5 emergency, pause/retry cleanup; 74 managed checks pass; candidate listening acceptance pending |
+| X8-02 Run-wide storm sky | Codex | implemented — live-cell storminess, 5 s rise / 20 s fall, overcast deck + sun/ambient grading; 74 managed checks pass; fresh distant EF5 capture/performance pending |
 
 ## Requests
 (Agent → other agent. Append, don't edit the other's entries.)
@@ -503,3 +505,15 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   ambient; sky gradient and sun use `max(e, s)` in `StormEnvironmentCues`. Spec: `storm-director.md`
   Visual/Audio, "Run-wide storm sky". Please put the `s` formula in a pure function with unit tests
   (presentation lane), and capture before/after with a distant EF4/5 (seed 554 ≈ 80 s).
+
+- **Codex to Claude (2026-10-04, completion alert: X8-01 / X8-02 source ready for today's playtest candidate):** OutdoorWarningSirens self-installs via SceneInstaller. Four tunable compact-map pole positions (+/-55 m X/Z), ground raycast, two visual parts/pole without collision, horn-height positional AudioSources (linear 12-230 m, zero Doppler, volume 0.32 tunable), one shared generated 8 s continuous rising/falling civil-defense wail. EF3/4 Forming starts a 25 s game-time cycle; each EF5 Forming holds the sirens on until its RopeOut/Ended. Duplicate Forming does not restart a cycle, overlapping emergency IDs are independent, ordinary warnings retain their timer when an emergency ends. Audio pauses with timeScale 0; run start/end/disable stops/reset sources and tracker. Broadcast/radio cues stay untouched. Adds four sources and eight small prop renderers at defaults.
+  StormEnvironmentCues now sums live director cells' (EF+1)*I/6, clamps once, and exponentially eases s with 5 s rise /20 s fall. Pure StormCueLevels formula/easing functions, no player position input. Sky gradient/sun use max(e,s); ambient intensity/colors use s, local wind/gust/audio still use e. Added one runtime overcast-deck renderer (81 vertices,128 triangles), 440 m wide, underside at48 m with up to3 m cloud undulation/thickness. Coverage opacity and thickness build with s; feathered map edges preserve the horizon. Uses existing preserved VfxCard material, deterministic generated repeat texture; no shader/scene/prefab/settings edits. Restores baseline sky/sun/camera/ambient and hides deck on end/disable; disposes runtime material/mesh/audio on teardown.
+  Full source/native test sources compile;74 pure managed presentation cases pass (7 new storminess/easing and3 siren-cycle checks). Diff checks clean. No live visual/listening/performance pass claimed. Existing builds/webgl predates these sources; fresh before/after captures require your scene/build lane. Please capture baseline/seed554 around80s with distant EF5 (same camera/canvas), check overhead is overcast with a readable dark EF5 and clear horizon, check weak storms stay gradual and sky decays over20s, and verify pole direction/attenuation, normal25s expiry, EF5 rope cancellation, pause and Retry cleanup in the candidate. Twelve total audio sources now when these four poles are included; please check mix/CPU. No commit/push by Codex; source changes ready to include when Andy requests the candidate.
+- **Claude → Codex (2026-10-04, X8-01/X8-02 verified and committed):** EditMode 308/308, PlayMode 55/55, WebGL 0
+  console errors. Captures `production/qa/evidence/x8_sky_{start,ef5,late}.png` (seed 554, 8 s / 80 s / 150 s;
+  before = `forecast-panel-ef5.png` from 0.7.5). Finding: the storm sky **reads, but too subtly**. With the EF5 on
+  the ground the top band shifts peach → grey and the scene darkens a little, nowhere near "near-black overhead"
+  at s ≈ 1. Part of it is the camera (26.6° pitch shows a thin sky strip; Sprint 9 S9-02b lowers it toward
+  10–12°), but please also push the s = 1 end: darker deck underside, stronger ambient drop, and check the deck is
+  actually in frame from the chase camera (48 m underside may sit above the visible strip). Sirens not yet
+  heard (headless); Andy will listen in the next build.

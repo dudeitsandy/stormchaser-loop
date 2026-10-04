@@ -2,6 +2,73 @@ using NUnit.Framework;
 
 public class StormCueTests
 {
+    [Test]
+    public void OutdoorSirens_IgnoreWeakStormsAndDuplicateWarningsDoNotExtendCycle()
+    {
+        var cycle = new OutdoorSirenCycle();
+        cycle.Forming(1, 2, 25f);
+        Assert.That(cycle.Active, Is.False);
+        cycle.Forming(2, 3, 25f);
+        cycle.Tick(24f);
+        Assert.That(cycle.Active, Is.True);
+        cycle.Forming(2, 3, 25f);
+        cycle.Tick(1f);
+        Assert.That(cycle.Active, Is.False);
+    }
+    [Test]
+    public void OutdoorSirens_EmergenciesSurviveTimerAndEndIndependently()
+    {
+        var cycle = new OutdoorSirenCycle();
+        cycle.Forming(1, 5, 25f); cycle.Forming(2, 5, 25f);
+        cycle.Tick(100f);
+        Assert.That(cycle.Active, Is.True);
+        cycle.End(1);
+        Assert.That(cycle.Active, Is.True);
+        cycle.End(2);
+        Assert.That(cycle.Active, Is.False);
+    }
+    [Test]
+    public void OutdoorSirens_EmergencyEndKeepsOtherWarningAndResetAllowsSameCellNextRun()
+    {
+        var cycle = new OutdoorSirenCycle();
+        cycle.Forming(1, 4, 25f); cycle.Forming(2, 5, 25f);
+        cycle.End(2); cycle.Tick(0f);
+        Assert.That(cycle.Active, Is.True);
+        cycle.Reset();
+        Assert.That(cycle.Active, Is.False);
+        cycle.Forming(1, 4, 25f);
+        Assert.That(cycle.Active, Is.True);
+    }
+    [TestCase(5, 1f, 1f)]
+    [TestCase(2, 1f, 0.5f)]
+    [TestCase(0, 0.3f, 0.05f)]
+    public void Storminess_UsesEfWeightedLifecycleWithoutPlayerDistance(int ef, float intensity, float expected)
+    {
+        Assert.That(StormCueLevels.StorminessContribution(ef, intensity), Is.EqualTo(expected).Within(0.0001f));
+    }
+    [Test]
+    public void Storminess_MultipleCellsAddAndTargetCapsAtOne()
+    {
+        float sum = StormCueLevels.StorminessContribution(2, 1f) + StormCueLevels.StorminessContribution(3, 1f);
+        Assert.That(StormCueLevels.StorminessTarget(sum), Is.EqualTo(1f));
+        Assert.That(StormCueLevels.StorminessTarget(0f), Is.Zero);
+    }
+    [Test]
+    public void Storminess_RiseAndFallUseTimeConstantsAndDoNotSnap()
+    {
+        Assert.That(StormCueLevels.EaseStorminess(0f, 1f, 5f), Is.EqualTo(1f - (float)System.Math.Exp(-1)).Within(0.0001f));
+        Assert.That(StormCueLevels.EaseStorminess(1f, 0f, 20f), Is.EqualTo((float)System.Math.Exp(-1)).Within(0.0001f));
+        Assert.That(StormCueLevels.EaseStorminess(0.6f, 0f, 0f), Is.EqualTo(0.6f).Within(0.0001f));
+    }
+    [TestCase(0f, 1f)]
+    [TestCase(1f, 0f)]
+    public void Storminess_EasingIsIndependentOfFrameSubdivision(float current, float target)
+    {
+        float one = StormCueLevels.EaseStorminess(current, target, 1f);
+        float many = current;
+        for (int i = 0; i < 60; i++) many = StormCueLevels.EaseStorminess(many, target, 1f / 60f);
+        Assert.That(many, Is.EqualTo(one).Within(0.00001f));
+    }
     [TestCase(0f, 0f)]
     [TestCase(10f, 0.5f)]
     [TestCase(20f, 1f)]

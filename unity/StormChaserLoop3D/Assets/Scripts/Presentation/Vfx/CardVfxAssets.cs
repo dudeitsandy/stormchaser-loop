@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 /// <summary>Owned, lazily generated illustrated card textures and transparent URP materials.</summary>
 internal sealed class CardVfxAssets : IDisposable
 {
-    internal enum Shape { Band, Dust, Streak, Debris, Funnel, Flame, Cloud, AmbientDebris }
+    internal enum Shape { Band, Dust, Streak, Debris, Funnel, Flame, Cloud, AmbientDebris, Overcast }
     private readonly Dictionary<Shape, Material> _materials = new Dictionary<Shape, Material>();
     private readonly List<UnityEngine.Object> _owned = new List<UnityEngine.Object>();
     private Mesh _quad;
@@ -100,6 +100,7 @@ internal sealed class CardVfxAssets : IDisposable
             { name = "HandDrawn" + shape, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
         if (shape == Shape.Band) texture.wrapModeU = TextureWrapMode.Repeat;
         if (shape == Shape.Funnel) texture.wrapModeV = TextureWrapMode.Repeat;
+        if (shape == Shape.Overcast) texture.wrapMode = TextureWrapMode.Repeat;
         var pixels = new Color[width * height];
         for (int y = 0; y < height; y++)
         for (int x = 0; x < width; x++)
@@ -111,6 +112,11 @@ internal sealed class CardVfxAssets : IDisposable
             float alpha, tone;
             switch (shape)
             {
+                case Shape.Overcast:
+                    alpha = 1f;
+                    tone = 0.78f + 0.12f * Mathf.Sin(u * Mathf.PI * 2f) * Mathf.Cos(v * Mathf.PI * 2f)
+                        + 0.06f * Mathf.Cos((u + v) * Mathf.PI * 4f);
+                    break;
                 case Shape.Band:
                     float stroke = v - 0.16f * Mathf.Sin(u * 5f) - 0.06f * Mathf.Sin(u * 17f);
                     float edge = 1f - u * u - stroke * stroke * 4f;
