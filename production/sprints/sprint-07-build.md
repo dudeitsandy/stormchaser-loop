@@ -124,6 +124,11 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-04 — **0.7.7 pushed** (html5 + windows): **pause menu and quitting** (run-screens story 001): P / Esc /
+  Start pause (time, timer, audio frozen), Resume / Settings (placeholder) / Quit Run / Quit to Desktop (Windows),
+  confirm defaults to KEEP PLAYING, quit forfeits the run, auto-pause on focus loss or controller disconnect,
+  Windows title Esc-Esc quits. Evidence: EditMode 315/315, PlayMode 59/59, WebGL 0 console errors
+  (`run-screens-*.png`).
 - 2026-10-04 — **0.7.6 pushed** (html5 + windows): Codex **outdoor warning sirens** (X8-01) and **run-wide storm
   sky** (X8-02: overcast deck, near-black overhead for an EF5, eases back after rope-out). Evidence: EditMode
   309/309, PlayMode 55/55, WebGL 0 console errors (`v076_sky_*.png`). Andy live check: sirens good, tones OK
