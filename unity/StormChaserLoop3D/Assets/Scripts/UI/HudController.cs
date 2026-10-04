@@ -30,6 +30,20 @@ public class HudController : MonoBehaviour
     private Label _filmLabel;
     private Label _windLabel;
     private Label _stormCamLabel;
+
+    // KTVR News crawl (storm-director.md Rule 7 / UI Requirements, story 008).
+    private static readonly Color NewsBlue = new Color(0.08f, 0.16f, 0.42f, 0.92f);
+    private static readonly Color NewsRed = new Color(0.62f, 0.05f, 0.05f, 0.94f);
+    [Tooltip("Seconds a news crawl stays on screen.")]
+    [SerializeField] private float _crawlSeconds = 9f;
+    [Tooltip("Crawl scroll speed in panel units per second.")]
+    [SerializeField] private float _crawlSpeed = 140f;
+    private VisualElement _crawlBar;
+    private Label _crawlTag;
+    private Label _crawlText;
+    private float _crawlUntil;
+    private float _crawlX;
+    private readonly Queue<(string text, bool emergency)> _crawlQueue = new Queue<(string, bool)>();
     private ChaseCameraRig _cameraRig;
     private string _stormCamShown;
     private Label _hpTitle;
@@ -56,6 +70,8 @@ public class HudController : MonoBehaviour
         GameEvents.StyleEvent += OnStyleEvent;
         GameEvents.FilmChanged += OnFilmChanged;
         GameEvents.OutOfFilm += OnOutOfFilm;
+        GameEvents.StormCellForming += OnStormCellForming;
+        GameEvents.StormCellPeak += OnStormCellPeak;
     }
 
     private void OnDisable()
@@ -64,6 +80,8 @@ public class HudController : MonoBehaviour
         GameEvents.StyleEvent -= OnStyleEvent;
         GameEvents.FilmChanged -= OnFilmChanged;
         GameEvents.OutOfFilm -= OnOutOfFilm;
+        GameEvents.StormCellForming -= OnStormCellForming;
+        GameEvents.StormCellPeak -= OnStormCellPeak;
     }
 
     private void Start()
@@ -170,6 +188,8 @@ public class HudController : MonoBehaviour
         _stormCamLabel.style.display = DisplayStyle.None;
         center.Add(_stormCamLabel);
         root.Add(center);
+
+        BuildNewsCrawl(root);
     }
 
     private void Update()
@@ -186,6 +206,7 @@ public class HudController : MonoBehaviour
 
         UpdateWindMeter();
         UpdateStormCam();
+        UpdateNewsCrawl();
         UpdateBoostMeter();
 
         if (!Mathf.Approximately(_scoreAccumulator.TotalScore, _lastScore))
@@ -268,6 +289,95 @@ public class HudController : MonoBehaviour
         _windLabel.style.color = Color.Lerp(HpFull, HpHit, t);
         _windLabel.style.opacity = Mathf.Lerp(0.75f, 1f, pulse);
         _windLabel.style.scale = new Scale(Vector3.one * Mathf.Lerp(1f, 1.25f, t));
+    }
+
+    private void BuildNewsCrawl(VisualElement root)
+    {
+        _crawlBar = new VisualElement { pickingMode = PickingMode.Ignore };
+        _crawlBar.style.position = Position.Absolute;
+        _crawlBar.style.left = 0;
+        _crawlBar.style.right = 0;
+        _crawlBar.style.bottom = 0;
+        _crawlBar.style.height = 34;
+        _crawlBar.style.flexDirection = FlexDirection.Row;
+        _crawlBar.style.alignItems = Align.Center;
+        _crawlBar.style.overflow = Overflow.Hidden;
+        _crawlBar.style.backgroundColor = NewsBlue;
+        _crawlBar.style.display = DisplayStyle.None;
+
+        _crawlTag = new Label("KTVR NEWS");
+        _crawlTag.style.unityFontStyleAndWeight = FontStyle.Bold;
+        _crawlTag.style.fontSize = 16;
+        _crawlTag.style.color = Color.white;
+        _crawlTag.style.backgroundColor = new Color(0.85f, 0.1f, 0.1f);
+        _crawlTag.style.paddingLeft = 10;
+        _crawlTag.style.paddingRight = 10;
+        _crawlTag.style.height = 34;
+        _crawlTag.style.unityTextAlign = TextAnchor.MiddleCenter;
+
+        var lane = new VisualElement { pickingMode = PickingMode.Ignore };
+        lane.style.flexGrow = 1;
+        lane.style.height = 34;
+        lane.style.overflow = Overflow.Hidden;
+        _crawlText = new Label { pickingMode = PickingMode.Ignore };
+        _crawlText.style.position = Position.Absolute;
+        _crawlText.style.top = 6;
+        _crawlText.style.fontSize = 18;
+        _crawlText.style.color = Color.white;
+        _crawlText.style.unityFontStyleAndWeight = FontStyle.Bold;
+        _crawlText.style.whiteSpace = WhiteSpace.NoWrap;
+        lane.Add(_crawlText);
+
+        _crawlBar.Add(_crawlTag);
+        _crawlBar.Add(lane);
+        root.Add(_crawlBar);
+    }
+
+    private void OnStormCellForming(StormCellInfo cell)
+    {
+        string text = StormTelegraph.FormingCrawl(cell.EF, BearingTo(cell.Position));
+        if (text != null) QueueCrawl(text, StormTelegraph.IsEmergency(cell.EF));
+    }
+
+    private void OnStormCellPeak(StormCellInfo cell)
+    {
+        if (cell.Role != StormCellRole.Anchor || cell.EF < StormTelegraph.WarningMinEf) return;
+        QueueCrawl(StormTelegraph.TouchdownCrawl(cell.EF, BearingTo(cell.Position)), StormTelegraph.IsEmergency(cell.EF));
+    }
+
+    private string BearingTo(Vector3 cell) =>
+        StormTelegraph.Bearing(_vehicle != null ? _vehicle.transform.position : Vector3.zero, cell);
+
+    private void QueueCrawl(string text, bool emergency)
+    {
+        // An emergency jumps the queue and replaces whatever is crawling.
+        if (emergency) { _crawlQueue.Clear(); _crawlUntil = 0f; }
+        _crawlQueue.Enqueue((text, emergency));
+    }
+
+    private void UpdateNewsCrawl()
+    {
+        if (_crawlBar == null) return;
+        float now = Time.unscaledTime;
+        if (now >= _crawlUntil)
+        {
+            if (_crawlQueue.Count == 0)
+            {
+                if (_crawlBar.style.display != DisplayStyle.None) _crawlBar.style.display = DisplayStyle.None;
+                return;
+            }
+            (string text, bool emergency) = _crawlQueue.Dequeue();
+            _crawlText.text = text;
+            _crawlTag.text = emergency ? "KTVR EMERGENCY" : "KTVR NEWS";
+            _crawlBar.style.backgroundColor = emergency ? NewsRed : NewsBlue;
+            _crawlBar.style.display = DisplayStyle.Flex;
+            _crawlUntil = now + _crawlSeconds;
+            _crawlX = _crawlBar.resolvedStyle.width > 0f ? _crawlBar.resolvedStyle.width : 1200f;
+        }
+        _crawlX -= _crawlSpeed * Time.unscaledDeltaTime;
+        float textWidth = _crawlText.resolvedStyle.width;
+        if (textWidth > 0f && _crawlX < -textWidth) _crawlX = _crawlBar.resolvedStyle.width; // loop until time is up
+        _crawlText.style.left = _crawlX;
     }
 
     private void UpdateStormCam()

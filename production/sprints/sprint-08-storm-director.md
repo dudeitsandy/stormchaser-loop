@@ -31,7 +31,7 @@ back on with S8-C1 durability tuning.
 | 002 | Compact cell schedule and cap resolution (F2) | Logic | 4 h | **Done** |
 | 005 | Track motion, jogs and fixed substeps (F5) | Logic | 3 h | **Done** |
 | 006 | Director runtime driver and `StormCell*` lifecycle events | Integration | 5 h | **Done** |
-| 008 | Telegraph hooks: siren caption and environmental intensity | Integration | 2 h | Ready |
+| 008 | Telegraph hooks: siren caption and environmental intensity | Integration | 2 h | **Done** (KTVR News crawl) |
 
 ### Should Have
 | ID | Owner | Task | Est. |

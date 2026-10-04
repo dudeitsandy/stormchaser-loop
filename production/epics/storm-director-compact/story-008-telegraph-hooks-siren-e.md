@@ -1,7 +1,7 @@
 # Story 008: Telegraph hooks: siren caption and environmental-intensity query
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: Ready
+> **Status**: Done (2026-10-04; crawl screenshot with the 0.7.4 build)
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: 2 h (S)
@@ -67,7 +67,7 @@ Gives presentation what Rule 7 needs: the environmental intensity `e` from the s
 **Story Type**: Integration
 **Required evidence**: Integration: automated PlayMode test (or a documented playtest) — Unit `Assets/Tests/Director/TelegraphTests.cs` + screenshot `production/qa/evidence/siren-caption.png`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (`Tests/Director/TelegraphTests.cs`, 12 cases)
 
 ---
 
