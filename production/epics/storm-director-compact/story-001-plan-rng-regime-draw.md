@@ -1,7 +1,7 @@
 # Story 001: Seeded plan RNG, regime draw and anchor EF (F1)
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: Ready
+> **Status**: Done (2026-10-04)
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: 3 h (M)
@@ -69,7 +69,7 @@ First slice of the director: a deterministic, seeded integer PRNG owned by the d
 **Story Type**: Logic
 **Required evidence**: Logic: automated test must exist and pass — `unity/StormChaserLoop3D/Assets/Tests/Director/RegimeDrawTests.cs`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (`Tests/Director/RegimeDrawTests.cs`, 19 cases)
 
 ---
 

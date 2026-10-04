@@ -25,9 +25,9 @@ back on with S8-C1 durability tuning.
 ### Must Have — Claude (epic `storm-director-compact`)
 | Story | Task | Type | Est. | Status |
 |-------|------|------|------|--------|
-| 003 | Storm scale table and lifecycle intensity (F3) | Logic | 2.5 h | **In Progress** (started in Sprint 7) |
-| 004 | New scale in play: wind drag, lift and toss (fixes EF3 wind test) | Integration | 2.5 h | Ready |
-| 001 | Seeded plan RNG, regime draw and anchor EF (F1) | Logic | 3 h | Ready |
+| 003 | Storm scale table and lifecycle intensity (F3) | Logic | 2.5 h | **Done** (8aef7fc) |
+| 004 | New scale in play: wind drag, lift and toss (fixes EF3 wind test) | Integration | 2.5 h | **Done** (8aef7fc) |
+| 001 | Seeded plan RNG, regime draw and anchor EF (F1) | Logic | 3 h | **Done** |
 | 002 | Compact cell schedule and cap resolution (F2) | Logic | 4 h | Ready |
 | 005 | Track motion, jogs and fixed substeps (F5) | Logic | 3 h | Ready |
 | 006 | Director runtime driver and `StormCell*` lifecycle events | Integration | 5 h | Ready |
