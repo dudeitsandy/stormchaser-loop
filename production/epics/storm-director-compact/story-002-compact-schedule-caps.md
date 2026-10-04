@@ -1,7 +1,7 @@
 # Story 002: Compact cell schedule and cap resolution (F2, Rule 12)
 
 > **Epic**: Storm Director (compact mode)
-> **Status**: Ready
+> **Status**: Done (2026-10-04)
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: 4 h (M)
@@ -69,7 +69,7 @@ Turns a drawn regime into a compact-mode Weather Plan: T = 180 s, the anchor pea
 **Story Type**: Logic
 **Required evidence**: Logic: automated test must exist and pass — `unity/StormChaserLoop3D/Assets/Tests/Director/ScheduleTests.cs`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (`Tests/Director/ScheduleTests.cs`, 13 cases)
 
 ---
 

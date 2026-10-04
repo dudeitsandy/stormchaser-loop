@@ -145,6 +145,18 @@ public sealed class WeatherPlan
     public int AnchorEf = -1;
     /// <summary>Chaos cells' EFs in spawn order (empty for other regimes).</summary>
     public readonly List<int> ChaosEfs = new List<int>();
+    /// <summary>True for a compact-mode plan (Rule 12).</summary>
+    public bool Compact;
+    /// <summary>Run length T in seconds (0 until a schedule is built).</summary>
+    public float Duration;
+    /// <summary>Scheduled cells (story 002); empty for an F1-only plan.</summary>
+    public readonly List<PlannedCell> Cells = new List<PlannedCell>();
+    /// <summary>Satellite count S as drawn (before the Heat 5 co-anchor takes a slot or any drop).</summary>
+    public int SatellitesDrawn;
+    /// <summary>Sequence slots dropped for spawning before 5 s.</summary>
+    public int SatellitesDroppedEarly;
+    /// <summary>Sequence spacing Δ in seconds (Sequence plans only).</summary>
+    public float SequenceDelta;
 
     /// <summary>True when any drawn cell is EF5 (before cap resolution).</summary>
     public bool HasEf5 => AnchorEf == 5 || ChaosEfs.Contains(5);
@@ -163,15 +175,30 @@ public sealed class WeatherPlan
             if (i > 0) sb.Append(',');
             sb.Append(ChaosEfs[i].ToString(CultureInfo.InvariantCulture));
         }
+        sb.Append(";T=").Append(F(Duration)).Append(";cells=");
+        foreach (PlannedCell c in Cells)
+        {
+            sb.Append('[').Append(c.Id.ToString(CultureInfo.InvariantCulture)).Append(',').Append(c.Role)
+              .Append(",EF").Append(c.Ef.ToString(CultureInfo.InvariantCulture))
+              .Append(',').Append(F(c.Position.x)).Append(',').Append(F(c.Position.y))
+              .Append(",t").Append(F(c.DesiredTime)).Append('>').Append(F(c.SpawnTime))
+              .Append(c.Dropped ? ",dropped" : "")
+              .Append(c.EarlyRopeTime >= 0f ? ",rope@" + F(c.EarlyRopeTime) : "")
+              .Append(']');
+        }
         return sb.ToString();
     }
+
+    private static string F(float v) => v.ToString("R", CultureInfo.InvariantCulture);
 }
 
 /// <summary>Builds a <see cref="WeatherPlan"/> from a seed and Heat (story 001 scope: F1 draws).</summary>
-public static class WeatherPlanner
+public static partial class WeatherPlanner
 {
     /// <summary>RNG sub-stream for plan composition (tracks and forecast use their own streams).</summary>
     public const ulong PlanStream = 1;
+    /// <summary>RNG sub-stream for spawn points, so rerolls never shift the plan's other draws.</summary>
+    public const ulong PlacementStream = 2;
 
     /// <summary>Builds the plan for run <paramref name="seed"/> at Cataclysm Heat <paramref name="heat"/> (0–5).</summary>
     public static WeatherPlan Build(long seed, int heat, DirectorTuning t)
@@ -180,10 +207,17 @@ public static class WeatherPlanner
         ulong s = unchecked((ulong)seed);
         var rng = new DirectorRng(s, PlanStream);
         var plan = new WeatherPlan { Seed = s, Heat = heat };
+        Compose(plan, rng, heat, t, t.ChaosMinCells, t.ChaosMaxCells);
+        return plan;
+    }
+
+    /// <summary>F1 draws into <paramref name="plan"/>: regime, then the anchor EF or the Chaos cells.</summary>
+    private static void Compose(WeatherPlan plan, DirectorRng rng, int heat, DirectorTuning t, int chaosMin, int chaosMax)
+    {
         plan.Regime = (Regime)rng.Pick(RegimeDraw.Probabilities(heat, t));
         if (plan.Regime == Regime.Chaos)
         {
-            int n = rng.RangeInclusive(t.ChaosMinCells, t.ChaosMaxCells);
+            int n = rng.RangeInclusive(chaosMin, chaosMax);
             float[] table = RegimeDraw.ChaosTable(heat, t);
             var cells = new int[n];
             for (int i = 0; i < n; i++) cells[i] = rng.Pick(table);
@@ -193,6 +227,5 @@ public static class WeatherPlanner
         {
             plan.AnchorEf = rng.Pick(RegimeDraw.AnchorTable(plan.Regime, heat, t));
         }
-        return plan;
     }
 }

@@ -60,7 +60,7 @@ far-field), 27, 29.
 | # | Story | Type | Status | ADR |
 |---|-------|------|--------|-----|
 | 001 | [Seeded plan RNG, regime draw and anchor EF (F1)](story-001-plan-rng-regime-draw.md) | Logic | Done | N/A |
-| 002 | [Compact cell schedule and cap resolution (F2, Rule 12)](story-002-compact-schedule-caps.md) | Logic | Ready | N/A |
+| 002 | [Compact cell schedule and cap resolution (F2, Rule 12)](story-002-compact-schedule-caps.md) | Logic | Done | N/A |
 | 003 | [Storm scale table and lifecycle intensity (F3)](story-003-storm-scale-intensity.md) | Logic | Done | N/A |
 | 004 | [New scale in play: wind drag, lift and toss](story-004-scale-in-play-wind-lift-toss.md) | Integration | Done | ADR-0005 |
 | 005 | [Track motion, jogs and fixed substeps (F5)](story-005-track-motion-jogs-substeps.md) | Logic | Ready | N/A |
