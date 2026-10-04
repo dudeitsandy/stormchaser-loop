@@ -7,7 +7,7 @@
 > (`Scripts/Tornado`). HUD forecast in `Scripts/UI`; presentation stays in Codex's lane via `StormCell*` events.
 > No `architecture.md` exists yet; module mapped from the current code layout.
 > **Status**: Ready
-> **Stories**: Not yet created — run `/create-stories storm-director-compact`
+> **Stories**: 9 stories (see table)
 
 ## Overview
 
@@ -54,6 +54,20 @@ No `tr-registry.yaml` exists yet; requirement IDs are local to this epic and cit
 **Deferred to a later Epic-mode epic** (needs the 2 km world, ADR-0004): streaming-ring tiers (Rule 8),
 d_reach and Epic spawn distances, 800 m far-field (fog-exempt Render Graph pass), AC-8, 9, 24, 26 (WebGL
 far-field), 27, 29.
+
+## Stories
+
+| # | Story | Type | Status | ADR |
+|---|-------|------|--------|-----|
+| 001 | [Seeded plan RNG, regime draw and anchor EF (F1)](story-001-plan-rng-regime-draw.md) | Logic | Ready | N/A |
+| 002 | [Compact cell schedule and cap resolution (F2, Rule 12)](story-002-compact-schedule-caps.md) | Logic | Ready | N/A |
+| 003 | [Storm scale table and lifecycle intensity (F3)](story-003-storm-scale-intensity.md) | Logic | Ready | N/A |
+| 004 | [New scale in play: wind drag, lift and toss](story-004-scale-in-play-wind-lift-toss.md) | Integration | Ready | ADR-0005 |
+| 005 | [Track motion, jogs and fixed substeps (F5)](story-005-track-motion-jogs-substeps.md) | Logic | Ready | N/A |
+| 006 | [Director runtime driver and StormCell lifecycle events](story-006-runtime-driver-lifecycle-events.md) | Integration | Ready | ADR-0004 |
+| 007 | [Forecast model and HUD forecast panel (F4)](story-007-forecast-model-hud.md) | UI | Ready | N/A |
+| 008 | [Telegraph hooks: siren caption and environmental-intensity query](story-008-telegraph-hooks-siren-e.md) | Integration | Ready | ADR-0003 |
+| 009 | [Results: seed, build version, regime, "The big one got away"](story-009-results-seed-big-one.md) | UI | Ready | N/A |
 
 ## Definition of Done
 
