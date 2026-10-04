@@ -1,0 +1,62 @@
+# Epic: Run Goals v1
+
+> **Layer**: Feature
+> **GDD**: design/gdd/event-system.md, part "# Run Goals (v1)" (In Review 2026-10-04: `/design-review` NEEDS REVISION,
+> 3 blockers fixed same day)
+> **Architecture Module**: `Scripts/Goals` (new): pure C# goal catalogue, seeded bounty draw and goal tracker, plus a
+> thin MonoBehaviour that listens to existing `GameEvents`. Accomplishments record in a new minimal `Scripts/Save`
+> slice built to `save-profile.md`'s rules. HUD bounty list and career pop-up in `Scripts/UI`; the `livery.ktvr`
+> material is Codex's lane. No `architecture.md` exists yet; module mapped from the current code layout.
+> **Status**: Ready, scheduled in Sprint 8 (re-scope, task RG-2)
+> **Stories**: Not yet created — run `/create-stories run-goals-v1`
+
+## Overview
+
+Every run carries a fixed list of 10 career goals for the mode and map (Tony Hawk's Pro Skater) and 3 KTVR
+bounties drawn from the run's seed (Crazy Taxi). Completions pay in-run score bonuses, are written to a per-mode
+accomplishments record, and 5 of 10 career goals unlock the KTVR News paint job: one real unlock that proves the
+roguelite "goals get you things" loop inside the vertical slice (Andy, 2026-10-04). Goals are tracked only from
+events the game already raises (photos, style moves, tosses, storm-cell lifecycle, run end), so the tracker
+holds no references to gameplay systems. This epic is also the first code to persist anything, so it builds the
+first slice of Save & Profile. The main risks are achievability (`big_air` may be unreachable on the flat
+compact map; measured first) and browser save storage (see below).
+
+## Governing ADRs
+
+| ADR | Decision Summary | Engine Risk |
+|-----|-----------------|-------------|
+| ADR-0005: Raycast vehicle architecture | Source of the drift, airtime (E2: counted above 1.8 m), near-miss and toss events the goals read | LOW |
+
+**Gap:** `save-profile.md` lists WebGL save storage (IndexedDB sync behaviour) as an open ADR question. This epic
+writes the first save file, so an `/architecture-decision` on browser save storage is recommended before the
+accomplishments-record story. Other stories do not depend on it. At `workflow: standard` only critical
+Foundation-layer ADRs are expected, so this is advisory.
+
+## GDD Requirements
+
+No `tr-registry.yaml` exists yet; requirement IDs are local to this epic and cite the GDD section.
+
+| ID | Requirement | ADR Coverage |
+|----|-------------|--------------|
+| RG-R01 | Goal catalogue with stable IDs (`career.<mode>.<map>.<goal>`, `bounty.<mode>.<name>`), types Score / Style / Storm (Rule 1) | N/A (GDD) |
+| RG-R02 | Fixed career list of 10 for compact / heartland with the threshold table (Rule 2, Formulas) | N/A |
+| RG-R03 | 3 bounties drawn from the eligible v1 pool on `DirectorRng` stream 3; same seed, same bounties; EF-free text (Rule 3, Formulas) | N/A |
+| RG-R04 | In-run bonuses once per goal per run; score tiers pay none (Rule 4, Formulas) | N/A |
+| RG-R05 | Accomplishments record per mode: first completion (seed, date, version) + count (Rule 5) | Gap: WebGL save ADR |
+| RG-R06 | `livery.ktvr` granted at 5 of 10 career first completions; livery choice in `LastLoadout` (Rule 6) | Gap: WebGL save ADR |
+| RG-R07 | `GoalCompleted` / `BountyFailed` events; consumers read only these (Rule 7) | N/A |
+| RG-R08 | HUD: bounty list ticked live, career pop-up (Rule 8; `design/ux/run-screens.md`) | N/A |
+| RG-R09 | Persistence at run complete as one transaction; quit forfeits; write failure keeps progress and retries; read-only records nothing (Rule 9, Edge Cases) | Gap: WebGL save ADR |
+| RG-R10 | Achievability: every career goal completed once in a real run before release; `big_air` measured first (Acceptance Criteria) | N/A |
+
+## Definition of Done
+
+This epic is complete when:
+- All stories are implemented, reviewed, and closed via `/story-done`
+- All acceptance criteria in the Run Goals part of `design/gdd/event-system.md` are verified
+- All Logic and Integration stories have passing test files in `unity/StormChaserLoop3D/Assets/Tests/`
+- All UI stories have retained screenshots in `production/qa/evidence/`
+
+## Next Step
+
+Run `/create-stories run-goals-v1` to break this epic into implementable stories.
