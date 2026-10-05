@@ -124,6 +124,12 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-05 — **0.8.0 pushed** (html5 + windows): **goals save** (Save & Profile M1 stem; WebGL persistence verified),
+  **KTVR paint** earned at 5 career goals (title L / X toggle), **radio lite** (title loop, station jingle, five songs,
+  ducking under warnings), **Settings** (camera SKY / CLASSIC / HIGH, sensitivity, invert Y, brightness, master /
+  effects / music, fullscreen, resolution), **results with goals**, **WRECKED** slow-mo slam, **title career page**
+  (C / Y). WebGL gzip + decompression fallback: 37 MB (was 71). Evidence: EditMode 383/383, PlayMode 68/68, WebGL 0
+  console errors (`run-screens-{title,career,settings-pause,hud,results}.png`).
 - 2026-10-04 — **0.7.9 pushed** (html5 + windows): **Run Goals in play** (run-goals-v1 001–004, 007): 10 career goals
   + 3 seeded KTVR bounties per run, bonuses into the score, **KTVR WANTS** HUD list and **GOAL!** pop-up; **lower chase
   camera** (12°, more sky); Codex **rain** (X8-03), **UI and goal sounds** (X8-06), **KTVR livery** (X8-05, preview

@@ -1,7 +1,7 @@
 # Story 002: Settings panel v1
 
 > **Epic**: Run Screens
-> **Status**: In Review (2026-10-05) — code + tests done; screenshots with the 0.8.0 build; EFFECTS waits on Codex X8-08
+> **Status**: Done (2026-10-05, 0.8.0) — WebGL screenshots `production/qa/evidence/run-screens-*.png` (EFFECTS hooked by Codex 3d5e690)
 > **Layer**: Presentation
 > **Type**: UI
 > **Estimate**: 4 h (M)

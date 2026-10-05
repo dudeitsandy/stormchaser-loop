@@ -1,7 +1,7 @@
 # Story 003: Wrecked slow-mo beat
 
 > **Epic**: Run Screens
-> **Status**: In Review (2026-10-05) — 1.5 s at 0.3× with the WRECKED slam; HUD fade not done (HUD stays); screenshot with 0.8.0
+> **Status**: Done (2026-10-05, 0.8.0) — WebGL screenshots `production/qa/evidence/run-screens-*.png` (WRECKED slam not captured headless)
 > **Layer**: Presentation
 > **Type**: Visual/Feel
 > **Estimate**: 1.5 h (S)
