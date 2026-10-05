@@ -11,7 +11,7 @@
 | Area | Status | Detail |
 |------|--------|--------|
 | **Code (2D)** | ✅ Complete | 24 TS files, ~4,600 LOC — full game loop, all core mechanics |
-| **Design Docs** | ⚠️ Partial | GDD exists (`docs/GAME_DESIGN_DOCUMENT.md`) but scoped to web; needs Steam/3D repositioning |
+| **Design Docs** | ⚠️ Partial | GDD exists (`docs/GAME_DESIGN_DOCUMENT.md`, since archived with the Phaser project at tag v0.3.0) but scoped to web; needs Steam/3D repositioning |
 | **Engine Config** | ❌ Missing | `technical-preferences.md` unconfigured — Unity URP decision made 2026-03-31 |
 | **Architecture Docs** | ❌ Missing | No ADRs; 2D→3D pivot needs to be recorded |
 | **Tests** | ❌ Missing | No test suite |
@@ -34,7 +34,7 @@
 - Local leaderboard, zzfx sound, complete scene flow
 
 **Documentation:**
-- Full GDD (`docs/GAME_DESIGN_DOCUMENT.md`)
+- Full GDD (`docs/GAME_DESIGN_DOCUMENT.md`, archived with the Phaser project, tag v0.3.0)
 - Terrain guide, tornado lifecycle doc, changelog, enhancement notes
 
 ---

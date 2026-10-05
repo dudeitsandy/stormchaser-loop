@@ -206,7 +206,7 @@ The photography mechanic is redesigned as a **dual-view risk system**:
 
 ## Related Decisions
 - See `production/project-stage-report.md` for full project gap analysis
-- See `docs/GAME_DESIGN_DOCUMENT.md` for original game design (web-scoped; to be
+- See the original web-scoped GDD (`docs/GAME_DESIGN_DOCUMENT.md` in the archived Phaser project, `../stormchaser-phaser/`, or this repo at tag v0.3.0) for original game design (web-scoped; to be
   revised for Steam/3D in subsequent ADR or `/reverse-document` pass)
 - Future ADR: Photography system architecture (PiP camera, RenderTexture pipeline)
 - Future ADR: Procedural terrain system (3D mesh vs. tile-based approach)
