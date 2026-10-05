@@ -153,3 +153,6 @@ docs/visual-targets/vehicles/**/*.jpeg
 # Unity Test Runner leftovers (created per test run, never source)
 **/Assets/InitTestScene*.unity
 **/Assets/InitTestScene*.unity.meta
+
+# Audio samples staged outside Unity until the game uses them (repo is public, no LFS; Andy 2026-10-04)
+audio-staging/
