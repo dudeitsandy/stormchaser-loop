@@ -16,12 +16,13 @@ using Unity.Cinemachine;
 public class ChaseCameraRig : CinemachineExtension
 {
     [Header("Framing")]
-    [Tooltip("Camera distance from the pivot (0.7 framing: 4 m up, 8 m back = 8.94 m at 26.6°).")]
+    [Tooltip("Camera distance from the pivot (same 8.94 m as the 0.7 framing).")]
     [SerializeField] private float _distance = 8.944f;
-    [Tooltip("Default downward pitch in degrees.")]
-    [SerializeField] private float _defaultPitch = 26.57f;
-    [Tooltip("Pivot height above the truck origin.")]
-    [SerializeField] private float _pivotHeight = 0f;
+    [Tooltip("Default downward pitch in degrees. 12° (was 26.6°, Andy 2026-10-04: \"lower so it captures more of the " +
+             "sky, like Rocket League\"): the sky fills the top third so forming funnels, rain and the storm sky read.")]
+    [SerializeField] private float _defaultPitch = 12f;
+    [Tooltip("Pivot height above the truck origin: raised so the truck sits a little below centre.")]
+    [SerializeField] private float _pivotHeight = 1.2f;
     [SerializeField] private float _minPitch = 5f;
     [SerializeField] private float _maxPitch = 50f;
 

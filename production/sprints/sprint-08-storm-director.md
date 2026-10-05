@@ -71,6 +71,12 @@ results) are specified and complete.
 | X8-02 | Codex | Run-wide storm sky | Done (0.7.6) |
 | X8-03 | Codex | Rain: curtains under cells, near-camera streaks, lens drops | Queued |
 
+### Small tasks (pass the M1 freeze rule)
+| ID | Owner | Task | Status |
+|----|-------|------|--------|
+| S8-08 | Claude | Lower chase camera (S9-02b pulled forward, Andy 2026-10-04): default pitch 26.6° → 12°, pivot +1.2 m | Done (`s9-02b_camera_*.png`) |
+| S8-09 | Claude | Title music (Andy 2026-10-04, M1 if low lift): loop `title_loop.wav` (Suno) on the title through the MUSIC volume channel; fade out on run start, back in on the title | Blocked until Andy supplies the file (staged outside the repo; rights logged per track) |
+
 ### Not this sprint
 S8-C2 per-truck HP redesign → **deferred past M1** (Andy, 2026-10-04). Driving tuning pass → Sprint 9.
 Roads, scatter, Tier B fracture, Story/Career, new worlds → after M1.

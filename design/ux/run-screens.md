@@ -401,7 +401,8 @@ scores should be culture-invariant.
   blocks any phase gates.
 - Reduced motion: add a setting for the WRECKED slam, NEW pulse and slow-mo, or accept for M1?
 - Glyphs: verify ✓ ✕ ▪ ◂ ▸ in the HUD font on WebGL; fall back to text if missing.
-- Music volume: there is no music yet; the slider would cover the KTVR radio. Keep, or relabel "RADIO"?
+- ~~Music volume label~~ Resolved (Andy, 2026-10-04): keep **MUSIC**; title music is in M1 (Sprint 8 S8-09). A RADIO
+  label belongs to the post-M1 KTVR Storm Radio system (`production/backlog.md`).
 - Steam Deck: verify layout, text size and button prompts on the Deck (post-M1 target).
 - Mouse hit-target minimum size.
 - Culture-invariant score formatting (Localization).

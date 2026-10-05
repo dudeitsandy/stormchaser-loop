@@ -892,8 +892,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: StormChaser::ChaseCameraRig
   _distance: 8.944
-  _defaultPitch: 26.57
-  _pivotHeight: 0
+  _defaultPitch: 12
+  _pivotHeight: 1.2
   _minPitch: 5
   _maxPitch: 50
   _restMinSpeed: 3

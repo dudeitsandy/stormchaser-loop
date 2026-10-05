@@ -119,7 +119,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | S7-03 Vehicle core | Claude | done — feel accepted by Andy (polish later) |
 | S7-04 Verbs + input remap | Claude | done — jump, boost + refills, air control, E1–E3 gates, near-miss, RT/LT/A/B/X/RB map, title copy, HUD boost meter |
 | S7-05 Camera, Storm Cam, aim | Claude | done — `ChaseCameraRig` (orbit/recenter, Storm Cam F14), camera-forward framing-curve AimScore, HUD lock label |
-| S7-06 Wind force, toss, impacts, events | Claude | partial — F10 impacts raise `VehicleImpact` (HP cost off until S8-C2); G1 physics check waits on real debris (S7-08) |
+| S7-06 Wind force, toss, impacts, events | Claude | done — impacts raise VehicleImpact, HP cost on since S8-C1 (0.7.5); G1 physics condition PASS, max step 1.20 ms vs 4 ms (aba4810, production/qa/evidence/s7-06-physics.md) |
 | S7-07 Blender hero truck (G2) | Claude | built — headless Blender script `tools/blender/build_pickup.py` → `Art/Vehicles/Pickup`, `TruckVisualBlender` on the truck default truck since **G2 passed** 2026-10-03 (old cube truck via `?truck=cube`). CamcorderMount moved to the model's roof camcorder (0, 0.66, 0.41) |
 | X7-01 PiP follows camera | Codex | implemented — main camera pose synced before URP rendering; own FOV/lens retained; live orbit/Storm Cam acceptance pending |
 | X7-07 Knock-loose scenery | Codex | implemented — 32 requested / ≤40 new bodies, four prop types; native tests compiled; bale impact criterion resolved by Claude; live acceptance pending |
@@ -554,3 +554,14 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   near-camera rain reads **light** (about a dozen streaks on screen at the EF5 peak), so Andy's "not much rain" may
   still stand; please consider more visible streaks at high `s` (density, length, or opacity) within the 300 cap,
   pending Andy's look at 0.7.8. Also recorded Andy's live acceptance: sky, jog lean, sirens (final balance later).
+- **Claude → Codex (2026-10-04, next presentation batch, Andy-approved):**
+  0. **X8-03 rain: accepted as is.** Andy on 0.7.8: "looks and feels good". Drop my density follow-up above.
+  1. **X8-04 lower chase camera recheck.** Default chase pitch 26.6° → **12°**, pivot raised 1.2 m (Andy: better sky
+     perspective). Much more sky is now in frame: please check the overcast deck edges/feathering, rain curtains,
+     cloud bases and far-field cards at the new angle (main + Storm Cam), and the near-camera streaks across the truck.
+  2. **X8-05 KTVR livery material** (run-goals-v1 story 006 dependency): a KTVR News paint job for the Blender pickup
+     (station colours, a big "KTVR" on the doors/hood, roof light bar optional), swappable at runtime by unlock ID
+     `livery.ktvr` (stock otherwise). Expose a tiny API like `TruckLivery.Apply(string id)`; gameplay calls it.
+  3. **X8-06 UI sounds** (design/ux/run-screens.md): menu move tick, pick clunk, a goal-complete sting on
+     `GameEvents.GoalCompleted` (a bigger one when `FirstEver`), and a short miss sound on `GameEvents.BountyFailed`.
+     Pause uses `AudioListener.pause`, so menu sounds need `ignoreListenerPause = true`.
