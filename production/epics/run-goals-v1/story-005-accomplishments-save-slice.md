@@ -1,7 +1,7 @@
 # Story 005: Accomplishments record and the Save & Profile M1 stem
 
 > **Epic**: Run Goals v1
-> **Status**: Ready — the WebGL IndexedDB sync check (AC 1) gates the rest
+> **Status**: Done (2026-10-05) — WebGL check PASS (persistence needs the explicit IDBFS sync)
 > **Layer**: Feature
 > **Type**: Integration
 > **Estimate**: 4 h (M)
@@ -74,7 +74,7 @@ The first code that writes a save file, built as the **M1 stem**, not `save-prof
 **Story Type**: Integration
 **Required evidence**: `production/qa/evidence/rg-webgl-save-check.md` + integration test `unity/StormChaserLoop3D/Assets/Tests/Save/AccomplishmentsTests.cs` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] `production/qa/evidence/rg-webgl-save-check.md`; `Tests/Save/AccomplishmentsTests.cs` (8 cases) passing
 
 ---
 

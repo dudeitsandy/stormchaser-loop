@@ -42,7 +42,6 @@ public sealed class UiSounds : MonoBehaviour
     {
         _current = this; GameEvents.GoalCompleted += Completed; GameEvents.BountyFailed += Failed;
         GameEvents.MenuMoved += MenuMove; GameEvents.MenuPicked += MenuPick;
-        GameEvents.MenuMoved += MenuMove; GameEvents.MenuPicked += MenuPick; // wired by Claude 2026-10-04 (X8-06)
     }
     private void Completed(GoalCompletion goal) => _goals.PlayOneShot(goal.FirstEver ? _firstEver : _complete, _volume);
     private void Failed(string id) => _goals.PlayOneShot(_miss, _volume * 0.7f);
@@ -76,7 +75,6 @@ public sealed class UiSounds : MonoBehaviour
     private void OnDisable()
     {
         GameEvents.GoalCompleted -= Completed; GameEvents.BountyFailed -= Failed;
-        GameEvents.MenuMoved -= MenuMove; GameEvents.MenuPicked -= MenuPick;
         GameEvents.MenuMoved -= MenuMove; GameEvents.MenuPicked -= MenuPick;
         if (_current == this) _current = null;
         if (_menu != null) _menu.Stop(); if (_goals != null) _goals.Stop();

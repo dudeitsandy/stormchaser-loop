@@ -57,6 +57,7 @@ public class RunManager : MonoBehaviour
         _goals = GetComponent<GoalRunner>();
         if (_goals == null) _goals = gameObject.AddComponent<GoalRunner>();
         _goals.Bind(_score, _spawner, _vehicle);
+        _goals.HasCompletedBefore = id => ProfileStore.Shared.HasCompleted(id); // NEW tags come from the save stem
     }
 
     private void OnEnable()
@@ -75,6 +76,9 @@ public class RunManager : MonoBehaviour
 
     private void Start()
     {
+        if (DevFlag("savecheck") == "1")
+            Debug.Log($"[SaveCheck] launch {ProfileStore.Shared.CountSaveCheckLaunch()}, write ok {!ProfileStore.Shared.LastWriteFailed}, " +
+                      $"best {ProfileStore.Shared.Data.BestScore:0}, accomplishments {ProfileStore.Shared.Data.Accomplishments.Count}");
         string livery = LiveryPreview();
         if (livery != null) TruckLivery.Apply(livery);
         if (_skipTitleOnLoad)
@@ -100,7 +104,7 @@ public class RunManager : MonoBehaviour
         Current = State.Title;
         Time.timeScale = 1f;
         SetGameplayActive(false);
-        _screens.ShowTitle(BestScoreStore.Load());
+        _screens.ShowTitle(Mathf.Max(BestScoreStore.Load(), ProfileStore.Shared.Data.BestScore));
         WaitForAnyButton(0.25f, control =>
         {
             if (control != Keyboard.current?.escapeKey) StartRun();
@@ -320,9 +324,13 @@ public class RunManager : MonoBehaviour
 
         // Score tiers are judged on the final score, which already includes goal bonuses (they pay none themselves).
         RunGoalsInfo goals = _goals.EndRun(_score.TotalScore, endedOnTimer: !wrecked);
-        float previousBest = BestScoreStore.Load();
+        ProfileStore profile = ProfileStore.Shared;
+        float previousBest = Mathf.Max(BestScoreStore.Load(), profile.Data.BestScore);
         BestScoreStore.TrySave(_score.TotalScore);
         StormRunInfo storm = _spawner.Director != null ? _spawner.Director.RunInfo() : default;
+        // Run-complete checkpoint (save stem): one write of best score, accomplishments and unlocks. A forfeit never gets here.
+        profile.RecordRunComplete(goals.Completions, GoalCatalogue.Mode, storm.Valid ? storm.Seed : 0L, Application.version,
+                                  DateTime.UtcNow, _score.TotalScore);
         var summary = new RunSummary(_score.TotalScore, _score.PhotoCount, _score.BestShot, wrecked, previousBest, storm, goals);
         GameEvents.RaiseRunEnded(summary);
 
@@ -395,6 +403,17 @@ public class RunManager : MonoBehaviour
             _anyButton = null;
             onPress(control);
         });
+    }
+
+    /// <summary>A dev URL token (<c>?name=value</c>) or desktop arg (<c>-name=value</c>); null when absent.</summary>
+    private static string DevFlag(string name)
+    {
+        string v = null;
+        foreach (string arg in Environment.GetCommandLineArgs())
+            if (arg.StartsWith("-" + name + "=", StringComparison.Ordinal)) v = arg.Substring(name.Length + 2);
+        foreach (string token in Application.absoluteURL.Split('?', '&', '#'))
+            if (token.StartsWith(name + "=", StringComparison.Ordinal)) v = token.Substring(name.Length + 1);
+        return v;
     }
 
     /// <summary>Dev preview of a paint job (URL <c>?livery=ktvr</c>, desktop <c>-livery=ktvr</c>); null when absent.</summary>
