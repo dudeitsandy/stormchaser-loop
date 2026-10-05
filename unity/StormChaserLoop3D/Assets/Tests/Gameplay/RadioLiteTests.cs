@@ -75,4 +75,27 @@ public class RadioLiteTests
         Assert.IsTrue(d.IsDucked(7.9f));
         Assert.IsFalse(d.IsDucked(8.1f));
     }
+
+    [TestCase("radio_winding_chase", true, false)]
+    [TestCase("jingle_01", false, true)]
+    [TestCase("storm_radio_jingle", false, true)]
+    [TestCase("title_loop", false, false)]
+    public void Clips_AreSongsOrJingles_NeverBoth(string name, bool song, bool jingle)
+    {
+        Assert.AreEqual(song, RadioLite.IsSong(name));
+        Assert.AreEqual(jingle, RadioLite.IsJingle(name));
+    }
+
+    [Test]
+    public void JingleRotation_FiveJingles_NeverBackToBack()
+    {
+        var p = new RadioPlaylist(5, 42);
+        int last = -1;
+        for (int i = 0; i < 100; i++)
+        {
+            int j = p.Next();
+            Assert.AreNotEqual(last, j);
+            last = j;
+        }
+    }
 }

@@ -80,7 +80,7 @@ public sealed class MusicDuck
 
 /// <summary>
 /// Radio lite (Sprint 8 S8-09, Andy 2026-10-05): the title loop on the title; on run start a station jingle, then
-/// shuffled songs with the jingle between them; fades out at run end (Results stay quiet so goal stings read); ducks
+/// shuffled songs with a rotating jingle between them (drop a <c>jingle_*.ogg</c> or <c>radio_*.ogg</c> in Resources/Music); fades out at run end (Results stay quiet so goal stings read); ducks
 /// under warnings. Plays through the MUSIC volume (Settings); MASTER is the listener volume. Pauses with <see cref="AudioListener.pause"/>.
 /// Clips load from <c>Resources/Music</c>. <see cref="RunManager"/> drives title / run; storm events drive ducking.
 /// </summary>
@@ -88,6 +88,16 @@ public sealed class RadioLite : MonoBehaviour
 {
     /// <summary>Every clip in Resources/Music whose name starts with this is a radio song: add a song by dropping it in.</summary>
     public const string SongPrefix = "radio_";
+    /// <summary>Every clip whose name starts with this, plus the original <c>storm_radio_jingle</c>, is a station jingle.</summary>
+    public const string JinglePrefix = "jingle_";
+    public const string LegacyJingle = "storm_radio_jingle";
+
+    /// <summary>True for a radio song (never a jingle).</summary>
+    public static bool IsSong(string clipName) => clipName.StartsWith(SongPrefix, System.StringComparison.Ordinal);
+
+    /// <summary>True for a station jingle (never a song).</summary>
+    public static bool IsJingle(string clipName) =>
+        clipName.StartsWith(JinglePrefix, System.StringComparison.Ordinal) || clipName == LegacyJingle;
 
     [SerializeField] private float _fadeSeconds = 1.2f;
     [SerializeField] private float _duckRampSeconds = 0.5f;
@@ -95,9 +105,11 @@ public sealed class RadioLite : MonoBehaviour
     private enum Mode { Silent, Title, Radio }
 
     private AudioSource _source;
-    private AudioClip _title, _jingle;
+    private AudioClip _title;
     private readonly List<AudioClip> _songs = new List<AudioClip>();
+    private readonly List<AudioClip> _jingles = new List<AudioClip>();
     private RadioPlaylist _playlist;
+    private RadioPlaylist _jinglePlaylist;
     private readonly MusicDuck _duck = new MusicDuck();
     private Mode _mode;
     private bool _jingleNext;
@@ -112,11 +124,17 @@ public sealed class RadioLite : MonoBehaviour
         _source.playOnAwake = false;
         _source.spatialBlend = 0f;
         _title = Resources.Load<AudioClip>("Music/title_loop");
-        _jingle = Resources.Load<AudioClip>("Music/storm_radio_jingle");
         foreach (AudioClip clip in Resources.LoadAll<AudioClip>("Music"))
-            if (clip.name.StartsWith(SongPrefix, System.StringComparison.Ordinal)) _songs.Add(clip);
-        _songs.Sort((a, b) => string.CompareOrdinal(a.name, b.name)); // stable order before the shuffle
-        _playlist = new RadioPlaylist(_songs.Count, System.Environment.TickCount);
+        {
+            if (IsSong(clip.name)) _songs.Add(clip);
+            else if (IsJingle(clip.name)) _jingles.Add(clip);
+        }
+        // Stable order before the shuffles; jingles rotate with no immediate repeat, like songs.
+        _songs.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        _jingles.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        int seed = System.Environment.TickCount;
+        _playlist = new RadioPlaylist(_songs.Count, seed);
+        _jinglePlaylist = new RadioPlaylist(_jingles.Count, seed ^ 0x5f3759df);
     }
 
     private void OnEnable()
@@ -189,10 +207,10 @@ public sealed class RadioLite : MonoBehaviour
 
     private void NextTrack()
     {
-        if (_jingleNext && _jingle != null)
+        if (_jingleNext && _jingles.Count > 0)
         {
             _jingleNext = false;
-            Play(_jingle, loop: false);
+            Play(_jingles[_jinglePlaylist.Next()], loop: false);
             return;
         }
         int i = _playlist.Next();
