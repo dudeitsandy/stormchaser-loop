@@ -124,6 +124,9 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-05 — **0.8.6 pushed** (html5 + windows): Ghostweave Labs boot card between Unity's splash and the title
+  (skippable, once per session); slow-frame logger behind `?spikeLog=1` (dev only). No gameplay change. EditMode
+  409/409, PlayMode 74/74, WebGL 0 console errors.
 - 2026-10-05 — **0.8.5 pushed** (html5 + windows) before PT-1 testers got far: S9-02a pass 2 (feathering works:
   throttle 0.3/0.6/1.0 holds 16/22/33° of drift; counter-steer no longer locks out; smooth drift blend, 60 % rear
   drive), radio eases back after the siren tail (X9-04), jingle_07 + jingle_08. Unity Connect left off (an editor had
