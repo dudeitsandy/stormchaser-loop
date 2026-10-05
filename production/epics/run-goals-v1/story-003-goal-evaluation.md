@@ -1,7 +1,7 @@
 # Story 003: Goal evaluation, bonuses and goal events
 
 > **Epic**: Run Goals v1
-> **Status**: Ready
+> **Status**: Done (2026-10-04)
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 3 h (M)
@@ -68,7 +68,7 @@ The rules engine: given a run's inputs (photos, style moments, tosses, cell phas
 **Story Type**: Logic
 **Required evidence**: Unit test `unity/StormChaserLoop3D/Assets/Tests/Goals/GoalTrackerTests.cs` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] `Tests/Goals/GoalTrackerTests.cs` (22 cases) passing
 
 ---
 

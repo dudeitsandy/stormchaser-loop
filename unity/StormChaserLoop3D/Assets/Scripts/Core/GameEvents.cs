@@ -112,6 +112,25 @@ public readonly struct StormCellInfo
     }
 }
 
+/// <summary>A goal completed this run (event-system.md Run Goals Rule 7).</summary>
+public readonly struct GoalCompletion
+{
+    public readonly string Id;
+    public readonly GoalKind Kind;
+    /// <summary>Score bonus paid this run (0 for career Score goals).</summary>
+    public readonly int Bonus;
+    /// <summary>True when the accomplishments record had never seen this goal (NEW).</summary>
+    public readonly bool FirstEver;
+
+    public GoalCompletion(string id, GoalKind kind, int bonus, bool firstEver)
+    {
+        Id = id;
+        Kind = kind;
+        Bonus = bonus;
+        FirstEver = firstEver;
+    }
+}
+
 /// <summary>Why a run paused (run-screens.md Events Fired).</summary>
 public enum PauseReason { Manual, FocusLost, ControllerLost }
 
@@ -139,6 +158,10 @@ public static class GameEvents
     public static event Action<bool, PauseReason> PauseChanged;
     /// <summary>Fired when the player quits a run from the pause menu: no run end, nothing banked.</summary>
     public static event Action RunForfeited;
+    /// <summary>A career goal or bounty completed (once per goal per run).</summary>
+    public static event Action<GoalCompletion> GoalCompleted;
+    /// <summary>A drawn timed bounty's window closed unmet. Arg: bounty ID.</summary>
+    public static event Action<string> BountyFailed;
 
     // Vehicle events (ADR-0005; vehicle-feel.md Interactions). Presentation listens; only gameplay raises.
     /// <summary>Style moment: drift seconds, airtime seconds, or a near-miss (amount = 1).</summary>
@@ -159,6 +182,8 @@ public static class GameEvents
     public static void RaiseRunEnded(RunSummary summary) => RunEnded?.Invoke(summary);
     public static void RaisePauseChanged(bool paused, PauseReason reason) => PauseChanged?.Invoke(paused, reason);
     public static void RaiseRunForfeited() => RunForfeited?.Invoke();
+    public static void RaiseGoalCompleted(GoalCompletion completion) => GoalCompleted?.Invoke(completion);
+    public static void RaiseBountyFailed(string id) => BountyFailed?.Invoke(id);
     public static void RaiseStyleEvent(StyleKind kind, float amount) => StyleEvent?.Invoke(kind, amount);
     public static void RaiseLanded(float verticalSpeed) => Landed?.Invoke(verticalSpeed);
     public static void RaiseVehicleImpact(ImpactInfo impact) => VehicleImpact?.Invoke(impact);
@@ -194,6 +219,8 @@ public static class GameEvents
         RunEnded = null;
         PauseChanged = null;
         RunForfeited = null;
+        GoalCompleted = null;
+        BountyFailed = null;
         StyleEvent = null;
         Landed = null;
         VehicleImpact = null;

@@ -24,6 +24,13 @@ Only edit files in your lane. If you need something from the other lane, write i
 `Scripts/UI/HudController.cs`, `Scripts/Camera`, `Assets/Editor`, all `.unity` scenes, prefabs,
 `ProjectSettings/`, `Packages/`.
 
+## M1 design freeze (all agents, Andy 2026-10-04)
+
+Until Milestone 1 closes (`production/milestones/milestone-1-vertical-slice.md`), a new request goes
+straight in only if it is about 2 h or less, adds no new system, and touches no save or profile data.
+Anything else becomes one entry in `production/backlog.md` ("parked, not designed"), and you tell Andy it
+was parked. Andy can override a single item explicitly. If you're unsure, park it and ask.
+
 ## Never
 - Edit `.unity`, `.prefab`, `ProjectSettings/*`, or `Packages/*` from Codex. Scene YAML merges
   are destructive. Codex features install themselves at runtime (pattern below).
