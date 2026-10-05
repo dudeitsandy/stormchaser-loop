@@ -30,6 +30,7 @@ public class RunManager : MonoBehaviour
 
     private RunScreens _screens;
     private GoalRunner _goals;
+    private RadioLite _radio;
     private IDisposable _anyButton;
     private PauseMenu _pauseMenu;
     private float _stickY;
@@ -58,6 +59,8 @@ public class RunManager : MonoBehaviour
         if (_goals == null) _goals = gameObject.AddComponent<GoalRunner>();
         _goals.Bind(_score, _spawner, _vehicle);
         _goals.HasCompletedBefore = id => ProfileStore.Shared.HasCompleted(id); // NEW tags come from the save stem
+        _radio = GetComponent<RadioLite>();
+        if (_radio == null) _radio = gameObject.AddComponent<RadioLite>();
     }
 
     private void OnEnable()
@@ -104,6 +107,7 @@ public class RunManager : MonoBehaviour
         Current = State.Title;
         Time.timeScale = 1f;
         SetGameplayActive(false);
+        _radio.PlayTitle();
         _screens.ShowTitle(Mathf.Max(BestScoreStore.Load(), ProfileStore.Shared.Data.BestScore));
         WaitForAnyButton(0.25f, control =>
         {
@@ -307,6 +311,7 @@ public class RunManager : MonoBehaviour
         _timer.Begin();
         _spawner.Begin();
         _goals.BeginRun(); // after the director has its plan: bounties are drawn from it
+        _radio.StartRadio();
         GameEvents.RaiseRunStarted();
     }
 

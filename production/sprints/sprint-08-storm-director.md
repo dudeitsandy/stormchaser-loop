@@ -75,7 +75,7 @@ results) are specified and complete.
 | ID | Owner | Task | Status |
 |----|-------|------|--------|
 | S8-08 | Claude | Lower chase camera (S9-02b pulled forward, Andy 2026-10-04): default pitch 26.6° → 12°, pivot +1.2 m | Done (`s9-02b_camera_*.png`) |
-| S8-09 | Claude | Title music (Andy 2026-10-04, M1 if low lift): loop `title_loop.wav` (Suno) on the title through the MUSIC volume channel; fade out on run start, back in on the title | Blocked until Andy supplies the file (staged outside the repo; rights logged per track) |
+| S8-09 | Claude | **Radio lite** (Andy 2026-10-04/05): title loop on the title; on run start the station jingle, then shuffled `radio_*` songs (no immediate repeats) with the jingle between; fade out at run end; ducks −10 dB under warnings, held for an EF5 emergency; MUSIC × master volume | Done (2026-10-05): `Scripts/Audio/RadioLite.cs`, 6 tests; music in `Resources/Music` (compressed in memory, import rule `Editor/MusicImportSettings.cs`); WebGL 71 MB (was 55) |
 
 ### Not this sprint
 S8-C2 per-truck HP redesign → **deferred past M1** (Andy, 2026-10-04). Driving tuning pass → Sprint 9.

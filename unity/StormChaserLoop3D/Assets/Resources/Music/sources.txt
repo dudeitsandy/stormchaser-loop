@@ -7,3 +7,4 @@ radio_lasagna_on_my_mind.ogg, "Lasagna on My Mind", Suno, paid plan (Andy confir
 radio_let_the_soft_error_through.ogg, "Let the Soft Error Through", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG, renamed
 radio_raw_garage_drive.ogg, "Raw Garage Drive", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG, renamed
 radio_winding_chase.ogg, "Winding Chase", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG, renamed
+radio_cheeky_suburbia.ogg, "Cheeky Suburbia", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, renamed
