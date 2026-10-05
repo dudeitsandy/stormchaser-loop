@@ -78,6 +78,9 @@ public class RunScreens : MonoBehaviour
             _overlay.Add(MakeLabel($"BEST  {bestScore:N0}", 22, Amber, letterSpacing: 4));
         }
         _overlay.Add(Spacer(28));
+        _overlay.Add(MakeLabel(Application.platform == RuntimePlatform.WebGLPlayer
+            ? "O / SELECT  SETTINGS" : "O / SELECT  SETTINGS      ESC  QUIT", 16, Dim, letterSpacing: 3));
+        _overlay.Add(Spacer(8));
         AddPrompt("PRESS ANYTHING. GO GO GO.");
         _overlay.style.display = DisplayStyle.Flex;
     }
@@ -202,6 +205,46 @@ public class RunScreens : MonoBehaviour
         }
         _overlay.Add(Spacer(28));
         _overlay.Add(MakeLabel("W S / D-PAD  MOVE      ENTER / A  PICK      ESC / B  BACK", 16, Dim, letterSpacing: 2));
+        _overlay.style.display = DisplayStyle.Flex;
+    }
+
+    /// <summary>
+    /// Settings panel (design/ux/run-screens.md): label column left, value column right, focused row marked; values
+    /// change with ◂ ▸ (shown as "&lt; &gt;", the font has no arrow-glyph guarantee). Callbacks get the row index.
+    /// </summary>
+    public void ShowSettings(SettingsMenu menu, System.Action<int> onHover, System.Action<int> onClick)
+    {
+        ClearOverlay();
+        _overlay.Add(MakeLabel("SETTINGS", 60, Amber, bold: true, letterSpacing: 12));
+        _overlay.Add(Spacer(20));
+        for (int i = 0; i < menu.Rows.Count; i++)
+        {
+            SettingRow row = menu.Rows[i];
+            bool focused = i == menu.Focus;
+            var line = new VisualElement { pickingMode = PickingMode.Position };
+            line.style.flexDirection = FlexDirection.Row;
+            line.style.justifyContent = Justify.SpaceBetween;
+            line.style.width = 560;
+            line.style.paddingTop = 3;
+            line.style.paddingBottom = 3;
+            Color c = focused ? Amber : Bone;
+            Label name = MakeLabel((focused ? ">  " : "   ") + SettingsMenu.Label(row), 24, c, bold: focused, letterSpacing: 4);
+            name.style.unityTextAlign = TextAnchor.MiddleLeft;
+            line.Add(name);
+            string value = menu.Value(row);
+            if (value.Length > 0)
+            {
+                Label v = MakeLabel(focused ? $"<  {value}  >" : value, 24, c, bold: focused, letterSpacing: 2);
+                v.style.unityTextAlign = TextAnchor.MiddleRight;
+                line.Add(v);
+            }
+            int index = i;
+            if (onHover != null) line.RegisterCallback<PointerEnterEvent>(_ => onHover(index));
+            if (onClick != null) line.RegisterCallback<ClickEvent>(_ => onClick(index));
+            _overlay.Add(line);
+        }
+        _overlay.Add(Spacer(20));
+        _overlay.Add(MakeLabel("W S  MOVE     A D / < >  CHANGE     ESC / B  BACK  (SAVED ON CLOSE)", 16, Dim, letterSpacing: 2));
         _overlay.style.display = DisplayStyle.Flex;
     }
 

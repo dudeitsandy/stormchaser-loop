@@ -209,13 +209,36 @@ public class ChaseCameraRig : CinemachineExtension
         AimYaw = orientation.eulerAngles.y;
     }
 
+    /// <summary>Settings: look sensitivity multiplier (mouse and stick), 1 = default.</summary>
+    public float SensitivityScale { get; set; } = 1f;
+    /// <summary>Settings: invert the vertical look axis.</summary>
+    public bool InvertY { get; set; }
+
+    /// <summary>
+    /// Settings camera preset (design/ux/run-screens.md): SKY = the 12° default (Andy 2026-10-04: more sky), CLASSIC =
+    /// the 0.7 framing (26.6°), HIGH = overhead (40°). Distance is unchanged, so the truck keeps its size.
+    /// </summary>
+    public void ApplyPreset(string preset)
+    {
+        switch (preset)
+        {
+            case "CLASSIC": _defaultPitch = 26.57f; _pivotHeight = 0f; break;
+            case "HIGH": _defaultPitch = 40f; _pivotHeight = 0f; break;
+            default: _defaultPitch = 12f; _pivotHeight = 1.2f; break;
+        }
+    }
+
+    /// <summary>Current default pitch (tests and HUD).</summary>
+    public float DefaultPitch => _defaultPitch;
+
     private void Chase(Vector3 pivot, Vector2 stick, Vector2 mouse, bool orbiting, bool snap, float dt,
         out Vector3 position, out Quaternion orientation)
     {
         _baseYaw = snap ? _restYaw : ChaseCameraMath.DampAngle(_baseYaw, _restYaw, _yawDamping, dt);
 
-        _orbitYaw += stick.x * _stickYawSpeed * dt + mouse.x * _mouseSensitivity;
-        _orbitPitch -= stick.y * _stickPitchSpeed * dt + mouse.y * _mouseSensitivity;
+        float look = SensitivityScale, pitchSign = InvertY ? -1f : 1f;
+        _orbitYaw += (stick.x * _stickYawSpeed * dt + mouse.x * _mouseSensitivity) * look;
+        _orbitPitch -= (stick.y * _stickPitchSpeed * dt + mouse.y * _mouseSensitivity) * look * pitchSign;
         _orbitYaw = Mathf.DeltaAngle(0f, _orbitYaw);
         _orbitPitch = Mathf.Clamp(_orbitPitch, _minPitch - _defaultPitch, _maxPitch - _defaultPitch);
         if (!orbiting)
@@ -248,7 +271,7 @@ public class ChaseCameraRig : CinemachineExtension
         _stormPosYaw = snap ? lineYaw : ChaseCameraMath.DampAngle(_stormPosYaw, lineYaw, _stormCamDamping, dt);
         position = pivot - Quaternion.Euler(_defaultPitch, _stormPosYaw, 0f) * Vector3.forward * _distance;
 
-        _nudge += stick.x * _stickYawSpeed * dt + mouse.x * _mouseSensitivity;
+        _nudge += (stick.x * _stickYawSpeed * dt + mouse.x * _mouseSensitivity) * SensitivityScale;
         _nudge = Mathf.Clamp(_nudge, -_nudgeMax, _nudgeMax);
         if (!orbiting) _nudge = ChaseCameraMath.Damp(_nudge, 0f, _recenterTime, dt);
 

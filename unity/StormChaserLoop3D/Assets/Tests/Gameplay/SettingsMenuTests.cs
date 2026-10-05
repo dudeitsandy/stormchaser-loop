@@ -1,0 +1,81 @@
+using System.Collections.Generic;
+using NUnit.Framework;
+using UnityEngine;
+
+/// <summary>Settings panel model (run-screens story 002; design/ux/run-screens.md Layout: Settings).</summary>
+public class SettingsMenuTests
+{
+    private static readonly List<Vector2Int> Res = new List<Vector2Int> { new Vector2Int(1280, 720), new Vector2Int(1920, 1080) };
+
+    private static SettingsMenu Menu(bool desktop = true) => new SettingsMenu(new DeviceSettings(), desktop, Res);
+
+    private static void FocusRow(SettingsMenu m, SettingRow row)
+    {
+        for (int i = 0; i < m.Rows.Count; i++) if (m.Rows[i] == row) { m.FocusOn(i); return; }
+        Assert.Fail($"no {row} row");
+    }
+
+    [Test]
+    public void Desktop_HasResolution_WebGL_DoesNot_BothEndWithBack()
+    {
+        CollectionAssert.Contains(Menu(true).Rows, SettingRow.Resolution);
+        CollectionAssert.DoesNotContain(Menu(false).Rows, SettingRow.Resolution);
+        Assert.AreEqual(SettingRow.Back, Menu(true).Rows[Menu(true).Rows.Count - 1]);
+        CollectionAssert.Contains(Menu(false).Rows, SettingRow.Brightness);
+    }
+
+    [Test]
+    public void Brightness_StepsInTens_ClampsAtPlusMinusFifty_WithoutFloatDrift()
+    {
+        SettingsMenu m = Menu();
+        FocusRow(m, SettingRow.Brightness);
+        for (int i = 0; i < 5; i++) m.Change(1);
+        Assert.AreEqual(0.5f, m.Settings.Brightness);
+        Assert.AreEqual("+50%", m.Value(SettingRow.Brightness));
+        m.Change(1);
+        Assert.AreEqual(0.5f, m.Settings.Brightness, "clamped");
+        for (int i = 0; i < 12; i++) m.Change(-1);
+        Assert.AreEqual(-0.5f, m.Settings.Brightness);
+        Assert.AreEqual("-50%", m.Value(SettingRow.Brightness));
+    }
+
+    [Test]
+    public void BrightnessEv_HalvesAtMinus50_ZeroAtDefault()
+    {
+        Assert.AreEqual(-1f, SettingsApplier.BrightnessEv(-0.5f), 1e-5f);
+        Assert.AreEqual(0f, SettingsApplier.BrightnessEv(0f), 1e-6f);
+        Assert.AreEqual(Mathf.Log(1.5f, 2f), SettingsApplier.BrightnessEv(0.5f), 1e-5f);
+    }
+
+    [Test]
+    public void Camera_CyclesSkyClassicHigh_Volumes_ClampZeroToHundred()
+    {
+        SettingsMenu m = Menu();
+        Assert.AreEqual("SKY", m.Value(SettingRow.Camera), "default is the new low camera");
+        FocusRow(m, SettingRow.Camera);
+        m.Change(1);
+        Assert.AreEqual("CLASSIC", m.Settings.CameraPreset);
+        m.Change(1);
+        m.Change(1);
+        Assert.AreEqual("SKY", m.Settings.CameraPreset, "wraps");
+
+        FocusRow(m, SettingRow.Master);
+        for (int i = 0; i < 15; i++) m.Change(-1);
+        Assert.AreEqual(0f, m.Settings.MasterVolume);
+        Assert.AreEqual("0%", m.Value(SettingRow.Master));
+    }
+
+    [Test]
+    public void Toggles_AndResolution_Change_BackChangesNothing()
+    {
+        SettingsMenu m = Menu();
+        FocusRow(m, SettingRow.InvertY);
+        m.Change(1);
+        Assert.IsTrue(m.Settings.InvertY);
+        FocusRow(m, SettingRow.Resolution);
+        m.Change(1);
+        Assert.AreEqual("1280x720", m.Value(SettingRow.Resolution), "wraps from AUTO (treated as the largest) to the first");
+        FocusRow(m, SettingRow.Back);
+        Assert.IsNull(m.Change(1));
+    }
+}

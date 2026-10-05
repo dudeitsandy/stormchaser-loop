@@ -600,3 +600,9 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   centre aim mark stay visible over a dark EF5 sky; at +50 % nothing clips to white and lens drops still read. If the lens
   needs compensation, keep it inside the lens; don't counter-adjust the global Volume. Capture seed 554 at −50 / 0 / +50,
   main + PiP. Blocked until the slider lands (RS-2); to start early, set the Volume's post-exposure to ±0.5 EV by hand.
+- **Claude → Codex (2026-10-05, X8-08 EFFECTS volume hook, Andy-approved Settings):** the Settings panel is in
+  (run-screens story 002). MASTER is `AudioListener.volume` (nothing to do). MUSIC is RadioLite's (mine). **EFFECTS needs
+  your audio:** please multiply every presentation AudioSource volume (ProceduralAudio, OutdoorWarningSirens, UiSounds,
+  storm wind and so on) by `GameAudio.EffectsVolume` (0..1, `Scripts/Audio/GameAudio.cs`), and subscribe to
+  `GameAudio.EffectsVolumeChanged` where you cache volumes. At 0 % the game is silent except the radio; at 100 % it
+  sounds as it does today. Also X8-07 (brightness lens check) is now testable: Settings → BRIGHTNESS ±50 %.

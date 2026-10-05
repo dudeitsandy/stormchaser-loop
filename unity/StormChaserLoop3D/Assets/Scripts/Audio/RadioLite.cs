@@ -81,7 +81,7 @@ public sealed class MusicDuck
 /// <summary>
 /// Radio lite (Sprint 8 S8-09, Andy 2026-10-05): the title loop on the title; on run start a station jingle, then
 /// shuffled songs with the jingle between them; fades out at run end (Results stay quiet so goal stings read); ducks
-/// under warnings. Plays through the MUSIC volume (Settings) × master. Pauses with <see cref="AudioListener.pause"/>.
+/// under warnings. Plays through the MUSIC volume (Settings); MASTER is the listener volume. Pauses with <see cref="AudioListener.pause"/>.
 /// Clips load from <c>Resources/Music</c>. <see cref="RunManager"/> drives title / run; storm events drive ducking.
 /// </summary>
 public sealed class RadioLite : MonoBehaviour
@@ -182,7 +182,7 @@ public sealed class RadioLite : MonoBehaviour
         _fade = Mathf.MoveTowards(_fade, _fadeTarget, dt / Mathf.Max(0.01f, _fadeSeconds));
         _duckGain = Mathf.MoveTowards(_duckGain, _duck.TargetGain(_clock), dt / Mathf.Max(0.01f, _duckRampSeconds));
         DeviceSettings s = ProfileStore.Shared.Settings;
-        _source.volume = _fade * _duckGain * s.MusicVolume * s.MasterVolume;
+        _source.volume = _fade * _duckGain * s.MusicVolume; // MASTER is AudioListener.volume (Settings)
         if (_mode == Mode.Silent && _fade <= 0f && _source.isPlaying) _source.Stop();
         if (_mode == Mode.Radio && !_source.isPlaying) NextTrack();
     }

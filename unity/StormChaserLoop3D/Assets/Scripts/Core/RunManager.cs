@@ -34,6 +34,10 @@ public class RunManager : MonoBehaviour
     private RadioLite _radio;
     private IDisposable _anyButton;
     private PauseMenu _pauseMenu;
+    private SettingsMenu _settingsMenu;
+    private bool _settingsFromTitle;
+    private float _stickX;
+    private static bool _displayApplied; // fullscreen / resolution once per launch, not on every scene reload
     private float _stickY;
     private const float StickThreshold = 0.5f;
 
@@ -41,7 +45,11 @@ public class RunManager : MonoBehaviour
     private static bool _skipTitleOnLoad;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics() => _skipTitleOnLoad = false;
+    private static void ResetStatics()
+    {
+        _skipTitleOnLoad = false;
+        _displayApplied = false;
+    }
 
     public State Current { get; private set; }
 
@@ -80,6 +88,14 @@ public class RunManager : MonoBehaviour
 
     private void Start()
     {
+        // Settings from the save stem's device file, applied live (run-screens story 002).
+        SettingsApplier.ResetSceneCache();
+        SettingsApplier.ApplyLive(ProfileStore.Shared.Settings);
+        if (!_displayApplied)
+        {
+            _displayApplied = true;
+            SettingsApplier.ApplyDisplay(ProfileStore.Shared.Settings, fromUserInput: false);
+        }
         if (DevFlag("savecheck") == "1")
             Debug.Log($"[SaveCheck] launch {ProfileStore.Shared.CountSaveCheckLaunch()}, write ok {!ProfileStore.Shared.LastWriteFailed}, " +
                       $"best {ProfileStore.Shared.Data.BestScore:0}, accomplishments {ProfileStore.Shared.Data.Accomplishments.Count}");
@@ -115,7 +131,8 @@ public class RunManager : MonoBehaviour
         _screens.ShowTitle(Mathf.Max(BestScoreStore.Load(), ProfileStore.Shared.Data.BestScore));
         WaitForAnyButton(0.25f, control =>
         {
-            if (control != Keyboard.current?.escapeKey) StartRun();
+            if (IsSettingsKey(control)) OpenSettings(fromTitle: true);
+            else if (control != Keyboard.current?.escapeKey) StartRun();
             else if (CanQuit) ConfirmQuitGame();
             else EnterTitle(); // WebGL: Application.Quit halts the player and freezes the canvas
         });
@@ -134,6 +151,7 @@ public class RunManager : MonoBehaviour
 
     private void Update()
     {
+        if (_settingsMenu != null) { HandleSettingsInput(); return; }
         if (Current == State.Running && PausePressed()) Pause(PauseReason.Manual);
         else if (Current == State.Paused) HandlePauseInput();
     }
@@ -291,7 +309,7 @@ public class RunManager : MonoBehaviour
             case PauseAction.ForfeitToTitle: ForfeitRun(); break;
             case PauseAction.QuitToDesktop: ForfeitRun(quitToDesktop: true); break;
             case PauseAction.ShowSettings:
-                _screens.ShowPause(_pauseMenu, "SETTINGS  ·  COMING SOON", OnPauseHover, OnPauseClick); // story 002
+                OpenSettings(fromTitle: false);
                 break;
             default:
                 _screens.ShowPause(_pauseMenu, null, OnPauseHover, OnPauseClick);
@@ -419,6 +437,121 @@ public class RunManager : MonoBehaviour
             _anyButton = null;
             onPress(control);
         });
+    }
+
+    // ---------- Settings (run-screens story 002) ----------
+
+    private static bool IsSettingsKey(InputControl control) =>
+        control == Keyboard.current?.oKey || (control.device is Gamepad pad && control == pad.selectButton);
+
+    /// <summary>Opens the Settings panel from the title or the pause menu. Public for PlayMode tests.</summary>
+    public void OpenSettings(bool fromTitle)
+    {
+        _anyButton?.Dispose();
+        _anyButton = null;
+        _settingsFromTitle = fromTitle;
+        _settingsMenu = new SettingsMenu(ProfileStore.Shared.Settings, CanQuit, DesktopResolutions());
+        RefreshSettings();
+    }
+
+    /// <summary>Closes Settings: saves the device file once, then returns to the title or the pause menu.</summary>
+    public void CloseSettings()
+    {
+        if (_settingsMenu == null) return;
+        _settingsMenu = null;
+        ProfileStore.Shared.SaveSettings();
+        if (_settingsFromTitle) EnterTitle();
+        else if (_pauseMenu != null) _screens.ShowPause(_pauseMenu, null, OnPauseHover, OnPauseClick);
+    }
+
+    /// <summary>Steps the focused setting and applies it live. Public for PlayMode tests.</summary>
+    public void ChangeSetting(int dir)
+    {
+        SettingRow? changed = _settingsMenu?.Change(dir);
+        if (changed == null) return;
+        SettingsApplier.ApplyLive(_settingsMenu.Settings);
+        if (changed == SettingRow.Fullscreen || changed == SettingRow.Resolution)
+            SettingsApplier.ApplyDisplay(_settingsMenu.Settings, fromUserInput: true);
+        GameEvents.RaiseMenuMoved();
+        RefreshSettings();
+    }
+
+    private void RefreshSettings() => _screens.ShowSettings(_settingsMenu, OnSettingsHover, OnSettingsClick);
+
+    private void HandleSettingsInput()
+    {
+        Keyboard kb = Keyboard.current;
+        int move = 0, change = 0;
+        bool select = false, back = false;
+        if (kb != null)
+        {
+            if (kb.wKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame) move = -1;
+            if (kb.sKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame) move = 1;
+            if (kb.aKey.wasPressedThisFrame || kb.leftArrowKey.wasPressedThisFrame) change = -1;
+            if (kb.dKey.wasPressedThisFrame || kb.rightArrowKey.wasPressedThisFrame) change = 1;
+            select |= kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame;
+            back |= kb.escapeKey.wasPressedThisFrame;
+        }
+        float sx = 0f, sy = 0f;
+        foreach (Gamepad pad in Gamepad.all)
+        {
+            if (pad.dpad.up.wasPressedThisFrame) move = -1;
+            if (pad.dpad.down.wasPressedThisFrame) move = 1;
+            if (pad.dpad.left.wasPressedThisFrame) change = -1;
+            if (pad.dpad.right.wasPressedThisFrame) change = 1;
+            select |= pad.buttonSouth.wasPressedThisFrame;
+            back |= pad.buttonEast.wasPressedThisFrame || pad.selectButton.wasPressedThisFrame;
+            Vector2 st = pad.leftStick.ReadValue();
+            if (Mathf.Abs(st.x) > Mathf.Abs(sx)) sx = st.x;
+            if (Mathf.Abs(st.y) > Mathf.Abs(sy)) sy = st.y;
+        }
+        if (move == 0 && sy > StickThreshold && _stickY <= StickThreshold) move = -1;
+        else if (move == 0 && sy < -StickThreshold && _stickY >= -StickThreshold) move = 1;
+        if (change == 0 && sx > StickThreshold && _stickX <= StickThreshold) change = 1;
+        else if (change == 0 && sx < -StickThreshold && _stickX >= -StickThreshold) change = -1;
+        _stickY = sy;
+        _stickX = sx;
+
+        if (back) { GameEvents.RaiseMenuPicked(); CloseSettings(); }
+        else if (select) OnSettingsClick(_settingsMenu.Focus);
+        else if (change != 0) ChangeSetting(change);
+        else if (move != 0)
+        {
+            _settingsMenu.Move(move);
+            GameEvents.RaiseMenuMoved();
+            RefreshSettings();
+        }
+    }
+
+    private void OnSettingsHover(int index)
+    {
+        if (_settingsMenu == null || index == _settingsMenu.Focus) return;
+        _settingsMenu.FocusOn(index);
+        GameEvents.RaiseMenuMoved();
+        RefreshSettings();
+    }
+
+    // Enter / A / click: BACK closes; any other row steps its value forward.
+    private void OnSettingsClick(int index)
+    {
+        if (_settingsMenu == null) return;
+        _settingsMenu.FocusOn(index);
+        GameEvents.RaiseMenuPicked();
+        if (_settingsMenu.Focused == SettingRow.Back) CloseSettings();
+        else ChangeSetting(1);
+    }
+
+    private static System.Collections.Generic.List<Vector2Int> DesktopResolutions()
+    {
+        var list = new System.Collections.Generic.List<Vector2Int>();
+        if (!CanQuit) return list; // WebGL: the browser owns the canvas size
+        foreach (Resolution r in Screen.resolutions)
+        {
+            var v = new Vector2Int(r.width, r.height);
+            if (!list.Contains(v)) list.Add(v);
+        }
+        list.Sort((a, b) => a.x != b.x ? a.x.CompareTo(b.x) : a.y.CompareTo(b.y));
+        return list;
     }
 
     /// <summary>A dev URL token (<c>?name=value</c>) or desktop arg (<c>-name=value</c>); null when absent.</summary>

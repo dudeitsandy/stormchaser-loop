@@ -1,7 +1,7 @@
 # Story 002: Settings panel v1
 
 > **Epic**: Run Screens
-> **Status**: Ready
+> **Status**: In Review (2026-10-05) — code + tests done; screenshots with the 0.8.0 build; EFFECTS waits on Codex X8-08
 > **Layer**: Presentation
 > **Type**: UI
 > **Estimate**: 4 h (M)
