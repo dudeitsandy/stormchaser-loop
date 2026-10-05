@@ -14,7 +14,7 @@ public class RunScreens : MonoBehaviour
     [Tooltip("Title key art (Resources path). Falls back to the text title when missing.")]
     [SerializeField] private string _bannerResource = "UI/TitleBanner";
     [Tooltip("Banner width in panel units (reference 1200 wide); height follows the image's aspect.")]
-    [SerializeField] private float _bannerWidth = 640f;
+    [SerializeField] private float _bannerWidth = 520f; // 640 → 520 (run-screens 006): the title must fit 1080p's ≈ 675-unit height
     [Tooltip("Shown before the build version, e.g. STORM SEASON · PROTOTYPE 0.5.0.")]
     [SerializeField] private string _seasonName = "STORM SEASON";
     [Tooltip("Title attract-mode DJ (Andy 2026-10-03: Crazy Taxi energy). Rotates one line at a time.")]
@@ -64,21 +64,20 @@ public class RunScreens : MonoBehaviour
         ClearOverlay();
         AddTitleArt();
         // Version comes from PlayerSettings.bundleVersion (set by BuildScript), never a scene-saved string.
-        _overlay.Add(MakeLabel($"{_seasonName}  ·  PROTOTYPE {Application.version}", 22, Bone, letterSpacing: 6));
-        _overlay.Add(Spacer(16));
+        _overlay.Add(MakeLabel($"{_seasonName}  ·  PROTOTYPE {Application.version}", 20, Bone, letterSpacing: 6));
+        _overlay.Add(Spacer(8));
         AddRadio();
-        _overlay.Add(Spacer(20));
+        _overlay.Add(Spacer(8));
         // vehicle-feel.md Core Rule 10 bindings (keyboard / gamepad).
-        _overlay.Add(MakeLabel("DRIVE  WASD  /  RT LT + LEFT STICK", 18, Bone, letterSpacing: 2));
-        _overlay.Add(MakeLabel("SHOOT  LEFT MOUSE  /  RB", 18, Bone, letterSpacing: 2));
-        _overlay.Add(MakeLabel("SLIDE  CTRL / X   |   JUMP  SPACE / A   |   BOOST  SHIFT / B", 18, Bone, letterSpacing: 2));
-        _overlay.Add(MakeLabel("CAMERA  MOUSE / RIGHT STICK   |   STORM CAM  TAB / Y", 18, Bone, letterSpacing: 2));
+        _overlay.Add(MakeLabel("DRIVE  WASD  /  RT LT + LEFT STICK   |   SHOOT  LEFT MOUSE  /  RB", 16, Bone, letterSpacing: 2));
+        _overlay.Add(MakeLabel("SLIDE  CTRL / X   |   JUMP  SPACE / A   |   BOOST  SHIFT / B", 16, Bone, letterSpacing: 2));
+        _overlay.Add(MakeLabel("CAMERA  MOUSE / RIGHT STICK   |   STORM CAM  TAB / Y", 16, Bone, letterSpacing: 2));
         if (bestScore > 0f)
         {
-            _overlay.Add(Spacer(24));
-            _overlay.Add(MakeLabel($"BEST  {bestScore:N0}", 22, Amber, letterSpacing: 4));
+            _overlay.Add(Spacer(10));
+            _overlay.Add(MakeLabel($"BEST  {bestScore:N0}", 20, Amber, letterSpacing: 4));
         }
-        _overlay.Add(Spacer(28));
+        _overlay.Add(Spacer(6));
         AddCareerStrip();
         _overlay.Add(MakeLabel(Application.platform == RuntimePlatform.WebGLPlayer
             ? "C / Y  CAREER      O / SELECT  SETTINGS" : "C / Y  CAREER      O / SELECT  SETTINGS      ESC  QUIT",
@@ -118,18 +117,21 @@ public class RunScreens : MonoBehaviour
         int total = GoalCatalogue.Career.Count;
         _overlay.Add(MakeLabel(done == total ? "CAREER COMPLETE" : $"HEARTLAND CAREER   {done} / {total}", 44, Amber, bold: true, letterSpacing: 8));
         _overlay.Add(Spacer(16));
+        // Two explicit columns of five (run-screens 006: wrapping collapsed to one column).
         var grid = new VisualElement { pickingMode = PickingMode.Ignore };
         grid.style.flexDirection = FlexDirection.Row;
-        grid.style.flexWrap = Wrap.Wrap;
-        grid.style.width = 1000;
-        foreach (GoalDef g in GoalCatalogue.Career)
+        grid.style.justifyContent = Justify.Center;
+        VisualElement colA = Column(480), colB = Column(480);
+        grid.Add(colA);
+        grid.Add(colB);
+        for (int i = 0; i < GoalCatalogue.Career.Count; i++)
         {
+            GoalDef g = GoalCatalogue.Career[i];
             bool has = p.HasCompleted(g.Id);
             Label line = LeftLabel($"{(has ? "DONE" : "  -  ")}   {CareerGoalText(g)}", 20, has ? Amber : Bone, bold: has, letterSpacing: 2);
-            line.style.width = 500;
             line.style.paddingTop = 4;
             line.style.paddingBottom = 4;
-            grid.Add(line);
+            (i < (GoalCatalogue.Career.Count + 1) / 2 ? colA : colB).Add(line);
         }
         _overlay.Add(grid);
         _overlay.Add(Spacer(16));

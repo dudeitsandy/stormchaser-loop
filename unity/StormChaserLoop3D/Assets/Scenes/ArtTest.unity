@@ -1893,7 +1893,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: StormChaser::RunScreens
   _title: DOOMSDAY
   _bannerResource: UI/TitleBanner
-  _bannerWidth: 640
+  _bannerWidth: 520
   _seasonName: STORM SEASON
   _radioLines:
   - IT'S A BIG ONE, PEOPLE!

@@ -26,6 +26,20 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
   from a jump on the compact map, only from tosses (`production/qa/evidence/rg-airtime-evidence.md`). Consider in
   S9-02 alongside the "floaty jump" note.
 
+## Carried over from Sprint 8 (closed 2026-10-05)
+| ID | Owner | Task | Est. |
+|----|-------|------|------|
+| RG-008 | Andy | run-goals-v1 story 008: complete every career goal once in a real compact run, seeds in `production/qa/smoke-run-goals.md` (before goals go to outside players). Tip: seed 554 has an EF5 at ≈ 80 s (EF4-at-peak photo, a toss for BIG AIR / TOSS SURVIVOR); C on the title shows what's left | 30 min |
+| RS-001 | Andy | run-screens story 001: on Windows, Quit to Desktop, Esc-Esc on the title, Alt-tab auto-pause | 5 min |
+| CA-1 | Andy | Remaining Codex live checks: X7-02 vehicle VFX, X7-03 vehicle audio, X7-07 knock-loose props (`production/qa/g3-playtest-session.md` Part B) | 15 min |
+| CA-2 | Andy | Accept the S7-06 physics caveat, or one `?physProbe=1` prop-cluster smash | 5 min |
+| PT-1 | Andy | Outside playtest round 1 findings into `production/qa/playtest-round-1.md` (due 2026-10-11); unblocks S9-01 | — |
+
+## New requests waiting for a decision
+- **Title attract mode** (Andy via stormchaser-38, 2026-10-05; ~2–3 h, passes the freeze rule): step 1 flyover camera on
+  the title, step 2 a demo storm on a showcase seed, all game audio muted except the title music, run start unchanged.
+  Not started; schedule here or after S9-02.
+
 ## Gates (Andy)
 | Gate | When | Pass = | Result |
 |------|------|--------|--------|

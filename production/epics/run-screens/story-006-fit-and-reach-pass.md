@@ -1,7 +1,7 @@
 # Story 006: Screen-size and input reachability pass
 
 > **Epic**: Run Screens
-> **Status**: Ready
+> **Status**: Done (2026-10-05, 0.8.1) — title, career, Settings, HUD, pause and results captured at 960×600, 1280×800 and 1920×1080 (`production/qa/evidence/rs006-*.png`), 0 console errors. Fixes: title tightened (banner 640→520, spacing), career page two explicit columns, HUD hidden off-run. Gamepad-only reach not exercised headless (keyboard paths were)
 > **Layer**: Presentation
 > **Type**: UI
 > **Estimate**: 2 h (S)
@@ -64,7 +64,7 @@ Final pass across every run screen at the real target sizes and inputs.
 **Story Type**: UI
 **Required evidence**: Retained screenshots in `production/qa/evidence/run-screens-*.png`
 
-**Status**: [ ] Not yet created
+**Status**: [x] `production/qa/evidence/rs006-{960x600,1280x800,1920x1080}-*.png`
 
 ---
 

@@ -53,7 +53,7 @@ Requirement IDs are local to this epic and cite the UX spec section.
 | 003 | [Wrecked slow-mo beat](story-003-wrecked-beat.md) | Visual/Feel | Done (0.8.0) | N/A |
 | 004 | [Results: two columns, goals and save messages](story-004-results-goals.md) | UI | Done (0.8.0) | N/A |
 | 005 | [Title: career strip, career page and paint toggle](story-005-title-career.md) | UI | Done (0.8.0) | N/A |
-| 006 | [Screen-size and input reachability pass](story-006-fit-and-reach-pass.md) | UI | Ready (last) | N/A |
+| 006 | [Screen-size and input reachability pass](story-006-fit-and-reach-pass.md) | UI | Done (0.8.1) | N/A |
 
 Order: 001 → 003 now (no goal dependencies); 002, 004, 005 as run-goals-v1 lands; 006 last.
 

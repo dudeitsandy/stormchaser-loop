@@ -94,6 +94,7 @@ public class HudController : MonoBehaviour
         GameEvents.StormCellForming += OnStormCellForming;
         GameEvents.StormCellPeak += OnStormCellPeak;
         GameEvents.RunStarted += OnRunStarted;
+        GameEvents.RunEnded += OnRunEndedHideHud;
         GameEvents.GoalCompleted += OnGoalCompleted;
         GameEvents.BountyFailed += OnBountyFailed;
     }
@@ -107,6 +108,7 @@ public class HudController : MonoBehaviour
         GameEvents.StormCellForming -= OnStormCellForming;
         GameEvents.StormCellPeak -= OnStormCellPeak;
         GameEvents.RunStarted -= OnRunStarted;
+        GameEvents.RunEnded -= OnRunEndedHideHud;
         GameEvents.GoalCompleted -= OnGoalCompleted;
         GameEvents.BountyFailed -= OnBountyFailed;
     }
@@ -114,6 +116,9 @@ public class HudController : MonoBehaviour
     private void Start()
     {
         var root = GetComponent<UIDocument>().rootVisualElement;
+        _hudRoot = root;
+        // The HUD shows only during a run (run-screens 006): hidden behind the title, the WRECKED beat and results.
+        root.style.display = _sessionTimer != null && _sessionTimer.IsRunning ? DisplayStyle.Flex : DisplayStyle.None;
 
         var right = new VisualElement();
         right.style.position = Position.Absolute;
@@ -257,8 +262,16 @@ public class HudController : MonoBehaviour
         root.Add(holder);
     }
 
+    private VisualElement _hudRoot;
+
+    private void OnRunEndedHideHud(RunSummary _)
+    {
+        if (_hudRoot != null) _hudRoot.style.display = DisplayStyle.None;
+    }
+
     private void OnRunStarted()
     {
+        if (_hudRoot != null) _hudRoot.style.display = DisplayStyle.Flex;
         if (_bountyBlock == null) return;
         if (_goals == null) _goals = FindAnyObjectByType<GoalRunner>();
         _bountyBlock.Clear();

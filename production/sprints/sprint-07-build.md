@@ -124,6 +124,10 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-05 — **0.8.1 pushed** (html5 + windows): **rotating radio jingles** (four new KTVR jingles + the original,
+  no back-to-back), **fit pass** (title tightened, career page in two columns, HUD hidden behind title / WRECKED /
+  results; every screen checked at 960×600, 1280×800, 1920×1080). Evidence: EditMode 388/388, PlayMode 68/68, WebGL 0
+  console errors (`rs006-*.png`). Sprint 8 closed.
 - 2026-10-05 — **0.8.0 pushed** (html5 + windows): **goals save** (Save & Profile M1 stem; WebGL persistence verified),
   **KTVR paint** earned at 5 career goals (title L / X toggle), **radio lite** (title loop, station jingle, five songs,
   ducking under warnings), **Settings** (camera SKY / CLASSIC / HIGH, sensitivity, invert Y, brightness, master /

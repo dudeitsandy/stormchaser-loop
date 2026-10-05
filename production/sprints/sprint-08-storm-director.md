@@ -1,9 +1,9 @@
 # Sprint 8 — Storm Director + Run Goals (2026-10-06 → 2026-10-19)
 
-> **Status:** Storm Director half done ahead of schedule (2026-10-04): stories 001–009 and S8-C1 shipped in
-> 0.7.4/0.7.5, G4 and G5 passed. **Re-scoped 2026-10-04 (C5 = yes):** the open two weeks take Sprint 9's M1
-> work: run goals v1 (design, then build) and run screens. S8-C2 is **deferred past M1** (Andy, 2026-10-04:
-> the interim 6 HP passed G5). The driving pass moves to Sprint 9 so outside-player feedback can feed it.
+> **Status:** **CLOSED 2026-10-05** (two weeks early). Storm Director compact epic, S8-C1 durability, the re-scoped
+> run goals v1 and run screens, Save & Profile M1 stem, radio lite and the lower camera all shipped (0.7.4 → 0.8.1).
+> Carried into Sprint 9 (`sprint-09-feel-and-playtest.md` → "Carried over from Sprint 8"): run-goals 008
+> achievability playthrough, run-screens 001 Windows quit check, CA-1 remainder (X7-02/03/07), CA-2, PT-1.
 > **Milestone:** M1 — Vertical Slice 0.9 (`production/milestones/milestone-1-vertical-slice.md`)
 
 ## Sprint Goal
@@ -108,6 +108,6 @@ Bystander "VIEWER VIDEO" cellphone clip on the main storm's touchdown (Andy, 202
 - [x] Shipping build spawns storms from the Director, not `DisasterSpawner`'s timer *(0.7.4)*
 - [x] G4 run and findings logged: **passed** (Andy, 2026-10-04, on 0.7.5); external players next
 - [x] S8-C1 shipped, G5 passed (Andy, 2026-10-04, on 0.7.5)
-- [ ] *(Re-scope)* Run goals v1 designed, reviewed and built; a run shows its goals and the results tally them
-- [ ] *(Re-scope)* Run screens spec approved; pause/quit and wrecked state built; screenshot of each screen
-- [ ] Release 0.8.0 to itch (html5 + windows) with run goals, WebGL 0 console errors
+- [x] *(Re-scope)* Run goals v1 designed, reviewed and built; a run shows its goals and the results tally them *(stories 001–007; 008 achievability playthrough carried to Sprint 9)*
+- [x] *(Re-scope)* Run screens spec approved; pause/quit and wrecked state built; screenshot of each screen *(stories 002–006 done; 001 awaits Andy's Windows quit check, carried)*
+- [x] Release 0.8.0 to itch (html5 + windows) with run goals, WebGL 0 console errors *(0.8.0 and 0.8.1, 2026-10-05)*
