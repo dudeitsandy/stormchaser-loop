@@ -48,7 +48,17 @@ Parked ideas (biomes and generated locations, etc.) live in `production/backlog.
 ## Design freeze
 
 No new GDDs or concept docs until M1 closes, except the two M1 needs: the run-goals section of
-`event-system.md` and the run-screens UX spec. Playtest findings go to the backlog in the active sprint file.
+`event-system.md` and the run-screens UX spec (plus the Save & Profile M1 stem they use).
+
+**Freeze rule for new requests (Andy, 2026-10-04). Every agent applies it: Claude sessions and Codex.**
+A new idea or request goes straight in only if it passes all three tests:
+1. It's about 2 h of work or less.
+2. It adds no new system: no new GDD, no new disaster or mode, no new meta or progression.
+3. It touches no persistence (save or profile data).
+
+Anything else gets one entry in `production/backlog.md` ("parked, not designed"), and the agent tells Andy
+it was parked. Andy can override any single item explicitly. If you're unsure, park it and ask. Playtest
+findings go to the active sprint file and are triaged there.
 
 ## Sprints
 

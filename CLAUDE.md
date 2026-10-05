@@ -52,6 +52,9 @@ Every task follows: **Question -> Options -> Decision -> Draft -> Approval**
 - Agents MUST show drafts or summaries before requesting approval
 - Multi-file changes require explicit approval for the full changeset
 - No commits without user instruction
+- **M1 design freeze** (until Milestone 1 closes): a new request goes straight in only if it's about 2 h or
+  less, adds no new system and touches no save/profile data. Otherwise park it in `production/backlog.md`
+  and tell Andy. Full rule: `production/milestones/milestone-1-vertical-slice.md` → Design freeze.
 
 See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
 
