@@ -124,6 +124,9 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-05 — **0.8.3 built** (html5 + windows), hotfix: after the title attract mode the run's truck drove but
+  couldn't turn (the title freeze zeroed its inertia tensor); mass properties now restored. Regression test
+  `AfterALongTitle_TheRunsTruckStillDrivesAndTurns`. EditMode 389/389, PlayMode 71/71, WebGL 0 console errors.
 - 2026-10-05 — **0.8.2 pushed** (html5 + windows): **title attract mode** (drone flyover + showcase storm on the title,
   title music only, run start unchanged). Evidence: EditMode 389/389, PlayMode 70/70, WebGL 0 console errors
   (`attract-*.png`).

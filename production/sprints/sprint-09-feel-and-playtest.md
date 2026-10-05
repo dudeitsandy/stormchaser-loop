@@ -1,7 +1,8 @@
-# Sprint 9 — Driving Feel + Outside Playtest (2026-10-20 → 2026-11-02)
+# Sprint 9 — Driving Feel + Outside Playtest (2026-10-06 → 2026-10-19)
 
-> **Status:** Planned (2026-10-04). Sprint 9's original M1 work (run goals v1, run screens) moved into the
-> re-scoped Sprint 8, so this sprint takes the driving pass that needs outside-player feedback first.
+> **Status:** **ACTIVE from 2026-10-06** (Andy, via stormchaser-38, 2026-10-05: start now after 0.8.3; re-dated from
+> 10-20 → 11-02 to close the gap left by Sprint 8's early close). S9-02 is split: **S9-02a** starts now from Andy's own
+> notes; **S9-02b** waits for PT-1. Sprint 9's original M1 work (run goals v1, run screens) moved into Sprint 8.
 > **Milestone:** M1 — Vertical Slice 0.9 (`production/milestones/milestone-1-vertical-slice.md`)
 
 ## Sprint Goal
@@ -35,6 +36,15 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 | CA-2 | Andy | Accept the S7-06 physics caveat, or one `?physProbe=1` prop-cluster smash | 5 min |
 | PT-1 | Andy | Outside playtest round 1 findings into `production/qa/playtest-round-1.md` (due 2026-10-11); unblocks S9-01 | — |
 
+## Andy's queue (~1 h, one sitting)
+- [ ] RG-008 career goals smoke run, ~30 min (`production/qa/smoke-run-goals.md` doesn't exist yet: I'll write the seed list before you start)
+- [ ] RS-001 Windows quit / Alt-tab check, 5 min → then M1 "run screens" can be ticked
+- [ ] CA-1 Codex live checks X7-02 / X7-03 / X7-07, 15 min
+- [ ] CA-2 physics caveat accept or one smash, 5 min
+- [ ] Chase PT-1 testers (findings due 2026-10-11)
+
+After RG-008, M1 "run goals" can be ticked. Revisit M1's 11-16 date once PT-1 is in; it may close early.
+
 ## New requests
 - [x] **Title attract mode** (Andy via stormchaser-38, 2026-10-05; done 0.8.2): slow drone orbit on the title, paused
   under Settings / Career; the Storm Director runs showcase seeds 6 / 29 / 37 (data, `TitleAttract._showcaseSeeds`),
@@ -55,9 +65,10 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 | ID | Task | Type | Est. | Status |
 |----|------|------|------|--------|
 | S9-01 | Triage round 1 feedback into a tuning list: each complaint → the `vehicle-feel.md` knob(s) it maps to, with a proposed value. Andy picks | Analysis | 1.5 h | Blocked on PT-1 only: starts as soon as findings land in the repo (due 2026-10-11), not on 10-20 |
-| S9-02 | Feel pass: apply the chosen values (steer, grip, air/jump, landing), record them in `vehicle-feel.md` with the playtest that motivated each; PlayMode feel tests updated | Config/Data | 4 h | Blocked on S9-01 |
+| S9-02a | **Feel pass from Andy's notes (start now):** drift / e-brake driver feel; chase-camera swing and lag through drifts and corners; jump a touch floaty; **bug:** jumps peak ≈ 1.55 m < `MinAirtimeHeight` 1.8 m, so the Airtime moment, its boost refill and `big_air` never fire from a jump (`rg-airtime-evidence.md`): fix the threshold or the jump so a good jump counts, `big_air` achievable but not trivial. Every changed value in `vehicle-feel.md` → Playtest Tuning Log; PlayMode vehicle tests green | Config/Data | 4 h | Ready |
+| S9-02b | Second tuning pass from S9-01 (round 1 findings, `production/qa/playtest-round-1.md`: stormchaser-38 fills the tally and knob table) | Config/Data | 2 h | Blocked on S9-01 |
 | S9-02b | ~~Camera default~~ **Pulled into Sprint 8 (S8-08, done 2026-10-04); the swing through drifts and corners stays here.** Camera default (Andy, 2026-10-04: "lower so it captures more of the sky, like Rocket League"): default pitch from 26.6° toward ≈ 10–12° so storms stay on screen, tuned with round 1 feedback; it becomes the SKY/CLASSIC preset split shipped with Settings (run-screens RS-2) | Config/Data | 1 h | With S9-02 |
-| S9-03 | 0.8.x release with the tuned feel; tester brief v2 (same questions plus "compared to last time") | Release | 1.5 h | Blocked on S9-02 |
+| S9-03 | 0.8.x release with the tuned feel; tester brief v2 (same questions plus "compared to last time") | Release | 1.5 h | Blocked on S9-02a/b |
 
 ### Must Have — Andy
 | ID | Task | Est. |
@@ -68,7 +79,7 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 ### Should Have
 | ID | Owner | Task | Est. |
 |----|-------|------|------|
-| S9-04 | Claude | WebGL frame-time pre-check for M1's budget criterion (no frame > 50 ms over a 3-minute run with live storms, debris and presentation), so Sprint 10 has no surprises | 2 h |
+| S9-04 | Claude | **Now.** WebGL frame-time pre-check for M1's budget criterion over a 3-min run with live storms, rain, storm sky, sirens and radio (title attract counts too): no frame > 50 ms, p95 ≤ 33.3 ms, physics ≤ 4 ms (`?physProbe=1`). Codex supplies the presentation share (X9-01) | 2 h |
 | S9-05 | Claude | Round 1 non-driving findings (storms, damage, bugs) triaged into fix-now vs backlog | 1 h |
 
 ### Not this sprint

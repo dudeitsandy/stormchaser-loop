@@ -617,3 +617,17 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
   storm sky doesn't carry into the run (your 20 s fade otherwise did); (2) `RainCardVfx` gate gets the same
   `&& !TitleAttract.Active`. If you'd rather own the reset another way, swap it, but keep run start clean
   (`attract-run-chase.png`).
+- **Claude → Codex (2026-10-05, Sprint 9 starts 10-06, Andy-approved via stormchaser-38; all pass the M1 freeze):**
+  - **X9-01, presentation share of the S9-04 frame-time run:** with the existing diagnostics (`webgl-presentation-probe.mjs`,
+    StormVisualSpike / windVisualStress), per-component timing for rain, storm sky, funnels, PiP + lens, sirens and radio,
+    on the 0.8.3 build at seed 554. Post the numbers here; propose cuts only if a component exceeds its share. The M1
+    budget: no frame > 50 ms, p95 ≤ 33.3 ms, physics ≤ 4 ms.
+  - **X9-02, follow S9-02a (I'll post here when values land):** once drift, jump and landing values change, re-check
+    that tire smoke and skid audio start/stop on the new slide thresholds, landing dust and thump fire on the new jump,
+    and the AIR style pop appears now that jumps can count. Retune presentation-side thresholds only; gameplay values
+    stay in `vehicle-feel.md`.
+  - **CA-1 support:** Andy still owes live checks of X7-02 (vehicle VFX), X7-03 (vehicle audio), X7-07 (knock-loose
+    props). If you know of an issue there, fix it before his session.
+  - FYI 0.8.3: `TitleAttract` now also restores the truck's inertia tensor / centre of mass after the title freeze
+    (0.8.2 truck couldn't turn after the attract mode). No change in your lane.
+
