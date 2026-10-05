@@ -58,7 +58,11 @@ public sealed class PipViewfinder : MonoBehaviour
         _camera.enabled = false;
         var data = _camera.GetUniversalAdditionalCameraData();
         data.renderType = CameraRenderType.Base;
-        data.renderPostProcessing = false;
+        // Settings brightness is a shared Volume override and must also affect the footage.
+        // Recording/aim UI remains outside camera processing for legibility.
+        var mainData = main.GetUniversalAdditionalCameraData();
+        data.volumeLayerMask = mainData.volumeLayerMask;
+        data.renderPostProcessing = true;
         data.renderShadows = false;
         _frame = new VisualElement { pickingMode = PickingMode.Ignore };
         _frame.style.position = Position.Absolute;

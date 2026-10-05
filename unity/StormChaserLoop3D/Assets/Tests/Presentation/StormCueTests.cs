@@ -3,6 +3,27 @@ using NUnit.Framework;
 public class StormCueTests
 {
     [Test]
+    public void SirenRelease_PausesRetriggersAndFinishesWithoutACut()
+    {
+        float level = StormCueLevels.SirenLevel(0f, true, 0.5f);
+        Assert.That(level, Is.EqualTo(1f));
+        level = StormCueLevels.SirenLevel(level, false, 1.5f);
+        Assert.That(level, Is.EqualTo(0.5f).Within(0.0001f));
+        Assert.That(StormCueLevels.SirenLevel(level, false, 0f), Is.EqualTo(level));
+        Assert.That(StormCueLevels.SirenLevel(level, true, 0.25f), Is.EqualTo(1f));
+        Assert.That(StormCueLevels.SirenLevel(level, false, 1.5f), Is.Zero);
+    }
+    [Test]
+    public void SirenRelease_SubdividingFramesPreservesTheTail()
+    {
+        float one = StormCueLevels.SirenLevel(1f, false, 2f);
+        float many = 1f;
+        for (int i = 0; i < 120; i++) many = StormCueLevels.SirenLevel(many, false, 1f / 60f);
+        Assert.That(many, Is.EqualTo(one).Within(0.00001f));
+        Assert.That(StormCueLevels.SirenLevel(1f, false, 3.1f), Is.Zero);
+        Assert.That(StormCueLevels.SirenLevel(0.8f, false, -1f), Is.EqualTo(0.8f));
+    }
+    [Test]
     public void OvercastAmbient_DropsMoreThanDirectLightAndRestoresBaseline()
     {
         Assert.That(StormCueLevels.AmbientBrightness(0f), Is.EqualTo(1f));

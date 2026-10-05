@@ -84,3 +84,36 @@ game time, with 300 ms of resumed rendering per capture. Verify the displayed
 settings values before treating screenshots as evidence. This uses actual Settings
 exposure mapping, currently log2(1 + brightness), not the earlier +/-0.5 EV proposal.
 The existing WebGL build does not acquire new source changes until rebuilt.
+
+
+### Sprint9 component observations (X9-01)
+Use a frozen build copy (PRESENTATION_PROBE_BUILD), query seed554, and optionally
+PRESENTATION_PROBE_TITLE_SECONDS=20, PRESENTATION_PROBE_CANVAS=1280x800,
+PRESENTATION_PROBE_DRIVE=1 for W plus alternating A/D every2seconds and a jump every12seconds.
+Drive captures do not restart at results; the report must distinguish active gameplay
+from the results tail. Browser frame deltas include instrumentation and screenshots.
+Cursor's separate uninstrumented capture owns the whole-frame measurement.
+Geometry signatures in this snapshot: VfxCard rain1536 indices (240+16 quads),
+funnel72 indices (prefab12 segments), fog-exempt sky deck384 indices (8x8x6).
+Confirm the recorded draw histogram and source/prefab defaults for every new build.
+Do not classify all36-index VFX geometry as funnels: siren poles use cube primitives.
+Non-draw material/upload calls cannot use draw-count signatures and remain grouped;
+GL submission categories are not per-component Unity CPU updates or culling.
+Audio parameter work and output callbacks are aggregate; no individual siren/radio
+CPU/DSP breakdown is inferred. Do not sum nested audio trace events or claim a
+component budget verdict from GPU/GL subtotals. A stress query windVisualStress=max
+covers cosmetic pool occupancy only; inspect active60/60 logs and visible draws.
+
+
+### Tuned vehicle feedback (X9-02)
+PRESENTATION_PROBE_FEEDBACK=1 adds two100ms flat-road jump presses, followed by
+acceleration/e-brake/counter-steer/coast captures. Use STATIONARY=1 and sample-seconds0
+for just this sequence. Audio inspection is opt-in before Unity loads: connects are
+tracked,1s synthesized loop buffers tagged by55/80/880Hz correlation,0.25s buffers
+marked as landing-duration, and downstream GainNode values sampled every100ms.
+Tags are diagnostic heuristics, not Unity event identities or listening acceptance.
+Unity can start both dummy/real WebAudio nodes per shot; avoid counting starts as
+Landed events. Audio graph inspection adds overhead; do not use it for frame-time
+budgets. Scripts never raise gameplay events or alter game settings except through
+existing menu handlers in brightness mode. Inspect captures plus gain start/end
+before describing a behavior as verified.

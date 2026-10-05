@@ -4,6 +4,13 @@ using System.Collections.Generic;
 /// <summary>Shared, bounded world and audio response to the sum of storm wind magnitudes.</summary>
 public static class StormCueLevels
 {
+    /// <summary>Normalized siren envelope: bounded attack and a finite release, independent of effects gain.</summary>
+    public static float SirenLevel(float current, bool active, float dt, float attackSeconds = 0.5f, float releaseSeconds = 3f)
+    {
+        current = float.IsNaN(current) ? 0f : Math.Max(0f, Math.Min(1f, current));
+        float step = Math.Max(0f, dt) / Math.Max(0.001f, active ? attackSeconds : releaseSeconds);
+        return active ? Math.Min(1f, current + step) : Math.Max(0f, current - step);
+    }
     /// <summary>Rule 7 exposure; opposite wind directions must never cancel this value.</summary>
     public static float Exposure(float summedWindMagnitude) => float.IsNaN(summedWindMagnitude) ? 0f : Math.Max(0f, Math.Min(1f, summedWindMagnitude / 20f));
     /// <summary>Sky/sun brightness reaches 40 percent of baseline at full exposure.</summary>

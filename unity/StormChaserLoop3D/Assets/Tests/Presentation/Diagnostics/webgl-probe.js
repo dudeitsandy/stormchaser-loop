@@ -2,9 +2,28 @@
 (() => {
   const probe = window.__presentationProbe = {
     frames: [], programs: [], contexts: [], errors: [], enabled: false,
-    frame: null, audioSources: 0, maxAudioSources: 0, skippedQueries: 0,
+    audioDiagnostic: !!window.__presentationAudioDiagnostic, frame: null, audioSources: 0, maxAudioSources: 0, skippedQueries: 0,
   };
   addEventListener('error', e => probe.errors.push(e.message));
+  const audioEdges = new WeakMap();
+  const audioNodes = [];
+  const nativeConnect = AudioNode.prototype.connect;
+  AudioNode.prototype.connect = function(destination, ...args) {
+    if (probe.audioDiagnostic) audioEdges.set(this, destination);
+    return nativeConnect.call(this, destination, ...args);
+  };
+  let lastAudioSample = 0;
+  function audioSnapshot() {
+    if (!probe.audioDiagnostic || performance.now() - lastAudioSample < 100) return;
+    lastAudioSample = performance.now();
+    const nodes = audioNodes.map(item => {
+      const gains = [];
+      let node = audioEdges.get(item.node);
+      for (let i = 0; node && i < 8; i++, node = audioEdges.get(node)) if (node.gain) gains.push(node.gain.value);
+      return {id:item.id, kind:item.kind, active:item.active, gains};
+    });
+    (probe.audioSnapshots ||= []).push({time:lastAudioSample,nodes});
+  }
   const nativeRaf = window.requestAnimationFrame.bind(window);
   let frameStamp = -1;
   window.requestAnimationFrame = callback => nativeRaf(timestamp => {
@@ -20,6 +39,7 @@
       if (collecting) {
         for (const ctx of probe.contexts) ctx.end();
         probe.frame.callbackMs += performance.now() - start;
+        audioSnapshot();
       }
     }
   });
@@ -76,7 +96,7 @@
         pending.splice(i, 1);
       }
     }
-    function classify() {
+    function classify(drawCount = 0) {
       let shader = program && programs.get(program);
       if (program && !shader) {
         const uniformCount = originals.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
@@ -99,8 +119,12 @@
         probe.programs.push(shader);
       }
       if (shader?.kind === 'camcorder') return 'camcorder';
-      if (shader?.kind === 'farField') return 'farFieldCards';
+      if (shader?.kind === 'farField') return drawCount === 384 ? 'stormSkyDeck' : 'farFieldCards';
       if (shader?.kind === 'cards') {
+        // Source-verified geometry signatures for this snapshot; log histograms for auditing.
+        // Rain = (240 streaks + 16 curtains)*6; shipped funnel = 12 segments*6 indices.
+        if (drawCount === 1536) return 'rainCards';
+        if (drawCount === 72) return 'funnelMass';
         const slot = uniformSlots.get(shader.colorSlot);
         const bytes = slot && buffers.get(slot.buffer);
         const offset = (slot?.offset || 0) + shader.colorOffset;
@@ -194,7 +218,13 @@
           fbos.set(framebuffer, { texture: args[3] });
         const frame = probe.enabled ? probe.frame : null;
         const draw = /^draw(Arrays|Elements)/.test(name);
-        const category = frame || (draw && (probe.hideFarField || probe.hideNearCards)) ? classify() : null;
+        const count = draw ? (/^drawArrays/.test(name) ? args[2] : args[1]) : 0;
+        const category = frame || (draw && (probe.hideFarField || probe.hideNearCards)) ? classify(count) : null;
+        if (frame && draw) {
+          const signature = `${category}:${count}`;
+          probe.drawSignatures ||= {};
+          probe.drawSignatures[signature] = (probe.drawSignatures[signature] || 0) + 1;
+        }
         if (draw && category === 'farFieldCards' && (probe.farFieldSamples?.length || 0) < 5) {
           const index = originals.getUniformIndices(program, ['hlslcc_mtx4x4unity_ObjectToWorld[0]'])[0];
           const block = originals.getActiveUniforms(program, [index], gl.UNIFORM_BLOCK_INDEX)[0];
@@ -251,6 +281,29 @@
   }
   const sourceStart = AudioBufferSourceNode.prototype.start;
   AudioBufferSourceNode.prototype.start = function(...args) {
+    if (probe.audioDiagnostic) {
+    let kind = 'other';
+    const buffer = this.buffer;
+    if (buffer && Math.abs(buffer.duration - 0.25) < 0.001) kind = 'landing-duration';
+    if (buffer && Math.abs(buffer.duration - 1) < 0.001) {
+      const samples = buffer.getChannelData(0);
+      const energy = frequency => {
+        let a=0,b=0;
+        for(let i=0;i<Math.min(samples.length,4096);i++) {
+          const phase=2*Math.PI*frequency*i/buffer.sampleRate;
+          a+=samples[i]*Math.sin(phase); b+=samples[i]*Math.cos(phase);
+        }
+        return a*a+b*b;
+      };
+      const tones = [55,80,880].map(f=>energy(f));
+      kind = ['engine-tone','boost-tone','skid-tone'][tones.indexOf(Math.max(...tones))];
+    }
+    if (audioNodes.length < 256) {
+      const item = {node:this,id:audioNodes.length,kind,active:true}; audioNodes.push(item);
+      this.addEventListener('ended',()=>item.active=false,{once:true});
+    }
+    (probe.audioStarts ||= []).push({time:performance.now(),duration:buffer?.duration,kind});
+    }
     probe.audioSources++;
     probe.maxAudioSources = Math.max(probe.maxAudioSources, probe.audioSources);
     this.addEventListener('ended', () => probe.audioSources--, { once: true });

@@ -10,6 +10,9 @@ import { spawn } from 'node:child_process';
 const root = resolve(process.argv[2]);
 const output = resolve(process.argv[3]);
 const seconds = Number(process.argv[4] || 30);
+const titleSeconds = Number(process.env.PRESENTATION_PROBE_TITLE_SECONDS || 0);
+const [canvasWidth, canvasHeight] = (process.env.PRESENTATION_PROBE_CANVAS || '960x600').split('x').map(Number);
+const categories = ['pipCamera','camcorder','funnelMass','rainCards','stormSkyDeck','tornadoCards','windCards','cardsUnclassified','farFieldCards','worldAndUI'];
 const build = resolve(root, process.env.PRESENTATION_PROBE_BUILD || 'builds/webgl');
 const query = new URLSearchParams(process.env.PRESENTATION_PROBE_QUERY || '').toString();
 const here = dirname(fileURLToPath(import.meta.url));
@@ -24,8 +27,10 @@ const server = createServer(async (request, response) => {
     }
     let content = await readFile(target);
     if (path === '/' || path === '/index.html') {
-      content = Buffer.from(content.toString().replace('<head>', '<head><script src="/probe.js"></script>')
-        .replace('.then((unityInstance) => {', '.then((unityInstance) => { window.__unity = unityInstance;'));
+      content = Buffer.from(content.toString().replace('<head>', `<head><script>window.__presentationAudioDiagnostic=${process.env.PRESENTATION_PROBE_FEEDBACK === '1'}</script><script src="/probe.js"></script>`)
+        .replace('.then((unityInstance) => {', '.then((unityInstance) => { window.__unity = unityInstance;')
+        .replaceAll('width="960"', `width="${canvasWidth}"`).replaceAll('height="600"', `height="${canvasHeight}"`)
+        .replaceAll('"960px"', `"${canvasWidth}px"`).replaceAll('"600px"', `"${canvasHeight}px"`));
     }
     response.setHeader('Content-Type', mime[extname(target)] || 'application/octet-stream');
     response.end(content);
@@ -38,7 +43,7 @@ const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', [
   '--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`,
   '--no-first-run', '--no-default-browser-check', '--autoplay-policy=no-user-gesture-required',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
-  '--window-size=1100,750', 'about:blank',
+  `--window-size=${canvasWidth + 140},${canvasHeight + 150}`, 'about:blank',
 ], { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'] });
 let ws, cdp, session;
 const sleep = ms => new Promise(done => setTimeout(done, ms));
@@ -90,8 +95,18 @@ try {
     await sleep(500);
   }
   await sleep(1000);
-  await cdp('Input.dispatchMouseEvent', { type: 'mousePressed', x: 500, y: 300, button: 'left', clickCount: 1 });
-  await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 500, y: 300, button: 'left', clickCount: 1 });
+  await evaluate('document.querySelector("canvas").focus()');
+  let titleFrames = [];
+  if (titleSeconds > 0) {
+    await evaluate('__presentationProbe.start()');
+    console.log(`Sampling title for ${titleSeconds}s.`);
+    for (let elapsed = 0; elapsed < titleSeconds; elapsed += 5) await sleep(Math.min(5,titleSeconds-elapsed)*1000);
+    await evaluate('__presentationProbe.stop()');
+    await sleep(200);
+    titleFrames = await evaluate('__presentationProbe.frames');
+    const titleShot = await cdp('Page.captureScreenshot', {format:'png'});
+    await writeFile(join(output,'webgl-title.png'),Buffer.from(titleShot.data,'base64'));
+  }
   await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
   await cdp('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
   await sleep(4000);
@@ -105,24 +120,57 @@ try {
   }
   await cdp('Tracing.start', { categories: 'audio,disabled-by-default-audio,media', transferMode: 'ReportEvents' }, null);
   await evaluate('__presentationProbe.start()');
-  console.log(`Sampling WebGL for ${seconds}s at 960×600 (renderer: ${await evaluate('__presentationProbe.gpu?.renderer')}).`);
-  for (let elapsed = 0; elapsed < seconds; elapsed += 5) {
-    await sleep(Math.min(5, seconds - elapsed) * 1000);
-    const intervalCapture = await cdp('Page.captureScreenshot', { format: 'png' });
-    await writeFile(join(output, `webgl-capture-${elapsed + 5}s.png`), Buffer.from(intervalCapture.data, 'base64'));
-    // Drive a few seconds, then turn. No shots: keep the audio-loop baseline repeatable.
-    if (process.env.PRESENTATION_PROBE_STATIONARY === '1') {
-      // Keep the starting view for funnel capture instead of driving away.
-    } else if (elapsed % 10 === 0) {
-      await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'w', code: 'KeyW', windowsVirtualKeyCode: 87 });
-      await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'd', code: 'KeyD', windowsVirtualKeyCode: 68 });
-    } else {
-      await cdp('Input.dispatchKeyEvent', { type: 'keyUp', key: 'd', code: 'KeyD', windowsVirtualKeyCode: 68 });
+  console.log(`Sampling WebGL for ${seconds}s at ${canvasWidth}x${canvasHeight} (renderer: ${await evaluate('__presentationProbe.gpu?.renderer')}).`);
+  if (process.env.PRESENTATION_PROBE_FEEDBACK === '1') {
+    await evaluate('__presentationProbe.audioDiagnostic=true');
+    async function input(key,code,vk,type) { await cdp('Input.dispatchKeyEvent',{type,key,code,windowsVirtualKeyCode:vk}); }
+    async function capture(label) {
+      await evaluate(`(__presentationProbe.feedbackMarkers ||= []).push({label:${JSON.stringify(label)},time:performance.now()})`);
+      const shot = await cdp('Page.captureScreenshot',{format:'png'});
+      await writeFile(join(output,`feedback-${label}.png`),Buffer.from(shot.data,'base64'));
     }
-    console.log(`Captured ${await evaluate('__presentationProbe.frames.length')} frames.`);
-    if (await evaluate('!__presentationProbe.frames.at(-1)?.drawCalls.camcorder')) {
-      await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
-      await cdp('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+    // Start with two isolated flat-road jumps, then accelerate/e-brake, counter-steer and coast.
+    for(let jump=1;jump<=2;jump++) {
+      await input(' ','Space',32,'keyDown'); await sleep(100); await input(' ','Space',32,'keyUp');
+      await sleep(350); await capture(`jump${jump}-air`);
+      await sleep(350); await capture(`jump${jump}-landing`);
+      await sleep(1000); await capture(`jump${jump}-settled`);
+    }
+    await input('w','KeyW',87,'keyDown'); await sleep(3000);
+    await input('d','KeyD',68,'keyDown'); await input('Control','ControlLeft',17,'keyDown');
+    await sleep(1000); await capture('slide');
+    await input('Control','ControlLeft',17,'keyUp'); await input('d','KeyD',68,'keyUp');
+    await input('a','KeyA',65,'keyDown'); await sleep(500); await input('a','KeyA',65,'keyUp');
+    await input('w','KeyW',87,'keyUp'); await sleep(2000); await capture('coast');
+    await sleep(3000); await capture('settled');
+    await evaluate('__presentationProbe.audioDiagnostic=false');
+  }
+  let lastDirection = null;
+  for (let elapsed = 0; elapsed < seconds; elapsed++) {
+    if (process.env.PRESENTATION_PROBE_DRIVE === '1') {
+      await cdp('Input.dispatchKeyEvent', {type:'keyDown',key:'w',code:'KeyW',windowsVirtualKeyCode:87});
+      const direction = Math.floor(elapsed / 2) % 2 ? 'a' : 'd';
+      if (direction !== lastDirection) {
+        if (lastDirection) await cdp('Input.dispatchKeyEvent', {type:'keyUp',key:lastDirection,code:lastDirection==='a'?'KeyA':'KeyD',windowsVirtualKeyCode:lastDirection==='a'?65:68});
+        await cdp('Input.dispatchKeyEvent', {type:'keyDown',key:direction,code:direction==='a'?'KeyA':'KeyD',windowsVirtualKeyCode:direction==='a'?65:68});
+        lastDirection = direction;
+      }
+      if (elapsed % 12 === 0) await cdp('Input.dispatchKeyEvent', {type:'keyDown',key:' ',code:'Space',windowsVirtualKeyCode:32});
+      if (elapsed % 12 === 1) await cdp('Input.dispatchKeyEvent', {type:'keyUp',key:' ',code:'Space',windowsVirtualKeyCode:32});
+    }
+    await sleep(Math.min(1,seconds-elapsed)*1000);
+    if ((elapsed + 1) % 5 !== 0) continue;
+    const intervalCapture = await cdp('Page.captureScreenshot', {format:'png'});
+    await writeFile(join(output, `webgl-capture-${elapsed + 1}s.png`),Buffer.from(intervalCapture.data,'base64'));
+    console.log(`Captured ${await evaluate('__presentationProbe.frames.length')} frames at ${elapsed+1}s.`);
+    if (process.env.PRESENTATION_PROBE_STATIONARY !== '1' && process.env.PRESENTATION_PROBE_DRIVE !== '1') {
+      await cdp('Input.dispatchKeyEvent', {type:'keyDown',key:'w',code:'KeyW',windowsVirtualKeyCode:87});
+      await cdp('Input.dispatchKeyEvent', {type:(elapsed+1)%10===5?'keyDown':'keyUp',key:'d',code:'KeyD',windowsVirtualKeyCode:68});
+    }
+    // Keep drive captures a single run; results are observed rather than silently starting another run.
+    if (process.env.PRESENTATION_PROBE_DRIVE !== '1' && await evaluate('!__presentationProbe.frames.at(-1)?.drawCalls.camcorder')) {
+      await cdp('Input.dispatchKeyEvent', {type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+      await cdp('Input.dispatchKeyEvent', {type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
     }
   }
   if (process.env.PRESENTATION_PROBE_BRIGHTNESS === '1') {
@@ -163,13 +211,14 @@ try {
   await sleep(1000);
   await evaluate('__presentationProbe.contexts.forEach(c => c.poll())');
   const data = await evaluate(`({gpu:__presentationProbe.gpu, frames:__presentationProbe.frames,
-    programs:__presentationProbe.programs, errors:__presentationProbe.errors,
+    feedbackMarkers:__presentationProbe.feedbackMarkers, audioSnapshots:__presentationProbe.audioSnapshots, audioStarts:__presentationProbe.audioStarts, drawSignatures:__presentationProbe.drawSignatures, programs:__presentationProbe.programs, errors:__presentationProbe.errors,
     audioSources:__presentationProbe.audioSources, maxAudioSources:__presentationProbe.maxAudioSources,
     missingMaterialBuffer:__presentationProbe.missingMaterialBuffer,
     materialColors:__presentationProbe.materialColors,
     farFieldSamples:__presentationProbe.farFieldSamples,
     skippedQueries:__presentationProbe.skippedQueries, canvas:{width:document.querySelector('canvas').width,height:document.querySelector('canvas').height},
     browser:navigator.userAgent})`);
+  data.titleFrames = titleFrames;
   data.console = logs;
   data.audioTrace = audioTrace;
   const screenshot = await cdp('Page.captureScreenshot', { format: 'png' });
@@ -198,7 +247,15 @@ try {
   const summary = { gpu:data.gpu, canvas:data.canvas, browser:data.browser, frames:data.frames.length,
     build, query, farFieldSamples:data.farFieldSamples, durationSeconds:seconds, maxAudioSources:data.maxAudioSources, skippedQueries:data.skippedQueries, categories:{} };
   const running = data.frames.filter(frame => frame.drawCalls.camcorder > 0);
+  summary.feedback = process.env.PRESENTATION_PROBE_FEEDBACK === '1';
   summary.runningFrames = running.length;
+  summary.drawSignatures = data.drawSignatures;
+  const intervals = frames => frames.slice(1).map((frame,i) => frame.timestamp - frames[i].timestamp);
+  const observations = values => ({frames:values.length, meanMs:mean(values), p95Ms:p95(values),
+    maxMs:values.length ? Math.max(...values) : null, over33_3:values.filter(v=>v>33.3).length, over50:values.filter(v=>v>50).length});
+  summary.titleFrameIntervals = observations(intervals(titleFrames));
+  summary.runFrameIntervals = observations(intervals(data.frames));
+  summary.measurementScope = 'Instrumented browser GPU/GL/audio controls. Not per-component Unity CPU or separate siren/radio DSP. Frame intervals include probe overhead and screenshot work; Cursor owns uninstrumented M1 frame capture.';
   const totalDraws = frames => frames.map(frame => Object.values(frame.drawCalls).reduce((sum, value) => sum + value, 0));
   summary.totalDrawCallsMean = mean(totalDraws(running));
   if (data.emptySkyDrawFrames) {
@@ -207,7 +264,7 @@ try {
       extraDrawsMean:summary.totalDrawCallsMean - mean(totalDraws(emptyFrames)),
       scope:'Browser suppresses near VFX card draws only; cameras/UI/post/gameplay/culling remain active. Not a CPU baseline.' };
   }
-  for (const category of ['pipCamera','camcorder','tornadoCards','windCards','cardsUnclassified','farFieldCards','worldAndUI']) {
+  for (const category of categories) {
     const gpuFrames = running.filter(frame => Object.keys(frame.gpuMs).length);
     const gpuValues = gpuFrames.map(frame => frame.gpuMs[category] || 0);
     const cpuValues = running.map(frame => frame.submitMs[category] || 0);
@@ -215,13 +272,24 @@ try {
       glSubmitMeanMs:mean(cpuValues), glSubmitP95Ms:p95(cpuValues), drawCallsMean:mean(running.map(f => f.drawCalls[category] || 0)),
       drawCallsMax:Math.max(...running.map(f => f.drawCalls[category] || 0)) };
   }
+  const titleSamples = titleFrames.filter(frame => Object.keys(frame.gpuMs).length);
+  summary.titleCategories = {};
+  for (const category of categories) {
+    summary.titleCategories[category] = {
+      gpuMeanMs:mean(titleSamples.map(frame => frame.gpuMs[category] || 0)),
+      gpuP95Ms:p95(titleSamples.map(frame => frame.gpuMs[category] || 0)),
+      glSubmitMeanMs:mean(titleFrames.map(frame => frame.submitMs[category] || 0)),
+      drawCallsMean:mean(titleFrames.map(frame => frame.drawCalls[category] || 0))
+    };
+  }
+  summary.titleAudioSubmitMeanMs = mean(titleFrames.map(frame => frame.audioSubmitMs));
   summary.audioSubmitMeanMs = mean(running.map(frame => frame.audioSubmitMs));
   summary.audioSubmitP95Ms = p95(running.map(frame => frame.audioSubmitMs));
   summary.callbackMeanMs = mean(data.frames.map(frame => frame.callbackMs));
   summary.callbackP95Ms = p95(data.frames.map(frame => frame.callbackMs));
   summary.frameIntervalMeanMs = mean(data.frames.slice(1).map((frame,i) => frame.timestamp - data.frames[i].timestamp));
   const sampled = running.filter(frame => Object.keys(frame.gpuMs).length);
-  const subtotal = sampled.map(frame => ['pipCamera','camcorder','tornadoCards','windCards','cardsUnclassified','farFieldCards']
+  const subtotal = sampled.map(frame => ['pipCamera','camcorder','funnelMass','rainCards','stormSkyDeck','tornadoCards','windCards','cardsUnclassified','farFieldCards']
     .reduce((sum,category) => sum + (frame.gpuMs[category] || 0) + (frame.submitMs[category] || 0), frame.audioSubmitMs));
   summary.measuredSubtotalMeanMs = mean(subtotal);
   summary.measuredSubtotalP95Ms = p95(subtotal);
