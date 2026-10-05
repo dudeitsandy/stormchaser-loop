@@ -1,7 +1,7 @@
 # Story 001: Measure counted airtime and set the big-air threshold
 
 > **Epic**: Run Goals v1
-> **Status**: Ready
+> **Status**: Done (2026-10-04) — `BigAirSeconds` = 1.0 s; big_air earned by a toss for now (Andy)
 > **Layer**: Feature
 > **Type**: Integration
 > **Estimate**: 1.5 h (S)
@@ -66,7 +66,7 @@ The review found `big_air` may be unreachable: the driving model only counts air
 **Story Type**: Integration
 **Required evidence**: `production/qa/evidence/rg-airtime-evidence.md` (measurements, seeds, decision) — playtest/measurement doc
 
-**Status**: [ ] Not yet created
+**Status**: [x] `production/qa/evidence/rg-airtime-evidence.md` + probe `Tests/PlayMode/AirtimeProbeTests.cs`
 
 ---
 

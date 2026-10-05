@@ -307,7 +307,7 @@ an upper bound; a typical run is expected to land 1–3 goals and 1–2 bounties
 |------|-----------|---------|-----------|
 | `point_blank` | Photo with subject distance `< PointBlankDistance` | 20 m | Inside the 60 m shutter range, outside the < 5 m "inside the tornado" zone where DistanceScore = 0 |
 | `storm_drift` | A drift style moment with duration ≥ `DriftSeconds` and a tornado within `DriftStormRange` **when the drift ends** (the event fires once, at slide end, with its duration) | 3 s, 60 m | 60 m = Storm Cam / shutter range |
-| `big_air` | An airtime style moment with counted seconds ≥ `BigAirSeconds` (counted = time above `MinAirtimeHeight` 1.8 m, `vehicle-feel.md` E2) | 0.5 s (= `MinStyleSeconds`) **provisional** | Bunny-hops never count (a flat jump peaks at 1.5 m); estimate: a toss spends ≈ 0.4 s above 1.8 m. RG-2 measures counted air on the compact map first (see Acceptance Criteria) and sets the value from it |
+| `big_air` | An airtime style moment with counted seconds ≥ `BigAirSeconds` (counted = time above `MinAirtimeHeight` 1.8 m, `vehicle-feel.md` E2) | **1.0 s** | Measured (`production/qa/evidence/rg-airtime-evidence.md`): jumps 0.00 s (peak 1.55 m), EF4 toss 1.12 s, EF5 toss 1.36 s. Earned by a toss for now (Andy, 2026-10-04); revisit when ramps / bigger jumps exist |
 | `near_misses` | `NearMissGoal` near-miss style events in one run | 3 | `NearMissCooldown` 3 s keeps them spread out |
 | `ef4_peak` | Photo of a subject with EF ≥ 4 whose phase is Mature | EF 4 | Peak is the money shot (`storm-director.md` F3) |
 | `front_page` | Photo with tier PERFECT whose subject is the run's anchor | — | Anchor = the run's main storm |
@@ -368,7 +368,7 @@ that checkpoint, usable next run.
 | `TimedBountyWindow` | 40 s | 25–60 s | Timed bounty difficulty |
 | `PointBlankDistance` | 20 m | 12–30 m | Risk demanded by `point_blank` |
 | `DriftSeconds` / `DriftStormRange` | 3 s / 60 m | 2–5 s / 30–80 m | `storm_drift` difficulty |
-| `BigAirSeconds` | 0.5 s (provisional) | `MinStyleSeconds` – 2.0 s counted | `big_air` difficulty; set from the RG-2 measurement |
+| `BigAirSeconds` | 1.0 s (measured) | `MinStyleSeconds` – 1.3 s counted (above 1.3 s only an EF5 toss qualifies) | `big_air` difficulty; jumps can't earn it until ramps exist |
 | `PointBlankEf5Distance` | 12 m | 8–20 m | `point_blank_ef5` risk |
 | `CloseCallSeconds` / `CloseCallRange` | 5 s / 30 m | 3–10 s / 20–45 m | `close_call` risk |
 | `NearMissPairWindow` | 10 s | 6–15 s | `double_near_miss` difficulty |

@@ -18,6 +18,11 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 - Andy's open notes: steering a little loose, jump a touch floaty (G3, 2026-10-03); "will need to tune
   driving at some point a little more" (G4, 2026-10-04).
 
+## Known input from Sprint 8
+- Jumps peak ≈ 1.55 m, below `MinAirtimeHeight` 1.8 m, so the Airtime style moment and its boost refill never fire
+  from a jump on the compact map, only from tosses (`production/qa/evidence/rg-airtime-evidence.md`). Consider in
+  S9-02 alongside the "floaty jump" note.
+
 ## Gates (Andy)
 | Gate | When | Pass = | Result |
 |------|------|--------|--------|

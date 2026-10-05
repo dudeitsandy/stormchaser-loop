@@ -50,7 +50,7 @@ No `tr-registry.yaml` exists yet; requirement IDs are local to this epic and cit
 
 | # | Story | Type | Status | ADR |
 |---|-------|------|--------|-----|
-| 001 | [Measure counted airtime and set the big-air threshold](story-001-airtime-measurement.md) | Integration | Ready | ADR-0005 |
+| 001 | [Measure counted airtime and set the big-air threshold](story-001-airtime-measurement.md) | Integration | Done | ADR-0005 |
 | 002 | [Goal catalogue and seeded bounty draw](story-002-catalogue-bounty-draw.md) | Logic | Ready | N/A |
 | 003 | [Goal evaluation, bonuses and goal events](story-003-goal-evaluation.md) | Logic | Ready | N/A |
 | 004 | [Goal tracker in a live run](story-004-tracker-in-play.md) | Integration | Ready | ADR-0005 |
