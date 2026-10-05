@@ -8,3 +8,7 @@ radio_let_the_soft_error_through.ogg, "Let the Soft Error Through", Suno, paid p
 radio_raw_garage_drive.ogg, "Raw Garage Drive", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG, renamed
 radio_winding_chase.ogg, "Winding Chase", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG, renamed
 radio_cheeky_suburbia.ogg, "Cheeky Suburbia", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, renamed
+jingle_01.ogg, "jingle_01", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +1.5 dB to match songs
+jingle_02.ogg, "jingle_02", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +1.5 dB to match songs
+jingle_04.ogg, "jingle_04", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +1.5 dB to match songs, trailing silence trimmed
+jingle_05.ogg, "jingle_05", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +1.5 dB to match songs
