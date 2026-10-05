@@ -13,9 +13,13 @@ public sealed class OutdoorWarningSirens : MonoBehaviour
     [SerializeField, Min(1f)] private float _fullVolumeDistance = 8f;
     [SerializeField, Min(0.1f)] private float _attackSeconds = 0.5f;
     [SerializeField, Min(0.1f)] private float _releaseSeconds = 3f;
+    [SerializeField, Min(0f)] private float _attentionHoldSeconds = 5f;
+    [SerializeField, Min(0.1f)] private float _settleSeconds = 10f;
+    [SerializeField, Range(0f, 1f)] private float _backgroundLevel = 0.25f;
     private readonly OutdoorSirenCycle _cycle = new OutdoorSirenCycle();
     private AudioSource _source;
     private float _level;
+    private float _attentionAge;
     private AudioClip _wail;
     private Material _poleMaterial;
 
@@ -95,7 +99,7 @@ public sealed class OutdoorWarningSirens : MonoBehaviour
     }
     private void Forming(StormCellInfo cell)
     {
-        _cycle.Forming(cell.CellId, cell.EF, _sirenCycleSeconds);
+        if (_cycle.Forming(cell.CellId, cell.EF, _sirenCycleSeconds)) _attentionAge = 0f;
     }
     private void EndEmergency(StormCellInfo cell) => _cycle.End(cell.CellId);
     private void Update()
@@ -108,7 +112,9 @@ public sealed class OutdoorWarningSirens : MonoBehaviour
         }
         _cycle.Tick(Time.deltaTime);
         bool active = _cycle.Active;
-        _level = StormCueLevels.SirenLevel(_level, active, Time.deltaTime, _attackSeconds, _releaseSeconds);
+        if (active) _attentionAge += Time.deltaTime;
+        float target = StormCueLevels.SirenAttention(_attentionAge, _attentionHoldSeconds, _settleSeconds, _backgroundLevel);
+        _level = StormCueLevels.SirenLevel(_level, active, Time.deltaTime, _attackSeconds, _releaseSeconds, target);
         // Resume an interrupted release as well as an active warning; mute never destroys the envelope.
         if (_level > 0f && !_source.isPlaying) { _source.UnPause(); if (!_source.isPlaying) _source.Play(); }
         _gain.Set(_source, _level * _volume);
@@ -119,6 +125,7 @@ public sealed class OutdoorWarningSirens : MonoBehaviour
     {
         _cycle.Reset();
         _level = 0f;
+        _attentionAge = 0f;
         if (_source != null) { _source.Stop(); _gain.Set(_source, 0f); }
     }
     private void OnDisable()

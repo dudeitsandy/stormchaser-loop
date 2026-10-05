@@ -3,6 +3,23 @@ using NUnit.Framework;
 public class StormCueTests
 {
     [Test]
+    public void SirenAttention_SettlesWithoutEndingEmergencyAndFreshWarningRestartsAttention()
+    {
+        Assert.That(StormCueLevels.SirenAttention(5f), Is.EqualTo(1f));
+        Assert.That(StormCueLevels.SirenAttention(10f), Is.EqualTo(0.625f));
+        Assert.That(StormCueLevels.SirenAttention(100f), Is.EqualTo(0.25f));
+        var cycle = new OutdoorSirenCycle();
+        Assert.That(cycle.Forming(1, 5, 25f), Is.True);
+        cycle.Tick(100f);
+        Assert.That(cycle.Active, Is.True);
+        Assert.That(cycle.Forming(1, 5, 25f), Is.False);
+        Assert.That(cycle.Forming(2, 2, 25f), Is.False);
+        Assert.That(cycle.Forming(3, 4, 25f), Is.True);
+        Assert.That(StormCueLevels.SirenLevel(0.25f, true, 0.5f), Is.EqualTo(1f));
+        Assert.That(StormCueLevels.SirenLevel(0.25f, false, 3f), Is.Zero);
+        Assert.That(StormCueLevels.SirenLevel(0.625f, true, 0f, activeTarget: 0.25f), Is.EqualTo(0.625f));
+    }
+    [Test]
     public void SirenRelease_PausesRetriggersAndFinishesWithoutACut()
     {
         float level = StormCueLevels.SirenLevel(0f, true, 0.5f);

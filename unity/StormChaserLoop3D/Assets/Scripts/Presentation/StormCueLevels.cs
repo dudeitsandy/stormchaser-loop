@@ -5,11 +5,19 @@ using System.Collections.Generic;
 public static class StormCueLevels
 {
     /// <summary>Normalized siren envelope: bounded attack and a finite release, independent of effects gain.</summary>
-    public static float SirenLevel(float current, bool active, float dt, float attackSeconds = 0.5f, float releaseSeconds = 3f)
+    public static float SirenLevel(float current, bool active, float dt, float attackSeconds = 0.5f, float releaseSeconds = 3f, float activeTarget = 1f)
     {
         current = float.IsNaN(current) ? 0f : Math.Max(0f, Math.Min(1f, current));
         float step = Math.Max(0f, dt) / Math.Max(0.001f, active ? attackSeconds : releaseSeconds);
-        return active ? Math.Min(1f, current + step) : Math.Max(0f, current - step);
+        float target = active ? Math.Max(0f, Math.Min(1f, activeTarget)) : 0f;
+        return current < target ? Math.Min(target, current + step) : Math.Max(target, current - step);
+    }
+    /// <summary>Fresh warnings hold attention, then smoothly settle to a sustained background level.</summary>
+    public static float SirenAttention(float age, float holdSeconds = 5f, float settleSeconds = 10f, float backgroundLevel = 0.25f)
+    {
+        float t = Math.Max(0f, Math.Min(1f, (age - holdSeconds) / Math.Max(0.001f, settleSeconds)));
+        t = t * t * (3f - 2f * t);
+        return 1f + (Math.Max(0f, Math.Min(1f, backgroundLevel)) - 1f) * t;
     }
     /// <summary>Rule 7 exposure; opposite wind directions must never cancel this value.</summary>
     public static float Exposure(float summedWindMagnitude) => float.IsNaN(summedWindMagnitude) ? 0f : Math.Max(0f, Math.Min(1f, summedWindMagnitude / 20f));
@@ -43,11 +51,12 @@ public sealed class OutdoorSirenCycle
     /// <summary>Whether an ordinary warning cycle or any unended emergency requires a wail.</summary>
     public bool Active => _remaining > 0f || _emergencies.Count > 0;
     /// <summary>Starts a warning once per cell, or an emergency that survives the ordinary cycle duration.</summary>
-    public void Forming(int cellId, int ef, float cycleSeconds)
+    public bool Forming(int cellId, int ef, float cycleSeconds)
     {
-        if (ef < 3 || !_seen.Add(cellId)) return;
+        if (ef < 3 || !_seen.Add(cellId)) return false;
         if (ef >= 5) _emergencies.Add(cellId);
         else _remaining = Math.Max(_remaining, cycleSeconds);
+        return true;
     }
     /// <summary>Ends only the specified emergency; other warnings retain their own duration.</summary>
     public void End(int cellId) => _emergencies.Remove(cellId);
