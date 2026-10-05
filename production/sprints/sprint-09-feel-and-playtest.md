@@ -27,6 +27,12 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
   from a jump on the compact map, only from tosses (`production/qa/evidence/rg-airtime-evidence.md`). Consider in
   S9-02 alongside the "floaty jump" note.
 
+## Andy's 0.8.4 feel check (2026-10-05)
+- Drift and counter-steer "feel pretty good". The camera slide lean was "a little too jarring": eased (0.6 s in/out)
+  and softened (35 % → 20 %).
+- **For planning:** run pacing (dead moments; measured, `production/backlog.md` → Run pacing) and crash weight
+  (tactile feedback on impacts, flips and tosses; backlog → Crash weight). Both also go to PT-1 testers.
+
 ## Polish notes (Andy 2026-10-05 via stormchaser-38; low priority, behind S9-02a)
 - **Sirens, one spatial source** (Codex, X9-03): instead of four poles (X8-01), one central siren (farmstead or town
   crossroads), fully 3D with a clear distance rolloff, so you hear where it is and that it's off in the distance. First

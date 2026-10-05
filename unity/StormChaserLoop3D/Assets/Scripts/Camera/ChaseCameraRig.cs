@@ -32,9 +32,12 @@ public class ChaseCameraRig : CinemachineExtension
     [Tooltip("Seconds to settle 99 % of a heading change (Cinemachine damping; 0.7 shipped 1.6, S9-02a 1.1).")]
     [SerializeField] private float _yawDamping = 1.1f;
     [Tooltip("S9-02a: in a slide, how far the camera leans from the direction of travel toward the truck's nose (0–1).")]
-    [Range(0f, 1f)] [SerializeField] private float _slideFacingBlend = 0.35f;
+    [Range(0f, 1f)] [SerializeField] private float _slideFacingBlend = 0.2f; // 0.35 was "a little too jarring" (Andy, 0.8.4)
     [Tooltip("Slip angle (degrees) at which the slide lean is at full strength.")]
     [SerializeField] private float _slideFullLeanDeg = 45f;
+    [Tooltip("Seconds to ease 99 % of the slide lean in or out, so starting or ending a drift doesn't swing the camera.")]
+    [SerializeField] private float _slideLeanEase = 0.6f;
+    private float _slideLean;
     [Tooltip("Seconds to settle 99 % of a height change (suspension bob, jumps).")]
     [SerializeField] private float _heightDamping = 0.5f;
     [Tooltip("A target jump larger than this (m) in one update is a teleport: the camera snaps.")]
@@ -175,9 +178,12 @@ public class ChaseCameraRig : CinemachineExtension
         _lastTargetPos = targetPos;
 
         _restYaw = ChaseCameraMath.RestYaw(velocity, _target.forward, _initialized ? _restYaw : ChaseCameraMath.Yaw(_target.forward), _restMinSpeed);
-        if (ChaseCameraMath.Flat(velocity).magnitude >= _restMinSpeed)
-            _restYaw = ChaseCameraMath.SlideYaw(_restYaw, ChaseCameraMath.Yaw(ChaseCameraMath.Flat(_target.forward)),
-                                                _slideFacingBlend, _slideFullLeanDeg);
+        // Slide lean (S9-02a), eased in and out on its own clock; _restYaw itself stays the direction of travel.
+        float leanTarget = ChaseCameraMath.Flat(velocity).magnitude >= _restMinSpeed
+            ? Mathf.DeltaAngle(_restYaw, ChaseCameraMath.SlideYaw(_restYaw, ChaseCameraMath.Yaw(ChaseCameraMath.Flat(_target.forward)),
+                                                                  _slideFacingBlend, _slideFullLeanDeg))
+            : 0f;
+        _slideLean = snap ? leanTarget : ChaseCameraMath.Damp(_slideLean, leanTarget, _slideLeanEase, dt);
         _pivotY = snap ? targetPos.y : ChaseCameraMath.Damp(_pivotY, targetPos.y, _heightDamping, dt);
         Vector3 pivot = new Vector3(targetPos.x, _pivotY + _pivotHeight, targetPos.z);
 
@@ -241,7 +247,8 @@ public class ChaseCameraRig : CinemachineExtension
     private void Chase(Vector3 pivot, Vector2 stick, Vector2 mouse, bool orbiting, bool snap, float dt,
         out Vector3 position, out Quaternion orientation)
     {
-        _baseYaw = snap ? _restYaw : ChaseCameraMath.DampAngle(_baseYaw, _restYaw, _yawDamping, dt);
+        float chaseYaw = _restYaw + _slideLean;
+        _baseYaw = snap ? chaseYaw : ChaseCameraMath.DampAngle(_baseYaw, chaseYaw, _yawDamping, dt);
 
         float look = SensitivityScale, pitchSign = InvertY ? -1f : 1f;
         _orbitYaw += (stick.x * _stickYawSpeed * dt + mouse.x * _mouseSensitivity) * look;

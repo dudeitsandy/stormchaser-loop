@@ -352,7 +352,7 @@ throttle with the held steer for 2.5 s) and `AirtimeProbeTests`. Awaiting Andy's
 | New: `CounterSteerAssist` | — | **4 /s × \|steer\|** | counter-steer catches the rotation. Counter-steer −0.4: heading 84° → 53°, speed 3.9 → 12.8 m/s (was spinning sideways) |
 | New: `SlideSteerFactor` | (0.45, same as grip) | **0.7** | a little more lock while sliding; measured neutral on its own (0.45 / 0.7 / 1.0 all ≈ 108° without the assist) |
 | Chase camera yaw damping | 1.6 s | **1.1 s** | less lag through corners |
-| New: camera slide lean | — | **35 % toward the nose, full at 45° slip** | a drift shows where the nose points as well as where the truck is going (`ChaseCameraMath.SlideYaw`) |
+| New: camera slide lean | — | **20 % toward the nose, full at 45° slip, eased in/out over 0.6 s** (35 % un-eased was "a little too jarring", Andy 0.8.4) | a drift shows where the nose points as well as where the truck is going (`ChaseCameraMath.SlideYaw`) |
 
 Escape turn (brake + e-brake + steer at 18 m/s) still reverses heading in 1.10 s (bar 2.5 s).
 

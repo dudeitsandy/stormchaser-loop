@@ -145,3 +145,45 @@ of the day"), for sharing runs (pairs with Arcade share codes in `session-modes.
 exactly from inputs, so input replays drift. Options: record transforms per tick instead of inputs (bigger
 files, exact), or periodic state snapshots with input replay between them. Decide in a design pass. New
 system, post-M1.
+
+---
+
+## Run pacing: dead moments in the 3-minute run (Andy, 2026-10-05, for planning)
+
+**Andy:** "there are some real dead moments with nothing to do in the current run as there's limited storms and
+the main storm sometimes arrives really early." Fine for now (no hidden areas, jumps, rescues or tasks yet), but it
+needs a plan.
+
+**Measured** (`AttractSeedProbe.PacingQuietTime`, Explicit, 1000 seeds; a storm is "alive" from spawn to end;
+p10 / p50 / p90 seconds of the 180 s run):
+
+| Regime | Share | No storm alive | Longest gap | Wait for first storm | Empty tail | Main storm touchdown | Storms |
+|---|---|---|---|---|---|---|---|
+| All | 100 % | 63 / **98** / 127 | 35 / **61** / 89 | 15 / **49** / 89 | 14 / **37** / 61 | 75 / 93 / 113 | 2 / 3 / 4 |
+| Outbreak | 17 % | 106 / **120** / 131 | 63 / 82 / 101 | 61 / **82** / 101 | 17 / 38 / 61 | 77 / 97 / 114 | 2 / 3 / 3 |
+| Quiet | 20 % | 86 / 113 / 132 | 41 / 65 / 89 | 15 / 51 / 89 | 23 / 45 / 70 | 75 / 95 / 113 | 2 / 3 / 4 |
+| Sequence | 29 % | 58 / 88 / 113 | 37 / 56 / 75 | 17 / 42 / 74 | 24 / 42 / 65 | 76 / 96 / 114 | 2 / 3 / 4 |
+| LoneGiant | 24 % | 64 / 90 / 118 | 33 / 51 / 86 | 14 / 41 / 86 | 14 / 31 / 52 | 77 / 96 / 113 | 2 / 3 / 4 |
+| Chaos | 11 % | 42 / 70 / 105 | 20 / 44 / 76 | 9 / 25 / 69 | 0 / 15 / 58 | (no anchor) | 3 / 4 / 5 |
+
+**Read:** in a typical run, more than half the run (≈ 98 s) has no storm alive. The median wait for the first storm
+is ≈ 49 s (Outbreak ≈ 82 s), and once the main storm ropes out (≈ 125 s) the last ≈ 37 s are often empty. The main storm
+touches down at 75–113 s, so "arrives early" probably means it's the only thing that happens and is over with time left.
+
+**Levers to decide in planning:** cap the opening wait (a forming cell or warned satellite by ≈ 15–20 s); keep a
+storm alive in the tail (a late satellite or a second act); more or longer-lived satellites; a shorter run; or fill
+quiet time with non-storm activity (jumps/ramps, rescues, KTVR tasks, hidden spots; see Arcade vs Epic modes). The
+Storm Director's plan is data (`CompactSettings`), so the first three are tuning; the last is new systems (post-M1).
+
+---
+
+## Crash weight: impacts, flips and tosses need tactile feedback (Andy, 2026-10-05)
+
+**Andy:** crashes, flinging and flipping (and rough terrain) should "feel a little more heavy somehow"; there isn't
+much tactile feedback. Drift and counter-steer feel good. Also asked of PT-1 testers.
+
+**Options, roughly cheapest first:** camera impulse/shake scaled by impact severity, toss and landing (Cinemachine
+Impulse); a few frames of hit-stop on big impacts; controller rumble on impacts, landings, rough terrain and the
+funnel's pull (Input System motor speeds; Windows only, browser gamepad haptics are unreliable); heavier landing
+thump, crunch and debris audio/VFX (Codex); suspension bottom-out squash on hard landings. Camera shake plus rumble is
+probably about 2 h and fits the freeze rule; decide with PT-1 feedback.
