@@ -33,6 +33,8 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 - **Run pacing, quick fix in (Andy: "fit in an early and late storm"):** Storm Director compact pacing fill, an
   opener storm by ≈ 11 s and a closer on the ground at 160 s (`storm-director.md` Rule 12 → Compact pacing fill).
   Median empty time 98 → 49 s of 180. The bigger pacing plan (non-storm activity) stays in the backlog.
+  **PT-1 testers are on 0.8.3 (no fill):** their Q5 "boring stretch" answers are the *before* baseline; ask the
+  same question in round 2 on the fill build.
 - **For planning:** run pacing (dead moments; measured, `production/backlog.md` → Run pacing) and crash weight
   (tactile feedback on impacts, flips and tosses; backlog → Crash weight). Both also go to PT-1 testers.
 

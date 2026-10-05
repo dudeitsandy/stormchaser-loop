@@ -231,6 +231,9 @@ The cell schedule formula is defined as:
   - Measured over 1000 seeds (`AttractSeedProbe.PacingQuietTime`), median: no storm alive 98 → 49 s of 180,
     longest gap 61 → 27 s, wait for the first storm 49 → 11 s, empty tail 37 → 3 s; anchor touchdown unchanged.
   - Knobs: `CompactSettings` `PacingFill`, `OpenerBy`, `OpenerWindow`, `OpenerEf`, `CloserAliveAt`, `CloserEf`.
+  - Pacing cells count for bounty eligibility (event-system.md RG "Bounty draw" step 1): an EF3 closer can make
+    the EF3+ bounties eligible, so some seeds draw different bounties than before 2026-10-05. Weather on a seed's
+    regime cells is unchanged; bounties use their own stream.
 
 **Variables:**
 | Variable | Type | Range | Source | Description |

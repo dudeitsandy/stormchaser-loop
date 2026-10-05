@@ -294,7 +294,11 @@ an upper bound; a typical run is expected to land 1–3 goals and 1–2 bounties
 ### Bounty draw
 1. **Eligible pool** `E` = the v1 bounties (Rule 3 table) whose "eligible when" column the run's Weather
    Plan satisfies, judged on **non-dropped** cells. `rope_out`, `double_near_miss` and `drift_by` are eligible
-   in every plan with at least one cell, so every director run draws the full 3.
+   in every plan with at least one cell, so every director run draws the full 3. **Pacing cells count**
+   (storm-director.md Rule 12, compact pacing fill, 2026-10-05): they are real storms the player can shoot and
+   ride out, so an EF3 closer makes `warning_cell` and `close_call` eligible on a seed with no regime EF3+. Since
+   that change, such seeds can draw different bounties than before it (pacing cells are never EF5, and every plan
+   already had a cell, so only the EF3+ bounties move).
 2. `n = min(BountiesPerRun, |E|)` bounties are drawn **without replacement** with `DirectorRng(runSeed,
    stream 3)`: a Fisher–Yates shuffle of `E` in catalogue order, first `n` taken. Stream 3 is reserved for
    bounties (director streams: 1 plan, 2 placement, 100+id tracks, 1000+id forecast), so adding or changing
