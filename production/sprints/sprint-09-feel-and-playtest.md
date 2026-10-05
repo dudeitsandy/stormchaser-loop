@@ -33,8 +33,10 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 - **Run pacing, quick fix in (Andy: "fit in an early and late storm"):** Storm Director compact pacing fill, an
   opener storm by ≈ 11 s and a closer on the ground at 160 s (`storm-director.md` Rule 12 → Compact pacing fill).
   Median empty time 98 → 49 s of 180. The bigger pacing plan (non-storm activity) stays in the backlog.
-  **PT-1 testers are on 0.8.3 (no fill):** their Q5 "boring stretch" answers are the *before* baseline; ask the
-  same question in round 2 on the fill build.
+  **Reading PT-1 by build** (testers start on 0.8.5; `playtest-round-1.md` records each tester's build): Q5 "boring
+  stretch" answers from ≤ 0.8.3 are the *before* baseline for the pacing fill; 0.8.4+ answers are already the *after*
+  side. Drift and feathering answers from ≤ 0.8.4 describe the old drift (pass 1 or none); only 0.8.5+ reflects pass 2.
+  Most testers will be 0.8.5, so the pacing before/after comes mainly from round 2 vs Andy's own 0.8.3 runs.
 - **Crash weight, low-end camera shake in** (Andy: "noticeable but not disruptive"; no tester has started):
   jolts on HP-costing impacts, hard landings and tosses, chase view only; values in `vehicle-feel.md` → Crash weight.
 - **For planning:** run pacing (dead moments; measured, `production/backlog.md` → Run pacing) and crash weight
