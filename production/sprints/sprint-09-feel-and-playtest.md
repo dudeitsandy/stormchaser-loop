@@ -80,6 +80,7 @@ After RG-008, M1 "run goals" can be ticked. Revisit M1's 11-16 date once PT-1 is
 | ID | Owner | Task | Est. |
 |----|-------|------|------|
 | S9-04 | Claude | **Now.** WebGL frame-time pre-check for M1's budget criterion over a 3-min run with live storms, rain, storm sky, sirens and radio (title attract counts too): no frame > 50 ms, p95 ≤ 33.3 ms, physics ≤ 4 ms (`?physProbe=1`). Codex supplies the presentation share (X9-01) | 2 h |
+| CU-01 | Cursor | WebGL frame-time capture tool in `tools/perf/` (spec: AGENTS.md → Requests, Claude → Cursor 2026-10-05); feeds S9-04 and later releases | 2 h |
 | S9-05 | Claude | Round 1 non-driving findings (storms, damage, bugs) triaged into fix-now vs backlog | 1 h |
 
 ### Not this sprint

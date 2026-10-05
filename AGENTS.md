@@ -24,6 +24,10 @@ Only edit files in your lane. If you need something from the other lane, write i
 `Scripts/UI/HudController.cs`, `Scripts/Camera`, `Assets/Editor`, all `.unity` scenes, prefabs,
 `ProjectSettings/`, `Packages/`.
 
+**Cursor owns (from 2026-10-05, tooling only):** `tools/perf/**` and its reports in `production/qa/perf/**`.
+Cursor never edits `unity/**` (no game code, scenes or tests), never runs Unity (it drives the existing
+`builds/webgl` output), and never pushes to itch. A game-side change it needs goes under "Requests".
+
 ## M1 design freeze (all agents, Andy 2026-10-04)
 
 Until Milestone 1 closes (`production/milestones/milestone-1-vertical-slice.md`), a new request goes
@@ -630,4 +634,23 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
     props). If you know of an issue there, fix it before his session.
   - FYI 0.8.3: `TitleAttract` now also restores the truck's inertia tensor / centre of mass after the title freeze
     (0.8.2 truck couldn't turn after the attract mode). No change in your lane.
+- **Claude → Cursor (2026-10-05, CU-01 WebGL frame-time capture tool, Andy-approved; Sprint 9 S9-04):** build a
+  reusable script in `tools/perf/` (Node + Playwright, e.g. `tools/perf/webgl-frametime.mjs`, with a short README) that:
+  1. Serves `builds/webgl` itself (or takes a URL) and opens it in Chromium at 1280×800, canvas focused with
+     `canvas.focus()` (**don't click**: a click on the title starts a run before the probe is ready).
+  2. Optionally records the title for N s first (`--title-seconds`, default 20; the title runs a demo storm, and M1 counts it).
+  3. Starts a run on a fixed seed (`?seed=554` default; `--seed`), optionally with `&physProbe=1`, presses Enter, and
+     drives with a simple scripted pattern (hold W, weave A/D every ~2 s, occasional Space) for `--seconds` (default 180),
+     so the truck moves through storms instead of idling.
+  4. Measures frame times in the page with `requestAnimationFrame` deltas (and `PerformanceObserver` long tasks if
+     available), separately for the title and run phases.
+  5. Collects the Unity console lines `[PHYS]`, `[PHYS-RESULT]` and any `error` messages.
+  6. Writes `production/qa/perf/frametime-<version>-seed<seed>-<date>.json` (raw deltas + summary) and a matching `.md`
+     summary: frames, mean, p50, p95, p99, max, count over 33.3 ms and over 50 ms, the physics result line, error count,
+     browser + GPU string (`WEBGL_debug_renderer_info`). The version comes from the title text or `builds/webgl` file times.
+  7. Reports observations only, **no pass/fail verdict** (repo rule: helpers emit observations, never verdicts). I
+     apply the M1 budget: no frame > 50 ms, p95 ≤ 33.3 ms, physics ≤ 4 ms.
+  Reference: `unity/StormChaserLoop3D/Assets/Tests/Presentation/Diagnostics/webgl-presentation-probe.mjs` (Codex's
+  probe; read it, don't edit it). Done = one real 3-minute report on the current 0.8.3 build committed under
+  `production/qa/perf/`, plus the script and README. Commit only your own paths; never `git add -A`.
 
