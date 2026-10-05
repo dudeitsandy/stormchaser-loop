@@ -78,3 +78,22 @@ hear it and see the curtain but not the funnel until it is close: a built-in "oh
 **Fit:** builds on X8-03 rain curtains (presentation) and the storm-tension direction. Needs a design pass in
 `storm-director.md` (which cells are rain-wrapped, how the forecast and telegraphs still give fair warning) and
 `photo-scoring.md` (does a shot through rain score). Post-M1.
+
+---
+
+## KTVR Storm Radio: the music system (Andy, 2026-10-04)
+
+**Idea:** the game's music is a radio station playing inside the truck. It plays a playlist of tracks, the
+KTVR DJ breaks in for warnings, static creeps in as storms build, and the music cuts to the alert on a
+TORNADO EMERGENCY. It builds on what exists: the KTVR DJ title, the news crawl and the X7-10 broadcast tones
+and static.
+
+**In M1 instead:** only a title-screen music loop, if Andy has a track, through the existing Music volume
+slider. Nothing else.
+
+**Sample tracks:** Andy is generating them in Suno ahead of time (Google Doc "Doomsday: KTVR Storm Radio sample
+music (Suno)"). Staging stays outside the public repo. Before anything ships, record the plan and date for
+every track (commercial rights) and make the Steam AI-content disclosure.
+
+**Needs first:** M1 shipped; an audio direction pass (audio-director) covering the playlist, DJ voice lines
+and how the station reacts to storminess `s` and to cell events.
