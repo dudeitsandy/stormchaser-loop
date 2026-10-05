@@ -650,6 +650,8 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
      browser + GPU string (`WEBGL_debug_renderer_info`). The version comes from the title text or `builds/webgl` file times.
   7. Reports observations only, **no pass/fail verdict** (repo rule: helpers emit observations, never verdicts). I
      apply the M1 budget: no frame > 50 ms, p95 ≤ 33.3 ms, physics ≤ 4 ms.
+  **Measure a frozen copy:** Claude rebuilds `builds/webgl` during S9-02a, so copy it first to `builds/perf-snapshot/<version>/`
+  (gitignored under `builds/`) and serve that, so a run is never measuring a half-written build.
   Reference: `unity/StormChaserLoop3D/Assets/Tests/Presentation/Diagnostics/webgl-presentation-probe.mjs` (Codex's
   probe; read it, don't edit it). Done = one real 3-minute report on the current 0.8.3 build committed under
   `production/qa/perf/`, plus the script and README. Commit only your own paths; never `git add -A`.
