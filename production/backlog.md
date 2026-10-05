@@ -68,6 +68,12 @@ Possibly Rampage-style: runs travel through random generated towns and cities ac
 **Needs first:** the Disaster Alchemy / interaction design (out of M1 scope), a second `DisasterEntity` type,
 and for lightning a strike-photo scoring rule in `photo-scoring.md`.
 
+**Lightning in two steps (Andy, 2026-10-05):** first **visual-only lightning** in storm cells: flashes in the cloud
+deck, cloud-to-ground bolts near the anchor, thunder on a distance delay. It's presentation (Codex) and would also
+help the storm visuals pass below. Then **lightning as a hazard** (near strikes, EMP, damage) once a second hazard
+type is designed. **Hard constraint for both:** accessibility Basic, so no full-screen flashing above 3 per second
+(`design/accessibility-requirements.md`); bolts light the scene, never strobe the screen.
+
 ---
 
 ## Rain-wrapped tornadoes (Andy, 2026-10-04)
@@ -221,3 +227,34 @@ storms are hard to see, funnel opacity moves into M1 as a small Codex tuning tas
 
 **Owner:** Codex (presentation: funnel cards, sky deck, storminess grading), with an art-direction check against
 ADR-0003.
+
+---
+
+## KTVR weather person and radar (Andy, 2026-10-05, polish, much later)
+
+**Idea:** when a front or a dangerous storm comes in, a small picture-in-picture of the KTVR weather person
+pops up with a quick radar sweep (hook echo, red and purple cells) and a one-liner, like a TV weather cut-in.
+Strongest in a storm or front mode with coordinated weather (Epic 2 km chase, `session-modes.md`).
+
+**Fit:** the forecast panel stays the gameplay readout; this is the flavor layer on top of the same Storm Director
+data (cell positions, EF, phase), so it never contradicts the forecast. It reuses the crawl's rule: no exact EF
+numbers in character lines. It needs a character portrait (2D, animated cut-in) and a stylized radar render
+(top-down from director cells, not real data).
+
+**When:** polish, after M1 and after the storm visuals pass.
+
+---
+
+## The KTVR universe: characters (Andy, 2026-10-05, long-term)
+
+**Idea:** give the quirky world recurring characters: the KTVR weather person, the Morning Zoo crew (Big Rick, Tammy,
+Weather Wally), sponsors like Dorothy's Tow & Salvage and Last Chance Storm Cellars, and in-game NPCs (townsfolk to
+rescue, rival chasers). The radio, news crawl, bounties and career goals become their voice.
+
+**Fit:** pairs with Civilians & Rescue (systems-index #20), Story/Career mode (`story-career-mode-concept.md`), the
+KTVR radio system and the weather person above. Needs a narrative pass (`narrative-director`: cast, tone, how much
+story the roguelite carries) before any assets. Tone guardrail: storm comedy, never mocking real disasters or real
+towns.
+
+**When:** after M1. The first cheap step is consistent names and voice in existing text (crawl lines, bounty text,
+jingles), which can happen any time as copy edits.
