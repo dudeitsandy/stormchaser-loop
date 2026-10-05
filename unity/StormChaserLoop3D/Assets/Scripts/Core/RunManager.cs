@@ -26,8 +26,8 @@ public class RunManager : MonoBehaviour
     [Tooltip("Real seconds before the results screen accepts input, so a mashed shutter doesn't skip it.")]
     [SerializeField] private float _resultsInputDelay = 1.0f;
     [Tooltip("Real seconds of slow motion after a wreck before results appear.")]
-    [SerializeField] private float _wreckSlowMoSeconds = 1.2f;
-    [SerializeField] private float _wreckTimeScale = 0.25f;
+    [SerializeField] private float _wreckSlowMoSeconds = 1.5f; // design/ux/run-screens.md Transitions (was 1.2)
+    [SerializeField] private float _wreckTimeScale = 0.3f;      // (was 0.25)
 
     private RunScreens _screens;
     private GoalRunner _goals;
@@ -132,6 +132,8 @@ public class RunManager : MonoBehaviour
         WaitForAnyButton(0.25f, control =>
         {
             if (IsSettingsKey(control)) OpenSettings(fromTitle: true);
+            else if (IsCareerKey(control)) ShowCareerPage();
+            else if (IsPaintKey(control)) TogglePaint();
             else if (control != Keyboard.current?.escapeKey) StartRun();
             else if (CanQuit) ConfirmQuitGame();
             else EnterTitle(); // WebGL: Application.Quit halts the player and freezes the canvas
@@ -376,6 +378,7 @@ public class RunManager : MonoBehaviour
         if (summary.Wrecked)
         {
             Time.timeScale = _wreckTimeScale;
+            _screens.ShowWrecked(); // run-screens story 003: the WRECKED slam over the slowed world
             yield return new WaitForSecondsRealtime(_wreckSlowMoSeconds);
         }
 
@@ -437,6 +440,37 @@ public class RunManager : MonoBehaviour
             _anyButton = null;
             onPress(control);
         });
+    }
+
+    // ---------- Title: career page and paint toggle (run-screens story 005) ----------
+
+    private static bool IsCareerKey(InputControl c) =>
+        c == Keyboard.current?.cKey || (c.device is Gamepad pad && c == pad.buttonNorth);
+
+    private static bool IsPaintKey(InputControl c) =>
+        c == Keyboard.current?.lKey || (c.device is Gamepad pad && c == pad.buttonWest);
+
+    private void ShowCareerPage()
+    {
+        GameEvents.RaiseMenuPicked();
+        _screens.ShowCareer();
+        WaitForAnyButton(0.2f, _ => EnterTitle());
+    }
+
+    /// <summary>
+    /// L / X on the title: swaps STOCK ⇄ KTVR paint once the livery is owned (saved, applied now). Without it the press
+    /// is ignored, never a run start. Public for PlayMode tests.
+    /// </summary>
+    public void TogglePaint()
+    {
+        ProfileStore p = ProfileStore.Shared;
+        if (p.IsUnlocked(RunRewards.KtvrLivery))
+        {
+            p.SetLivery(p.Data.Livery == RunRewards.KtvrLivery ? "" : RunRewards.KtvrLivery);
+            TruckLivery.Apply(p.Data.Livery);
+            GameEvents.RaiseMenuMoved();
+        }
+        EnterTitle();
     }
 
     // ---------- Settings (run-screens story 002) ----------

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -78,11 +79,80 @@ public class RunScreens : MonoBehaviour
             _overlay.Add(MakeLabel($"BEST  {bestScore:N0}", 22, Amber, letterSpacing: 4));
         }
         _overlay.Add(Spacer(28));
+        AddCareerStrip();
         _overlay.Add(MakeLabel(Application.platform == RuntimePlatform.WebGLPlayer
-            ? "O / SELECT  SETTINGS" : "O / SELECT  SETTINGS      ESC  QUIT", 16, Dim, letterSpacing: 3));
+            ? "C / Y  CAREER      O / SELECT  SETTINGS" : "C / Y  CAREER      O / SELECT  SETTINGS      ESC  QUIT",
+            16, Dim, letterSpacing: 3));
         _overlay.Add(Spacer(8));
         AddPrompt("PRESS ANYTHING. GO GO GO.");
         _overlay.style.display = DisplayStyle.Flex;
+    }
+
+    // Title career strip (run-screens story 005): progress and the next reward, or the paint toggle once it's owned.
+    private void AddCareerStrip()
+    {
+        ProfileStore p = ProfileStore.Shared;
+        _overlay.Add(Spacer(10));
+        _overlay.Add(MakeLabel(CareerStripText(p.CareerCount(GoalCatalogue.Mode, GoalCatalogue.Map), GoalCatalogue.Career.Count,
+                                               p.IsUnlocked(RunRewards.KtvrLivery), p.Data.Livery == RunRewards.KtvrLivery),
+                               20, Amber, bold: true, letterSpacing: 4));
+        _overlay.Add(Spacer(6));
+    }
+
+    /// <summary>Title career strip text (first launch, progress, or the owned paint toggle).</summary>
+    public static string CareerStripText(int done, int total, bool ktvrOwned, bool ktvrWorn)
+    {
+        if (ktvrOwned) return $"CAREER {done}/{total}  ·  PAINT: {(ktvrWorn ? "KTVR" : "STOCK")}  (L / X)";
+        int more = Mathf.Max(0, RunRewards.RewardThreshold - done);
+        return done == 0
+            ? $"CAREER 0/{total}  ·  {RunRewards.RewardThreshold} GOALS UNLOCK KTVR PAINT"
+            : $"CAREER {done}/{total}  ·  {more} MORE: KTVR PAINT";
+    }
+
+    /// <summary>Career page over the title: the 10 career goals done or not, and the reward.</summary>
+    public void ShowCareer()
+    {
+        ClearOverlay();
+        ProfileStore p = ProfileStore.Shared;
+        int done = p.CareerCount(GoalCatalogue.Mode, GoalCatalogue.Map);
+        int total = GoalCatalogue.Career.Count;
+        _overlay.Add(MakeLabel(done == total ? "CAREER COMPLETE" : $"HEARTLAND CAREER   {done} / {total}", 44, Amber, bold: true, letterSpacing: 8));
+        _overlay.Add(Spacer(16));
+        var grid = new VisualElement { pickingMode = PickingMode.Ignore };
+        grid.style.flexDirection = FlexDirection.Row;
+        grid.style.flexWrap = Wrap.Wrap;
+        grid.style.width = 1000;
+        foreach (GoalDef g in GoalCatalogue.Career)
+        {
+            bool has = p.HasCompleted(g.Id);
+            Label line = LeftLabel($"{(has ? "DONE" : "  -  ")}   {CareerGoalText(g)}", 20, has ? Amber : Bone, bold: has, letterSpacing: 2);
+            line.style.width = 500;
+            line.style.paddingTop = 4;
+            line.style.paddingBottom = 4;
+            grid.Add(line);
+        }
+        _overlay.Add(grid);
+        _overlay.Add(Spacer(16));
+        bool owned = p.IsUnlocked(RunRewards.KtvrLivery);
+        _overlay.Add(MakeLabel(owned ? "REWARD  ·  KTVR PAINT JOB  ·  EARNED"
+                                     : $"REWARD  ·  {RunRewards.RewardThreshold} GOALS: KTVR PAINT JOB  ({Mathf.Min(done, RunRewards.RewardThreshold)}/{RunRewards.RewardThreshold})",
+                               22, owned ? Amber : Bone, bold: true, letterSpacing: 4));
+        _overlay.Add(Spacer(20));
+        AddPrompt("ANY BUTTON  BACK");
+        _overlay.style.display = DisplayStyle.Flex;
+    }
+
+    /// <summary>Career-page text: score goals show their threshold ("PRO SCORE 1,500").</summary>
+    public static string CareerGoalText(GoalDef g)
+    {
+        GoalTuning t = GoalTuning.Defaults;
+        switch (g.Key)
+        {
+            case "score_rookie": return $"{g.Text} {t.ScoreRookie:N0}";
+            case "score_pro": return $"{g.Text} {t.ScorePro:N0}";
+            case "score_sick": return $"{g.Text} {t.ScoreSick:N0}";
+            default: return g.Text;
+        }
     }
 
     /// <summary>Key art banner (docs/visual-targets "Doomsday Tornado Highway"), or the text title without it.</summary>
@@ -138,41 +208,163 @@ public class RunScreens : MonoBehaviour
         }).StartingIn(90);
     }
 
-    /// <summary>Shows the end-of-run tally.</summary>
+    /// <summary>
+    /// Results (design/ux/run-screens.md, run-screens story 004): header, then two columns (score, best, stats and
+    /// weather left; this run's goals right), then a footer (unlock banner, save toast, seed line, prompt). The panel
+    /// scales to a 1200-unit width, so two columns always fit; the layout stays within ≈ 480 units of height for the
+    /// shortest screens (1080p is ≈ 675 units tall, the 960×600 itch embed 750).
+    /// </summary>
     public void ShowResults(RunSummary summary)
     {
         ClearOverlay();
-        _overlay.Add(MakeLabel(summary.Wrecked ? "WRECKED" : "SESSION OVER", 84,
+        _overlay.Add(MakeLabel(summary.Wrecked ? "WRECKED" : "SESSION OVER", 60,
             summary.Wrecked ? Alarm : Amber, bold: true, letterSpacing: 12));
-        _overlay.Add(Spacer(24));
-        _overlay.Add(MakeLabel($"{summary.Score:N0}", 96, Bone, bold: true));
+        _overlay.Add(Spacer(10));
+
+        var columns = new VisualElement { pickingMode = PickingMode.Ignore };
+        columns.style.flexDirection = FlexDirection.Row;
+        columns.style.alignItems = Align.FlexStart;
+        columns.style.justifyContent = Justify.Center;
+
+        var left = Column(380);
+        left.Add(MakeLabel($"{summary.Score:N0}", 72, Bone, bold: true));
         if (summary.IsNewBest && summary.Score > 0f)
-            _overlay.Add(MakeLabel("NEW BEST", 26, Amber, bold: true, letterSpacing: 8));
+            left.Add(MakeLabel("NEW BEST", 22, Amber, bold: true, letterSpacing: 8));
         else
-            _overlay.Add(MakeLabel($"BEST  {Mathf.Max(summary.PreviousBest, summary.Score):N0}", 22, Dim, letterSpacing: 4));
-        _overlay.Add(Spacer(28));
-        _overlay.Add(Row("PHOTOS", summary.PhotosTaken.ToString()));
-        _overlay.Add(Row("BEST SHOT", $"{summary.BestShot:N0}"));
-        AddStormBlock(summary.Storm);
-        _overlay.Add(Spacer(40));
-        AddPrompt("ANY BUTTON  RETRY      ESC  TITLE");
+            left.Add(MakeLabel($"BEST  {Mathf.Max(summary.PreviousBest, summary.Score):N0}", 20, Dim, letterSpacing: 4));
+        left.Add(Spacer(12));
+        left.Add(Row("PHOTOS", summary.PhotosTaken.ToString()));
+        left.Add(Row("BEST SHOT", $"{summary.BestShot:N0}"));
+        if (summary.Storm.Valid)
+        {
+            left.Add(Row("WEATHER", summary.Storm.Regime));
+            if (summary.Storm.BigOneGotAwayEf >= 0)
+            {
+                left.Add(Spacer(6));
+                left.Add(MakeLabel($"THE BIG ONE GOT AWAY (EF{summary.Storm.BigOneGotAwayEf})", 20, Amber, bold: true, letterSpacing: 3));
+            }
+        }
+        columns.Add(left);
+
+        if (summary.Goals.Valid)
+        {
+            var gap = new VisualElement();
+            gap.style.width = 48;
+            columns.Add(gap);
+            columns.Add(GoalsColumn(summary.Goals));
+        }
+        _overlay.Add(columns);
+        _overlay.Add(Spacer(14));
+        AddResultsFooter(summary);
+        AddPrompt("ANY BUTTON  RETRY      ESC / B  TITLE");
         _overlay.style.display = DisplayStyle.Flex;
     }
 
-    // storm-director.md UI Requirements (story 009): regime, the anchor that got away, seed + build for replay.
-    private void AddStormBlock(StormRunInfo storm)
+    // Right column: this run's completions (short names, bonus, NEW), the drawn bounties' outcomes, the career count.
+    private static VisualElement GoalsColumn(RunGoalsInfo goals)
     {
-        if (!storm.Valid) return;
-        _overlay.Add(Row("WEATHER", storm.Regime));
-        if (storm.BigOneGotAwayEf >= 0)
+        var col = Column(420);
+        col.Add(LeftLabel("GOALS", 22, Amber, bold: true, letterSpacing: 6));
+        var done = new HashSet<string>();
+        if (goals.Completions.Count == 0)
+            col.Add(LeftLabel("NO GOALS THIS RUN", 18, Dim, letterSpacing: 3));
+        foreach (GoalCompletion c in goals.Completions)
         {
-            _overlay.Add(Spacer(10));
-            _overlay.Add(MakeLabel($"THE BIG ONE GOT AWAY (EF{storm.BigOneGotAwayEf})", 24, Amber, bold: true, letterSpacing: 4));
+            done.Add(c.Id);
+            GoalDef def = GoalCatalogue.Find(c.Id);
+            if (def == null || c.Kind != GoalKind.Career) continue;
+            col.Add(GoalLine(ResultsGoalText(def, c), c.FirstEver));
         }
-        _overlay.Add(Spacer(12));
-        _overlay.Add(MakeLabel($"SEED {storm.Seed}  ·  v{storm.BuildVersion}  ·  REPLAY WITH ?seed={storm.Seed}", 14, Dim, letterSpacing: 2));
-        if (storm.VersionMismatch)
-            _overlay.Add(MakeLabel("Different version: storms may differ.", 16, Alarm));
+        if (goals.Bounties.Count > 0)
+        {
+            col.Add(Spacer(6));
+            col.Add(LeftLabel("KTVR BOUNTIES", 16, Dim, letterSpacing: 4));
+            foreach (string id in goals.Bounties)
+            {
+                GoalDef def = GoalCatalogue.Find(id);
+                if (def == null) continue;
+                GoalCompletion completion = default;
+                foreach (GoalCompletion c in goals.Completions) if (c.Id == id) completion = c;
+                bool missed = false;
+                foreach (string f in goals.FailedBounties) if (f == id) missed = true;
+                string text = done.Contains(id) ? ResultsGoalText(def, completion)
+                            : missed ? $"MISS  {def.ShortName}" : $"-  {def.ShortName}";
+                col.Add(GoalLine(text, done.Contains(id) && completion.FirstEver, missed ? Dim : (Color?)null));
+            }
+        }
+        col.Add(Spacer(6));
+        ProfileStore profile = ProfileStore.Shared;
+        col.Add(LeftLabel($"CAREER  {profile.CareerCount(GoalCatalogue.Mode, GoalCatalogue.Map)} / {GoalCatalogue.Career.Count}",
+                          18, Bone, bold: true, letterSpacing: 4));
+        return col;
+    }
+
+    /// <summary>Results line for a completed goal: "DONE  BIG AIR  +150" (score goals show no bonus).</summary>
+    public static string ResultsGoalText(GoalDef def, GoalCompletion c) =>
+        c.Bonus > 0 ? $"DONE  {def.ShortName}  +{c.Bonus}" : $"DONE  {def.ShortName}";
+
+    private static VisualElement GoalLine(string text, bool isNew, Color? color = null)
+    {
+        var line = new VisualElement { pickingMode = PickingMode.Ignore };
+        line.style.flexDirection = FlexDirection.Row;
+        line.style.justifyContent = Justify.SpaceBetween;
+        line.style.width = 400;
+        line.Add(LeftLabel(text, 18, color ?? Bone, letterSpacing: 2));
+        if (isNew)
+        {
+            Label tag = LeftLabel("NEW", 16, Amber, bold: true, letterSpacing: 3);
+            // NEW pulses amber once (spec: Transitions).
+            tag.style.opacity = 0.2f;
+            tag.schedule.Execute(() => tag.style.opacity = 1f).StartingIn(250);
+            line.Add(tag);
+        }
+        return line;
+    }
+
+    // Footer: unlock banner, save toast, seed / version line.
+    private void AddResultsFooter(RunSummary summary)
+    {
+        foreach (string unlock in summary.Goals.Valid ? summary.Goals.NewUnlocks : System.Array.Empty<string>())
+            if (unlock == RunRewards.KtvrLivery)
+                _overlay.Add(MakeLabel("UNLOCKED: KTVR PAINT JOB  ·  WORN NEXT RUN", 24, Amber, bold: true, letterSpacing: 4));
+        if (summary.Goals.Valid && !summary.Goals.Saved)
+            _overlay.Add(MakeLabel("COULDN'T SAVE — PROGRESS KEPT, WILL RETRY", 18, Alarm, bold: true, letterSpacing: 2));
+        if (summary.Storm.Valid)
+        {
+            _overlay.Add(MakeLabel($"SEED {summary.Storm.Seed}  ·  v{summary.Storm.BuildVersion}  ·  REPLAY WITH ?seed={summary.Storm.Seed}",
+                                   14, Dim, letterSpacing: 2));
+            if (summary.Storm.VersionMismatch)
+                _overlay.Add(MakeLabel("Different version: storms may differ.", 16, Alarm));
+        }
+        _overlay.Add(Spacer(10));
+    }
+
+    /// <summary>The WRECKED slam during the slow-mo beat (run-screens story 003).</summary>
+    public void ShowWrecked()
+    {
+        ClearOverlay();
+        _overlay.style.backgroundColor = new Color(0.02f, 0.03f, 0.05f, 0.25f);
+        Label slam = MakeLabel("W R E C K E D", 96, Alarm, bold: true, letterSpacing: 10);
+        slam.style.scale = new Scale(Vector3.one * 1.4f);
+        slam.schedule.Execute(() => slam.style.scale = new Scale(Vector3.one)).StartingIn(200);
+        _overlay.Add(slam);
+        _overlay.style.display = DisplayStyle.Flex;
+    }
+
+    private static VisualElement Column(float width)
+    {
+        var col = new VisualElement { pickingMode = PickingMode.Ignore };
+        col.style.width = width;
+        col.style.alignItems = Align.Center;
+        return col;
+    }
+
+    private static Label LeftLabel(string text, int size, Color color, bool bold = false, float letterSpacing = 0f)
+    {
+        Label l = MakeLabel(text, size, color, bold, letterSpacing);
+        l.style.unityTextAlign = TextAnchor.MiddleLeft;
+        l.style.alignSelf = Align.FlexStart;
+        return l;
     }
 
     /// <summary>
@@ -280,6 +472,7 @@ public class RunScreens : MonoBehaviour
 
     private void ClearOverlay()
     {
+        _overlay.style.backgroundColor = new Color(0.02f, 0.03f, 0.05f, 0.78f);
         _blink?.Pause();
         _blink = null;
         _ticker?.Pause();

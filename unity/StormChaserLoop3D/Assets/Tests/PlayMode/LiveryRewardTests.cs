@@ -81,4 +81,21 @@ public class LiveryRewardTests
         CollectionAssert.IsEmpty(_summary.Value.Goals.NewUnlocks.ToList());
         Assert.IsFalse(new ProfileStore(_disk).IsUnlocked("livery.ktvr"));
     }
+
+    [UnityTest]
+    public IEnumerator TitlePaintToggle_SwapsOwnedLivery_AndSaves_ButDoesNothingWhenNotOwned()
+    {
+        var run = UnityEngine.Object.FindAnyObjectByType<RunManager>();
+        Assert.AreEqual(RunManager.State.Title, run.Current);
+        run.TogglePaint();
+        Assert.AreEqual("", ProfileStore.Shared.Data.Livery, "not owned yet: no paint");
+        Assert.AreEqual(RunManager.State.Title, run.Current, "and never a run start");
+
+        ProfileStore.Shared.RecordRunComplete(null, "compact", 1, "test", DateTime.UtcNow, 0f, new[] { "livery.ktvr" });
+        run.TogglePaint();
+        Assert.AreEqual("livery.ktvr", new ProfileStore(_disk).Data.Livery, "owned: KTVR, saved");
+        run.TogglePaint();
+        Assert.AreEqual("", new ProfileStore(_disk).Data.Livery, "and back to stock");
+        yield return null;
+    }
 }

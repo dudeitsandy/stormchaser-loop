@@ -1,7 +1,7 @@
 # Story 005: Title: career strip, career page and paint toggle
 
 > **Epic**: Run Screens
-> **Status**: Ready
+> **Status**: In Review (2026-10-05) — code + tests done; no profile-loading state (WebGL loads the save before the game starts); screenshots with 0.8.0
 > **Layer**: Presentation
 > **Type**: UI
 > **Estimate**: 3 h (M)

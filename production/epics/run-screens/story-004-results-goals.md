@@ -1,7 +1,7 @@
 # Story 004: Results: two columns, goals and save messages
 
 > **Epic**: Run Screens
-> **Status**: Ready
+> **Status**: In Review (2026-10-05) — code + tests done; always two columns (the panel scales to a 1200-unit width, so "one column below 1000 px" never triggers; height is the constraint); screenshots with 0.8.0
 > **Layer**: Presentation
 > **Type**: UI
 > **Estimate**: 4 h (M)
