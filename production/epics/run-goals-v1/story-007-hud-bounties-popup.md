@@ -1,7 +1,7 @@
 # Story 007: HUD bounty list and career-goal pop-up
 
 > **Epic**: Run Goals v1
-> **Status**: Ready
+> **Status**: Done (2026-10-04, 0.7.9) — pop-up visual pending Andy's live look (headless can't trigger a career goal on cue)
 > **Layer**: Feature
 > **Type**: UI
 > **Estimate**: 3 h (M)
@@ -65,7 +65,7 @@ The in-run goal UI from the run-screens spec: a KTVR WANTS list under BOOST in t
 **Story Type**: UI
 **Required evidence**: Retained screenshots in `production/qa/evidence/` (HUD with 3 bounties: one done, one failed; career pop-up)
 
-**Status**: [ ] Not yet created
+**Status**: [x] `production/qa/evidence/rg-007-hud-bounties.png` (WebGL); text checks in `Tests/Goals/HudGoalTextTests.cs` (2) and `GoalTrackerPlayTests.Hud_ListsTheRunsBounties_MarksDoneAndMissed_AndPopsACareerGoal`
 
 ---
 

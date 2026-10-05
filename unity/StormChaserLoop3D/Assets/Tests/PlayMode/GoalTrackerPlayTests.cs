@@ -131,6 +131,34 @@ public class GoalTrackerPlayTests
         CollectionAssert.Contains(_summary.Value.Goals.Completions.Select(c => c.Id).ToList(), C + "toss_survivor");
     }
 
+    // run-goals-v1 story 007: the HUD bounty list and career pop-up react to the goal events (text, not pixels:
+    // batchmode never reaches end-of-frame, so the visual evidence is a WebGL capture).
+    [UnityTest]
+    public IEnumerator Hud_ListsTheRunsBounties_MarksDoneAndMissed_AndPopsACareerGoal()
+    {
+        _run.StartRun();
+        _truck.InputEnabled = false;
+        yield return null;
+        var goals = Object.FindAnyObjectByType<GoalRunner>();
+        var hud = Object.FindAnyObjectByType<HudController>();
+        const BindingFlags Hidden = BindingFlags.NonPublic | BindingFlags.Instance;
+        var rows = (Dictionary<string, UnityEngine.UIElements.Label>)typeof(HudController).GetField("_bountyRows", Hidden).GetValue(hud);
+        var popup = (UnityEngine.UIElements.Label)typeof(HudController).GetField("_goalPopup", Hidden).GetValue(hud);
+        Assert.AreEqual(3, rows.Count, "one row per drawn bounty");
+
+        GoalDef done = GoalCatalogue.Find(goals.Bounties[0]);
+        GameEvents.RaiseGoalCompleted(new GoalCompletion(done.Id, GoalKind.Bounty, done.Bonus, true));
+        GameEvents.RaiseBountyFailed(goals.Bounties[1]);
+        GameEvents.RaiseStyleEvent(StyleKind.Airtime, 1.2f); // big_air: a real career completion
+        yield return null;
+
+        StringAssert.StartsWith("DONE  ", rows[goals.Bounties[0]].text);
+        StringAssert.StartsWith("·  ", rows[goals.Bounties[2]].text);
+        StringAssert.StartsWith("MISS  ", rows[goals.Bounties[1]].text, "the HUD shows what BountyFailed reports");
+        Assert.AreEqual("GOAL! BIG AIR  +150  NEW", popup.text);
+        Assert.AreEqual(UnityEngine.UIElements.DisplayStyle.Flex, popup.style.display.value);
+    }
+
     [UnityTest]
     public IEnumerator QuitToTitle_ForfeitsTheRunsGoals_NoSummary()
     {

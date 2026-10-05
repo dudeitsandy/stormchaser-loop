@@ -67,6 +67,17 @@ public class HudController : MonoBehaviour
     private int _lastSeconds = -1;
     private float _lastScore = -1f;
 
+    // Run Goals HUD (event-system.md Run Goals Rule 8; design/ux/run-screens.md; run-goals-v1 story 007).
+    private static readonly Color GoalOpen = new Color(1f, 1f, 1f, 0.72f);
+    private static readonly Color GoalMiss = new Color(0.95f, 0.45f, 0.4f, 0.8f);
+    [Tooltip("Seconds the career-goal pop-up holds.")]
+    [SerializeField] private float _goalPopupSeconds = 2f;
+    private GoalRunner _goals;
+    private VisualElement _bountyBlock;
+    private readonly Dictionary<string, Label> _bountyRows = new Dictionary<string, Label>();
+    private Label _goalPopup;
+    private IVisualElementScheduledItem _goalPopupHide;
+
     private void Awake()
     {
         if (_vehicleHealth == null) _vehicleHealth = FindAnyObjectByType<VehicleHealth>();
@@ -82,6 +93,9 @@ public class HudController : MonoBehaviour
         GameEvents.OutOfFilm += OnOutOfFilm;
         GameEvents.StormCellForming += OnStormCellForming;
         GameEvents.StormCellPeak += OnStormCellPeak;
+        GameEvents.RunStarted += OnRunStarted;
+        GameEvents.GoalCompleted += OnGoalCompleted;
+        GameEvents.BountyFailed += OnBountyFailed;
     }
 
     private void OnDisable()
@@ -92,6 +106,9 @@ public class HudController : MonoBehaviour
         GameEvents.OutOfFilm -= OnOutOfFilm;
         GameEvents.StormCellForming -= OnStormCellForming;
         GameEvents.StormCellPeak -= OnStormCellPeak;
+        GameEvents.RunStarted -= OnRunStarted;
+        GameEvents.GoalCompleted -= OnGoalCompleted;
+        GameEvents.BountyFailed -= OnBountyFailed;
     }
 
     private void Start()
@@ -177,6 +194,7 @@ public class HudController : MonoBehaviour
         track.Add(_boostFill);
         boostRow.Add(track);
         leftColumn.Add(boostRow);
+        BuildBountyBlock(leftColumn);
         root.Add(leftColumn);
 
         // Top-center risk/reward meter: shows the live bonus a shot would get from here.
@@ -201,6 +219,142 @@ public class HudController : MonoBehaviour
         root.Add(center);
 
         BuildNewsCrawl(root);
+        BuildGoalPopup(root);
+        _goals = FindAnyObjectByType<GoalRunner>();
+        if (_goals != null && _sessionTimer != null && _sessionTimer.IsRunning) OnRunStarted(); // retry skips the title
+    }
+
+    // ---------- Run Goals ----------
+
+    private void BuildBountyBlock(VisualElement parent)
+    {
+        _bountyBlock = new VisualElement { pickingMode = PickingMode.Ignore };
+        _bountyBlock.style.marginTop = 4;
+        _bountyBlock.style.backgroundColor = new Color(0, 0, 0, 0.5f);
+        _bountyBlock.style.paddingLeft = 8;
+        _bountyBlock.style.paddingRight = 8;
+        _bountyBlock.style.paddingTop = 4;
+        _bountyBlock.style.paddingBottom = 4;
+        _bountyBlock.style.display = DisplayStyle.None;
+        parent.Add(_bountyBlock);
+    }
+
+    private void BuildGoalPopup(VisualElement root)
+    {
+        // Upper centre, above Codex's style pops (44 % height) and below IN THE WIND.
+        var holder = new VisualElement { pickingMode = PickingMode.Ignore };
+        holder.style.position = Position.Absolute;
+        holder.style.top = Length.Percent(24);
+        holder.style.left = 0;
+        holder.style.right = 0;
+        holder.style.alignItems = Align.Center;
+        _goalPopup = MakePanelLabel("", 30);
+        _goalPopup.style.color = HpFull;
+        _goalPopup.style.unityFontStyleAndWeight = FontStyle.Bold;
+        _goalPopup.style.letterSpacing = 4;
+        _goalPopup.style.display = DisplayStyle.None;
+        holder.Add(_goalPopup);
+        root.Add(holder);
+    }
+
+    private void OnRunStarted()
+    {
+        if (_bountyBlock == null) return;
+        if (_goals == null) _goals = FindAnyObjectByType<GoalRunner>();
+        _bountyBlock.Clear();
+        _bountyRows.Clear();
+        IReadOnlyList<string> bounties = _goals != null ? _goals.Bounties : null;
+        if (bounties == null || bounties.Count == 0)
+        {
+            _bountyBlock.style.display = DisplayStyle.None; // legacy spawner: no plan, no bounties
+            return;
+        }
+        Label title = MakeGoalLabel("KTVR WANTS", 12, Color.white);
+        title.style.letterSpacing = 3;
+        _bountyBlock.Add(title);
+        foreach (string id in bounties)
+        {
+            GoalDef def = GoalCatalogue.Find(id);
+            if (def == null) continue;
+            Label row = MakeGoalLabel(BountyText(def, BountyState.Open, 0), 14, GoalOpen);
+            _bountyRows[id] = row;
+            _bountyBlock.Add(row);
+        }
+        _bountyBlock.style.display = DisplayStyle.Flex;
+    }
+
+    private void OnGoalCompleted(GoalCompletion c)
+    {
+        GoalDef def = GoalCatalogue.Find(c.Id);
+        if (def == null) return;
+        if (c.Kind == GoalKind.Bounty && _bountyRows.TryGetValue(c.Id, out Label row))
+        {
+            row.text = BountyText(def, BountyState.Done, c.Bonus);
+            row.style.color = HpFull;
+            Brighten(row);
+        }
+        if (c.Kind == GoalKind.Career) ShowGoalPopup(CareerPopupText(def, c));
+    }
+
+    private void OnBountyFailed(string id)
+    {
+        GoalDef def = GoalCatalogue.Find(id);
+        if (def == null || !_bountyRows.TryGetValue(id, out Label row)) return;
+        row.text = BountyText(def, BountyState.Missed, 0);
+        row.style.color = GoalMiss;
+        Brighten(row);
+    }
+
+    private void ShowGoalPopup(string text)
+    {
+        if (_goalPopup == null) return;
+        _goalPopupHide?.Pause();
+        _goalPopup.text = text;
+        _goalPopup.style.opacity = 1f;
+        _goalPopup.style.display = DisplayStyle.Flex;
+        _goalPopupHide = _goalPopup.schedule.Execute(() => _goalPopup.style.display = DisplayStyle.None)
+                                            .StartingIn((long)(_goalPopupSeconds * 1000f));
+    }
+
+    private static void Brighten(Label row)
+    {
+        row.style.opacity = 1f;
+        row.style.unityFontStyleAndWeight = FontStyle.Bold;
+        row.schedule.Execute(() => row.style.unityFontStyleAndWeight = FontStyle.Normal).StartingIn(2000);
+    }
+
+    /// <summary>Bounty row states shown in the HUD list.</summary>
+    public enum BountyState { Open, Done, Missed }
+
+    /// <summary>
+    /// HUD text for a bounty row. Every state carries a text marker (never colour alone): open "·", done "DONE … +bonus",
+    /// missed "MISS" with strike-through.
+    /// </summary>
+    public static string BountyText(GoalDef def, BountyState state, int bonus)
+    {
+        switch (state)
+        {
+            case BountyState.Done: return $"DONE  {def.Text}  +{bonus}";
+            case BountyState.Missed: return $"MISS  <s>{def.Text}</s>";
+            default: return $"·  {def.Text}";
+        }
+    }
+
+    /// <summary>Career pop-up text: "GOAL! BIG AIR +150", "NEW" on a first-ever completion.</summary>
+    public static string CareerPopupText(GoalDef def, GoalCompletion c)
+    {
+        string bonus = c.Bonus > 0 ? $"  +{c.Bonus}" : "";
+        return $"GOAL! {def.ShortName}{bonus}{(c.FirstEver ? "  NEW" : "")}";
+    }
+
+    private static Label MakeGoalLabel(string text, int size, Color color)
+    {
+        var label = new Label(text) { pickingMode = PickingMode.Ignore };
+        label.style.fontSize = size;
+        label.style.color = color;
+        label.style.marginTop = 1;
+        label.style.marginBottom = 1;
+        return label;
     }
 
     private void Update()

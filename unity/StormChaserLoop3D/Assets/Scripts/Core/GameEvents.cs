@@ -187,6 +187,10 @@ public static class GameEvents
     public static event Action<GoalCompletion> GoalCompleted;
     /// <summary>A drawn timed bounty's window closed unmet. Arg: bounty ID.</summary>
     public static event Action<string> BountyFailed;
+    /// <summary>Menu focus actually changed (keyboard, gamepad, hover). Not raised on redraws.</summary>
+    public static event Action MenuMoved;
+    /// <summary>A menu entry was picked (keyboard, gamepad, click).</summary>
+    public static event Action MenuPicked;
 
     // Vehicle events (ADR-0005; vehicle-feel.md Interactions). Presentation listens; only gameplay raises.
     /// <summary>Style moment: drift seconds, airtime seconds, or a near-miss (amount = 1).</summary>
@@ -209,6 +213,8 @@ public static class GameEvents
     public static void RaiseRunForfeited() => RunForfeited?.Invoke();
     public static void RaiseGoalCompleted(GoalCompletion completion) => GoalCompleted?.Invoke(completion);
     public static void RaiseBountyFailed(string id) => BountyFailed?.Invoke(id);
+    public static void RaiseMenuMoved() => MenuMoved?.Invoke();
+    public static void RaiseMenuPicked() => MenuPicked?.Invoke();
     public static void RaiseStyleEvent(StyleKind kind, float amount) => StyleEvent?.Invoke(kind, amount);
     public static void RaiseLanded(float verticalSpeed) => Landed?.Invoke(verticalSpeed);
     public static void RaiseVehicleImpact(ImpactInfo impact) => VehicleImpact?.Invoke(impact);
@@ -246,6 +252,8 @@ public static class GameEvents
         RunForfeited = null;
         GoalCompleted = null;
         BountyFailed = null;
+        MenuMoved = null;
+        MenuPicked = null;
         StyleEvent = null;
         Landed = null;
         VehicleImpact = null;

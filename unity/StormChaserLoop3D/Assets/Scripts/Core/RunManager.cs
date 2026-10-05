@@ -75,6 +75,8 @@ public class RunManager : MonoBehaviour
 
     private void Start()
     {
+        string livery = LiveryPreview();
+        if (livery != null) TruckLivery.Apply(livery);
         if (_skipTitleOnLoad)
         {
             _skipTitleOnLoad = false;
@@ -234,10 +236,15 @@ public class RunManager : MonoBehaviour
         _stickY = y;
 
         if (back) Apply(_pauseMenu.Back());
-        else if (select) Apply(_pauseMenu.Select());
+        else if (select)
+        {
+            GameEvents.RaiseMenuPicked();
+            Apply(_pauseMenu.Select());
+        }
         else if (move != 0)
         {
             _pauseMenu.Move(move);
+            GameEvents.RaiseMenuMoved();
             _screens.ShowPause(_pauseMenu, null, OnPauseHover, OnPauseClick);
         }
     }
@@ -247,6 +254,7 @@ public class RunManager : MonoBehaviour
         // Rebuild only on a real change, so a rebuilt entry under a resting pointer can't re-trigger hover.
         if (_pauseMenu == null || _pauseMenu.Confirming.HasValue || index == _pauseMenu.Focus) return;
         _pauseMenu.FocusOn(index);
+        GameEvents.RaiseMenuMoved();
         _screens.ShowPause(_pauseMenu, null, OnPauseHover, OnPauseClick);
     }
 
@@ -259,6 +267,7 @@ public class RunManager : MonoBehaviour
             if ((index == 1) != _pauseMenu.ConfirmQuitFocused) _pauseMenu.Move(1);
         }
         else _pauseMenu.FocusOn(index);
+        GameEvents.RaiseMenuPicked();
         Apply(_pauseMenu.Select());
     }
 
@@ -386,6 +395,17 @@ public class RunManager : MonoBehaviour
             _anyButton = null;
             onPress(control);
         });
+    }
+
+    /// <summary>Dev preview of a paint job (URL <c>?livery=ktvr</c>, desktop <c>-livery=ktvr</c>); null when absent.</summary>
+    private static string LiveryPreview()
+    {
+        string v = null;
+        foreach (string arg in Environment.GetCommandLineArgs())
+            if (arg.StartsWith("-livery=", StringComparison.Ordinal)) v = arg.Substring(8);
+        foreach (string token in Application.absoluteURL.Split('?', '&', '#'))
+            if (token.StartsWith("livery=", StringComparison.Ordinal)) v = token.Substring(7);
+        return string.IsNullOrEmpty(v) ? null : (v.Contains(".") ? v : "livery." + v);
     }
 
     private static bool CanQuit => Application.platform != RuntimePlatform.WebGLPlayer;

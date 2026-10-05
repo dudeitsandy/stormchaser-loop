@@ -124,6 +124,12 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-04 — **0.7.9 pushed** (html5 + windows): **Run Goals in play** (run-goals-v1 001–004, 007): 10 career goals
+  + 3 seeded KTVR bounties per run, bonuses into the score, **KTVR WANTS** HUD list and **GOAL!** pop-up; **lower chase
+  camera** (12°, more sky); Codex **rain** (X8-03), **UI and goal sounds** (X8-06), **KTVR livery** (X8-05, preview
+  `?livery=ktvr` until it is earned). Evidence: EditMode 355/355, PlayMode 64/64, WebGL 0 console errors
+  (`rg-007-hud-bounties.png`, `x804_*`, `x83_rain_*`, `s9-02b_camera_*`). Goals are not saved yet (story 005, the M1
+  stem).
 - 2026-10-04 — **0.7.7 pushed** (html5 + windows): **pause menu and quitting** (run-screens story 001): P / Esc /
   Start pause (time, timer, audio frozen), Resume / Settings (placeholder) / Quit Run / Quit to Desktop (Windows),
   confirm defaults to KEEP PLAYING, quit forfeits the run, auto-pause on focus loss or controller disconnect,

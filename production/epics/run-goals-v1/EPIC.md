@@ -56,7 +56,7 @@ No `tr-registry.yaml` exists yet; requirement IDs are local to this epic and cit
 | 004 | [Goal tracker in a live run](story-004-tracker-in-play.md) | Integration | Done | ADR-0005 |
 | 005 | [Accomplishments record and first save slice](story-005-accomplishments-save-slice.md) | Integration | Ready (WebGL sync check first) | N/A (M1 stem) |
 | 006 | [KTVR livery reward](story-006-livery-reward.md) | Integration | Ready (after 005) | N/A |
-| 007 | [HUD bounty list and career-goal pop-up](story-007-hud-bounties-popup.md) | UI | Ready | N/A |
+| 007 | [HUD bounty list and career-goal pop-up](story-007-hud-bounties-popup.md) | UI | Done (0.7.9) | N/A |
 | 008 | [Achievability check before release](story-008-achievability-check.md) | Config/Data | Ready | N/A |
 
 Order: 001 → 002 → 003 → 004 → (005 → 006) and 007 → 008.
