@@ -11,6 +11,10 @@ using Object = UnityEngine.Object;
 /// "[PHYS-RESULT]" line after a fixed run (readable from the WebGL browser console). Also counts vehicle
 /// impacts and peak awake rigidbodies so a result proves debris was actually in play. Stops the session
 /// timer so the run outlasts the measurement window. Never active in normal play.
+/// <para><b>Don't judge feel in a probe run.</b> Manual stepping (<c>SimulationMode.Script</c>) turns off rigidbody
+/// interpolation, so the truck and camera move in visible 50 Hz steps on a 60 Hz screen (Andy 2026-10-05: "the browser
+/// build is looking rough" was a <c>?physProbe=1</c> run; the same build without the flag looked fine). Frame times are
+/// unaffected, so the numbers stay valid.</para>
 /// </summary>
 [DefaultExecutionOrder(10000)] // last FixedUpdate: every force for this step is applied before Simulate
 public sealed class PhysicsBudgetProbe : MonoBehaviour

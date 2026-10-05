@@ -85,6 +85,8 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
   ≈ 105 s (partial). Caveats: native Windows physics is faster than WebGL, and 6 bodies is a small pile-up (up to ≈ 40
   knock-loose props possible). To close fully: one browser smash with `?physProbe=1`, or accept with this as evidence.
   **Closed 2026-10-05: Andy accepts the caveat on the Windows result** (his browser run's console wasn't kept)
+  Note: Andy's browser smash "looked rough"; that was the probe itself (`?physProbe=1` steps physics manually, which
+  turns off rigidbody interpolation). The same 0.8.7 build without the flag looked fine. Never judge feel in a probe run
 - [ ] Chase PT-1 testers (findings due 2026-10-11)
 
 After RG-008, M1 "run goals" can be ticked. Revisit M1's 11-16 date once PT-1 is in; it may close early.
