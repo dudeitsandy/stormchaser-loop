@@ -1,7 +1,7 @@
 # Story 002: Goal catalogue and seeded bounty draw
 
 > **Epic**: Run Goals v1
-> **Status**: Ready
+> **Status**: Done (2026-10-04)
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 3 h (M)
@@ -68,7 +68,7 @@ The data side of goals: every career goal and bounty as a catalogue entry with a
 **Story Type**: Logic
 **Required evidence**: Unit test `unity/StormChaserLoop3D/Assets/Tests/Goals/GoalCatalogueTests.cs` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] `Tests/Goals/GoalCatalogueTests.cs` (8 cases) passing
 
 ---
 

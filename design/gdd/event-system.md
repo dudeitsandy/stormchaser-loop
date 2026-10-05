@@ -229,13 +229,13 @@ the next EF3 within 40 seconds, and the clock is running.
 
    | ID (`bounty.compact.`…) | HUD text | Complete when | Eligible when the plan has… | Bonus |
    |---|---|---|---|---|
-   | `point_blank_ef5` | "Point-blank on a violent tornado" | Photo of an EF5 subject closer than `PointBlankEf5Distance` | a non-dropped EF5 cell | 500 |
-   | `warning_cell` *(timed)* | "Shoot the next warned storm" | Photo of **the** cell named by the first TORNADO WARNING crawl after run start (first `StormCellForming` with true EF ≥ 3), within `TimedBountyWindow` of that crawl | a non-dropped EF3+ cell | 300 |
-   | `before_touchdown` | "Catch the main storm forming" | Photo of the anchor while its phase is Forming | an anchor (not Chaos) | 250 |
-   | `rope_out` | "Get the rope-out" | Photo of any tornado whose phase is RopingOut | any cell | 200 |
-   | `close_call` | "Ride it out up close" | `CloseCallSeconds` in total within `CloseCallRange` of an EF3+ tornado that is on the ground (Mature or RopingOut) | a non-dropped EF3+ cell | 300 |
-   | `double_near_miss` | "Two near misses, back to back" | Two near-miss style moments within `NearMissPairWindow` | always | 250 |
-   | `drift_by` | "Drift past a twister" | A drift style moment that ends with a tornado within `DriftByRange` | any cell | 250 |
+   | `point_blank_ef5` | "POINT-BLANK ON A MONSTER" | Photo of an EF5 subject closer than `PointBlankEf5Distance` | a non-dropped EF5 cell | 500 |
+   | `warning_cell` *(timed)* | "SHOOT THE NEXT WARNED STORM" | Photo of **the** cell named by the first TORNADO WARNING crawl after run start (first `StormCellForming` with true EF ≥ 3), within `TimedBountyWindow` of that crawl | a non-dropped EF3+ cell | 300 |
+   | `before_touchdown` | "CATCH THE MAIN STORM FORMING" | Photo of the anchor while its phase is Forming | an anchor (not Chaos) | 250 |
+   | `rope_out` | "GET THE ROPE-OUT" | Photo of any tornado whose phase is RopingOut | any cell | 200 |
+   | `close_call` | "RIDE IT OUT UP CLOSE" | `CloseCallSeconds` in total within `CloseCallRange` of an EF3+ tornado that is on the ground (Mature or RopingOut) | a non-dropped EF3+ cell | 300 |
+   | `double_near_miss` | "BACK-TO-BACK NEAR MISSES" | Two near-miss style moments within `NearMissPairWindow` | always | 250 |
+   | `drift_by` | "DRIFT PAST A TWISTER" | A drift style moment that ends with a tornado within `DriftByRange` | any cell | 250 |
 
    Deferred until their systems exist: Airborne Subject (needs debris-in-frame detection), Dual Cataclysm
    (needs a second disaster type), Hero of the Day (needs rescues). A timed bounty fails quietly if its window
