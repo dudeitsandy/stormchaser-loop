@@ -42,7 +42,30 @@ public class RadioLiteTests
         d.OnCellForming(cellId: 1, trueEf: 3, now: 10f);
         Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(10f));
         Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(34.9f));
-        Assert.AreEqual(1f, d.TargetGain(35.1f));
+        // X9-04: hold through the first second of the siren tail, then ease back over 2 s (no snap).
+        Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(35.9f));
+        float mid = d.TargetGain(37f);
+        Assert.Greater(mid, MusicDuck.DuckedGain);
+        Assert.Less(mid, 1f);
+        Assert.AreEqual(1f, d.TargetGain(38.01f));
+    }
+
+    [Test]
+    public void Release_RisesSmoothly_NeverJumps()
+    {
+        // Arrange
+        var d = new MusicDuck();
+        d.OnCellForming(1, 3, 0f);
+        float prev = d.TargetGain(25f);
+        // Act / Assert: sampled at 60 Hz through the release, gain only rises, by small steps
+        for (float t = 25f; t <= 29f; t += 1f / 60f)
+        {
+            float g = d.TargetGain(t);
+            Assert.GreaterOrEqual(g, prev - 1e-6f, $"t {t}");
+            Assert.Less(g - prev, 0.03f, $"t {t}: a step, not a ramp");
+            prev = g;
+        }
+        Assert.AreEqual(1f, prev);
     }
 
     [Test]
@@ -59,10 +82,12 @@ public class RadioLiteTests
         var d = new MusicDuck();
         d.OnCellForming(5, 5, 0f);
         Assert.IsTrue(d.IsDucked(500f), "an EF5 emergency holds the duck past the siren cycle");
-        d.OnCellDeclined(4);
+        d.OnCellDeclined(4, 500f);
         Assert.IsTrue(d.IsDucked(500f), "another cell's rope-out doesn't release it");
-        d.OnCellDeclined(5);
+        d.OnCellDeclined(5, 500f);
         Assert.IsFalse(d.IsDucked(500f));
+        Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(500.5f), "held through the siren tail's first second");
+        Assert.AreEqual(1f, d.TargetGain(503.01f));
     }
 
     [Test]

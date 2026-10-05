@@ -43,6 +43,9 @@ public sealed class RadioPlaylist
 /// Music ducking under storm warnings (S8-09: "music must never mask the warnings"). A TORNADO WARNING (forming true
 /// EF3/EF4) ducks for the siren cycle; a TORNADO EMERGENCY (forming true EF5) ducks until that cell ropes out or ends;
 /// the anchor's touchdown alert (Peak, EF ≥ 3) ducks briefly. Pure: time is passed in.
+/// <para>Release (X9-04, Andy 2026-10-05: "the radio should come back up with a quick ramp, not snap"): when the duck
+/// ends, the music holds the duck for <see cref="ReleaseHoldSeconds"/> (the siren's 3 s tail starts) then eases back
+/// over <see cref="ReleaseSeconds"/>, so it finishes with the tail and the two never overlap loudly.</para>
 /// </summary>
 public sealed class MusicDuck
 {
@@ -50,9 +53,13 @@ public sealed class MusicDuck
     public const float DuckedGain = 0.316f;
     public const float SirenCycleSeconds = 25f;
     public const float TouchdownSeconds = 8f;
+    /// <summary>Codex's siren release is 3.0 s (OutdoorWarningSirens, X9-03/04): hold 1 s, ease 2 s.</summary>
+    public const float ReleaseHoldSeconds = 1f;
+    public const float ReleaseSeconds = 2f;
 
     private readonly HashSet<int> _emergencies = new HashSet<int>();
     private float _until = float.NegativeInfinity;
+    private float _emergencyEndedAt = float.NegativeInfinity;
 
     public void OnCellForming(int cellId, int trueEf, float now)
     {
@@ -65,17 +72,32 @@ public sealed class MusicDuck
         if (role == StormCellRole.Anchor && trueEf >= 3) _until = Mathf.Max(_until, now + TouchdownSeconds);
     }
 
-    public void OnCellDeclined(int cellId) => _emergencies.Remove(cellId);
+    public void OnCellDeclined(int cellId, float now)
+    {
+        if (_emergencies.Remove(cellId) && _emergencies.Count == 0) _emergencyEndedAt = now;
+    }
 
     public void Reset()
     {
         _emergencies.Clear();
         _until = float.NegativeInfinity;
+        _emergencyEndedAt = float.NegativeInfinity;
     }
 
+    /// <summary>A warning, emergency or touchdown alert is live (the siren is sounding).</summary>
     public bool IsDucked(float now) => _emergencies.Count > 0 || now < _until;
 
-    public float TargetGain(float now) => IsDucked(now) ? DuckedGain : 1f;
+    /// <summary>Ducked while live; after it ends, held, then a smooth ease back to full over the siren's tail.</summary>
+    public float TargetGain(float now)
+    {
+        if (IsDucked(now)) return DuckedGain;
+        float ended = Mathf.Max(_until, _emergencyEndedAt);
+        if (float.IsNegativeInfinity(ended)) return 1f;
+        float t = (now - ended - ReleaseHoldSeconds) / ReleaseSeconds;
+        if (t <= 0f) return DuckedGain;
+        if (t >= 1f) return 1f;
+        return Mathf.Lerp(DuckedGain, 1f, t * t * (3f - 2f * t));
+    }
 }
 
 /// <summary>
@@ -191,7 +213,7 @@ public sealed class RadioLite : MonoBehaviour
     // Only a run's storms duck the music; the title's demo storm never touches the title loop.
     private void OnForming(StormCellInfo c) { if (_mode == Mode.Radio) _duck.OnCellForming(c.CellId, c.EF, _clock); }
     private void OnPeak(StormCellInfo c) { if (_mode == Mode.Radio) _duck.OnCellPeak(c.Role, c.EF, _clock); }
-    private void OnDeclined(StormCellInfo c) => _duck.OnCellDeclined(c.CellId);
+    private void OnDeclined(StormCellInfo c) => _duck.OnCellDeclined(c.CellId, _clock);
 
     private void Update()
     {

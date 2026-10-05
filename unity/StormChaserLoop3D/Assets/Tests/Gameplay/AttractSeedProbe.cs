@@ -71,6 +71,20 @@ public class AttractSeedProbe
         Assert.Pass(log);
     }
 
+    /// <summary>One seed's compact plan, cell by cell (spawn, touchdown, rope, end): lines perf spikes up with storm events.</summary>
+    [TestCase(554)]
+    public void DumpPlan(long seed)
+    {
+        WeatherPlan plan = WeatherPlanner.BuildCompact(seed, 0, DirectorTuning.Defaults, CompactSettings.Defaults,
+                                                       StormEfTable.Defaults, Vector2.zero);
+        string log = $"seed {seed} regime {plan.Regime}";
+        foreach (PlannedCell c in plan.Cells)
+            log += System.Environment.NewLine + $"[Plan] #{c.Id} {c.Role}{(c.Pacing ? " (pacing)" : "")} EF{c.Ef} " +
+                   (c.Dropped ? "dropped" : $"spawn {c.SpawnTime:0.0} touchdown {c.SpawnTime + c.Form:0.0} " +
+                                            $"rope {c.SlotFreeTime:0.0} end {c.EndTime:0.0}");
+        Assert.Pass(log);
+    }
+
     /// <summary>Smoke seeds for run-goals story 008: an EF4+ anchor whose peak window falls early in the 180 s run.</summary>
     [Test]
     public void ListGoalSmokeSeeds()
