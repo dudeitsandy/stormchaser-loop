@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
@@ -82,8 +83,11 @@ public class RunManager : MonoBehaviour
         if (DevFlag("savecheck") == "1")
             Debug.Log($"[SaveCheck] launch {ProfileStore.Shared.CountSaveCheckLaunch()}, write ok {!ProfileStore.Shared.LastWriteFailed}, " +
                       $"best {ProfileStore.Shared.Data.BestScore:0}, accomplishments {ProfileStore.Shared.Data.Accomplishments.Count}");
-        string livery = LiveryPreview();
-        if (livery != null) TruckLivery.Apply(livery);
+        // The saved paint job, if earned; a dev preview flag (?livery=ktvr) overrides it.
+        ProfileStore saveStem = ProfileStore.Shared;
+        string livery = LiveryPreview()
+                        ?? (saveStem.IsUnlocked(saveStem.Data.Livery) ? saveStem.Data.Livery : null);
+        TruckLivery.Apply(livery);
         if (_skipTitleOnLoad)
         {
             _skipTitleOnLoad = false;
@@ -334,8 +338,15 @@ public class RunManager : MonoBehaviour
         BestScoreStore.TrySave(_score.TotalScore);
         StormRunInfo storm = _spawner.Director != null ? _spawner.Director.RunInfo() : default;
         // Run-complete checkpoint (save stem): one write of best score, accomplishments and unlocks. A forfeit never gets here.
-        profile.RecordRunComplete(goals.Completions, GoalCatalogue.Mode, storm.Valid ? storm.Seed : 0L, Application.version,
-                                  DateTime.UtcNow, _score.TotalScore);
+        // Rewards are judged against the record before this run's completions are added (story 006).
+        List<string> unlocks = goals.Valid
+            ? RunRewards.Earned(profile.CareerCount(GoalCatalogue.Mode, GoalCatalogue.Map), goals.Completions,
+                                profile.HasCompleted, profile.IsUnlocked)
+            : new List<string>();
+        if (unlocks.Contains(RunRewards.KtvrLivery)) profile.Data.Livery = RunRewards.KtvrLivery; // a new paint job is worn next run
+        bool saved = profile.RecordRunComplete(goals.Completions, GoalCatalogue.Mode, storm.Valid ? storm.Seed : 0L,
+                                               Application.version, DateTime.UtcNow, _score.TotalScore, unlocks);
+        if (goals.Valid) goals = new RunGoalsInfo(goals.Completions, goals.Bounties, goals.FailedBounties, unlocks, saved);
         var summary = new RunSummary(_score.TotalScore, _score.PhotoCount, _score.BestShot, wrecked, previousBest, storm, goals);
         GameEvents.RaiseRunEnded(summary);
 

@@ -49,13 +49,20 @@ public readonly struct RunGoalsInfo
     public readonly IReadOnlyList<string> Bounties;
     /// <summary>Drawn bounties that failed (timed window closed).</summary>
     public readonly IReadOnlyCollection<string> FailedBounties;
+    /// <summary>Unlocks this run earned (Results unlock banner); empty when none.</summary>
+    public readonly IReadOnlyList<string> NewUnlocks;
+    /// <summary>False when the run-complete save failed (Results shows the retry toast).</summary>
+    public readonly bool Saved;
 
     public RunGoalsInfo(IReadOnlyList<GoalCompletion> completions, IReadOnlyList<string> bounties,
-                        IReadOnlyCollection<string> failedBounties)
+                        IReadOnlyCollection<string> failedBounties, IReadOnlyList<string> newUnlocks = null,
+                        bool saved = true)
     {
         Completions = completions;
         Bounties = bounties;
         FailedBounties = failedBounties;
+        NewUnlocks = newUnlocks ?? Array.Empty<string>();
+        Saved = saved;
     }
 
     public bool Valid => Completions != null;

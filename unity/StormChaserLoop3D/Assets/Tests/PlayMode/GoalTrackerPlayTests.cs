@@ -28,6 +28,7 @@ public class GoalTrackerPlayTests
     [UnitySetUp]
     public IEnumerator SetUp()
     {
+        ProfileStore.Shared = new ProfileStore(new MemoryProfileStorage()); // fresh record: NEW tags are deterministic
         SceneManager.LoadScene(SceneName);
         yield return null;
         yield return null;
@@ -46,6 +47,7 @@ public class GoalTrackerPlayTests
     {
         GameEvents.GoalCompleted -= OnGoal;
         GameEvents.RunEnded -= OnEnd;
+        ProfileStore.Shared = null;
         Time.timeScale = 1f;
         AudioListener.pause = false;
         Scene empty = SceneManager.CreateScene("GoalTrackerEmpty");

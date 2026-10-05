@@ -1,7 +1,7 @@
 # Story 006: KTVR livery reward
 
 > **Epic**: Run Goals v1
-> **Status**: Ready
+> **Status**: Done (2026-10-05) — a newly earned livery is equipped automatically (Claude's call; title toggle in run-screens 005)
 > **Layer**: Feature
 > **Type**: Integration
 > **Estimate**: 2 h (S)
@@ -66,7 +66,7 @@ Proves the loop: 5 of 10 career goals grant `livery.ktvr`. The paint material is
 **Story Type**: Integration
 **Required evidence**: Integration test `unity/StormChaserLoop3D/Assets/Tests/PlayMode/LiveryRewardTests.cs` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] `Tests/Goals/RunRewardsTests.cs` (5) + `Tests/PlayMode/LiveryRewardTests.cs` (2) passing
 
 ---
 
