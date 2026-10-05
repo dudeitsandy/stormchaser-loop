@@ -81,6 +81,20 @@ public class DisasterSpawner : MonoBehaviour
         _nextSpawnTime = Time.time + _firstSpawnDelay;
     }
 
+    /// <summary>
+    /// Title attract mode: runs the director on a showcase seed without touching the session timer. A real
+    /// <see cref="Begin"/> later replaces it (the director's restart removes the demo cells). Null without a director.
+    /// </summary>
+    public StormDirector BeginDemo(long seed)
+    {
+        if (_director == null) return null;
+        var roster = new List<TornadoData>(_roster.Count);
+        foreach (RosterEntry entry in _roster) roster.Add(entry.Data);
+        Vector3 origin = _player != null ? _player.position : Vector3.zero;
+        _director.Begin(_tornadoPrefab, roster, origin, seed);
+        return _director;
+    }
+
     /// <summary>Stops spawning. With the director, live cells raise Ended (run end); legacy tornadoes keep going.</summary>
     public void Stop()
     {

@@ -78,4 +78,28 @@ public class SettingsMenuTests
         FocusRow(m, SettingRow.Back);
         Assert.IsNull(m.Change(1));
     }
+
+    [Test]
+    public void AttractMute_SilencesEffects_KeepsTheSetting_AndRestores()
+    {
+        float heard = -1f;
+        System.Action<float> on = v => heard = v;
+        GameAudio.EffectsVolumeChanged += on;
+        try
+        {
+            GameAudio.EffectsVolume = 0.7f;
+            GameAudio.AttractMute = true;
+            Assert.AreEqual(0f, GameAudio.EffectsVolume);
+            Assert.AreEqual(0f, heard, "sources hear the mute");
+            GameAudio.AttractMute = false;
+            Assert.AreEqual(0.7f, GameAudio.EffectsVolume, 1e-5f, "the player's setting is kept");
+            Assert.AreEqual(0.7f, heard, 1e-5f);
+        }
+        finally
+        {
+            GameAudio.EffectsVolumeChanged -= on;
+            GameAudio.AttractMute = false;
+            GameAudio.EffectsVolume = 1f;
+        }
+    }
 }

@@ -69,7 +69,7 @@ public sealed class RainCardVfx : MonoBehaviour
         if (camera != _mainCamera && camera.name != "PhotoPreviewCamera") return;
         using var marker = CameraMarker.Auto();
         if (_batch == null) return;
-        if (_vehicle == null || !_vehicle.InputEnabled || _mainCamera == null) { _batch.gameObject.SetActive(false); return; }
+        if (_vehicle == null || (!_vehicle.InputEnabled && !TitleAttract.Active) || _mainCamera == null) { _batch.gameObject.SetActive(false); return; } // attract: Claude 2026-10-05
         int count = RainLevels.StreakCount(StormEnvironmentCues.Storminess, _capacity);
         Vector3 wind = StormEnvironmentCues.WindBearing * StormEnvironmentCues.Exposure * 20f;
         Vector3 fall = (Vector3.down + wind * 0.035f).normalized;

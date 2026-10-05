@@ -590,12 +590,14 @@ public class HudController : MonoBehaviour
 
     private void OnStormCellForming(StormCellInfo cell)
     {
+        if (TitleAttract.Active) return; // the title's demo storm never reaches the crawl
         string text = StormTelegraph.FormingCrawl(cell.EF, BearingTo(cell.Position));
         if (text != null) QueueCrawl(text, StormTelegraph.IsEmergency(cell.EF));
     }
 
     private void OnStormCellPeak(StormCellInfo cell)
     {
+        if (TitleAttract.Active) return; // the title's demo storm never reaches the crawl
         if (cell.Role != StormCellRole.Anchor || cell.EF < StormTelegraph.WarningMinEf) return;
         QueueCrawl(StormTelegraph.TouchdownCrawl(cell.EF, BearingTo(cell.Position)), StormTelegraph.IsEmergency(cell.EF));
     }

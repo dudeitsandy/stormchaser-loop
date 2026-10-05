@@ -188,8 +188,9 @@ public sealed class RadioLite : MonoBehaviour
         _fadeTarget = 0f;
     }
 
-    private void OnForming(StormCellInfo c) => _duck.OnCellForming(c.CellId, c.EF, _clock);
-    private void OnPeak(StormCellInfo c) => _duck.OnCellPeak(c.Role, c.EF, _clock);
+    // Only a run's storms duck the music; the title's demo storm never touches the title loop.
+    private void OnForming(StormCellInfo c) { if (_mode == Mode.Radio) _duck.OnCellForming(c.CellId, c.EF, _clock); }
+    private void OnPeak(StormCellInfo c) { if (_mode == Mode.Radio) _duck.OnCellPeak(c.Role, c.EF, _clock); }
     private void OnDeclined(StormCellInfo c) => _duck.OnCellDeclined(c.CellId);
 
     private void Update()

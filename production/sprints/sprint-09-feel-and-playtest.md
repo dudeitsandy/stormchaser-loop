@@ -35,10 +35,14 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 | CA-2 | Andy | Accept the S7-06 physics caveat, or one `?physProbe=1` prop-cluster smash | 5 min |
 | PT-1 | Andy | Outside playtest round 1 findings into `production/qa/playtest-round-1.md` (due 2026-10-11); unblocks S9-01 | — |
 
-## New requests waiting for a decision
-- **Title attract mode** (Andy via stormchaser-38, 2026-10-05; ~2–3 h, passes the freeze rule): step 1 flyover camera on
-  the title, step 2 a demo storm on a showcase seed, all game audio muted except the title music, run start unchanged.
-  Not started; schedule here or after S9-02.
+## New requests
+- [x] **Title attract mode** (Andy via stormchaser-38, 2026-10-05; done 0.8.2): slow drone orbit on the title, paused
+  under Settings / Career; the Storm Director runs showcase seeds 6 / 29 / 37 (data, `TitleAttract._showcaseSeeds`),
+  fast-forwarded so the anchor touches down ≈ 6 s in and framed in the right margin clear of the title column; truck
+  frozen; effects muted (`GameAudio.AttractMute`), title music only; HUD crawl and radio duck ignore the demo. StartRun
+  eases to the chase camera and `DisasterSpawner.Begin` replaces the demo with the real seed; Codex's sky/rain reset on
+  RunStarted. Evidence: `attract-{08s,14s,20s,30s,run-blend,run-chase}.png`, PlayMode `TitleAttractTests` (2), EditMode
+  attract-mute test, WebGL 0 console errors.
 
 ## Gates (Andy)
 | Gate | When | Pass = | Result |

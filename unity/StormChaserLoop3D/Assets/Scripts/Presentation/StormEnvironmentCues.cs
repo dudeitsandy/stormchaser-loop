@@ -50,7 +50,7 @@ public sealed class StormEnvironmentCues : MonoBehaviour
         if (Object.FindAnyObjectByType<PlayerVehicle>() == null || Object.FindAnyObjectByType<StormEnvironmentCues>() != null) return;
         new GameObject(nameof(StormEnvironmentCues)).AddComponent<StormEnvironmentCues>();
     }
-    private void OnEnable() { _current = this; GameEvents.RunEnded += End; }
+    private void OnEnable() { _current = this; GameEvents.RunEnded += End; GameEvents.RunStarted += Restore; } // RunStarted: attract demo sky doesn't carry into the run (Claude 2026-10-05)
     private void Start()
     {
         _vehicle = FindAnyObjectByType<PlayerVehicle>();
@@ -126,7 +126,7 @@ public sealed class StormEnvironmentCues : MonoBehaviour
     {
         using var marker = UpdateMarker.Auto();
         if (!_captured) return;
-        if (_vehicle == null || !_vehicle.InputEnabled) { Restore(); return; }
+        if (_vehicle == null || (!_vehicle.InputEnabled && !TitleAttract.Active)) { Restore(); return; } // attract: Claude 2026-10-05
         StormWindProvider.Sample(_vehicle.transform.position, out _exposure, out _bearing, out _ef5Exposure);
         float summed = 0f;
         if (_director != null)
@@ -196,6 +196,7 @@ public sealed class StormEnvironmentCues : MonoBehaviour
     private void OnDisable()
     {
         GameEvents.RunEnded -= End;
+        GameEvents.RunStarted -= Restore;
         Restore();
         if (_current == this) _current = null;
     }

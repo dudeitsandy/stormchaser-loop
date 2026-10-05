@@ -124,6 +124,9 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-05 — **0.8.2 built** (html5 + windows): **title attract mode** (drone flyover + showcase storm on the title,
+  title music only, run start unchanged). Evidence: EditMode 389/389, PlayMode 70/70, WebGL 0 console errors
+  (`attract-*.png`).
 - 2026-10-05 — **0.8.1 pushed** (html5 + windows): **rotating radio jingles** (four new KTVR jingles + the original,
   no back-to-back), **fit pass** (title tightened, career page in two columns, HUD hidden behind title / WRECKED /
   results; every screen checked at 960×600, 1280×800, 1920×1080). Evidence: EditMode 388/388, PlayMode 68/68, WebGL 0

@@ -32,6 +32,7 @@ public class RunManager : MonoBehaviour
     private RunScreens _screens;
     private GoalRunner _goals;
     private RadioLite _radio;
+    private TitleAttract _attract;
     private IDisposable _anyButton;
     private PauseMenu _pauseMenu;
     private SettingsMenu _settingsMenu;
@@ -70,6 +71,8 @@ public class RunManager : MonoBehaviour
         _goals.HasCompletedBefore = id => ProfileStore.Shared.HasCompleted(id); // NEW tags come from the save stem
         _radio = GetComponent<RadioLite>();
         if (_radio == null) _radio = gameObject.AddComponent<RadioLite>();
+        _attract = GetComponent<TitleAttract>();
+        if (_attract == null) _attract = gameObject.AddComponent<TitleAttract>();
     }
 
     private void OnEnable()
@@ -128,6 +131,8 @@ public class RunManager : MonoBehaviour
         Time.timeScale = 1f;
         SetGameplayActive(false);
         _radio.PlayTitle();
+        _attract.Begin(_spawner, _vehicle); // idempotent: overlays re-enter the title
+        _attract.Paused = false;
         _screens.ShowTitle(Mathf.Max(BestScoreStore.Load(), ProfileStore.Shared.Data.BestScore));
         WaitForAnyButton(0.25f, control =>
         {
@@ -324,6 +329,7 @@ public class RunManager : MonoBehaviour
     {
         Current = State.Running;
         Time.timeScale = 1f;
+        _attract.End(); // camera eases to the chase cam; the spawner's Begin below replaces the demo storm
         _screens.Hide();
         SetGameplayActive(true);
         // The press that dismissed the title/results belongs to the menu: keep the shutter safe until it's released.
@@ -452,6 +458,7 @@ public class RunManager : MonoBehaviour
 
     private void ShowCareerPage()
     {
+        _attract.Paused = true;
         GameEvents.RaiseMenuPicked();
         _screens.ShowCareer();
         WaitForAnyButton(0.2f, _ => EnterTitle());
@@ -484,6 +491,7 @@ public class RunManager : MonoBehaviour
         _anyButton?.Dispose();
         _anyButton = null;
         _settingsFromTitle = fromTitle;
+        if (fromTitle) _attract.Paused = true;
         _settingsMenu = new SettingsMenu(ProfileStore.Shared.Settings, CanQuit, DesktopResolutions());
         RefreshSettings();
     }
