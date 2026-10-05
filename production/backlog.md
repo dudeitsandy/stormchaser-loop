@@ -97,3 +97,27 @@ every track (commercial rights) and make the Steam AI-content disclosure.
 
 **Needs first:** M1 shipped; an audio direction pass (audio-director) covering the playlist, DJ voice lines
 and how the station reacts to storminess `s` and to cell events.
+
+---
+
+## iPad port (Andy, 2026-10-05)
+
+**Idea:** Doomsday as an iPad app.
+
+**Fit:** a post-Early Access port, in the same group as the Switch port in `vision-1.0.md`, and only if Steam
+traction justifies it. Order: Steam desktop (primary after M1) → Steam Deck → iPad / Switch.
+
+**What works:** M-series iPads are close to laptop-class; the low-poly toon art and URP / Render Graph run on
+Metal without changes (A-series iPads need a lower quality tier). 3-minute runs suit tablet sessions. The Input
+System handles touch, and the save stem works the same way.
+
+**What's hard:** controls. Throttle, steer, free camera, shutter, boost, jump and handbrake together. Bluetooth
+controllers (Xbox / PlayStation) work, so "controller recommended" is easy; touch-only needs real design work.
+A virtual stick plus buttons, with Storm Cam lock-on as the basis for touch aiming, and its own driving-feel
+tuning pass.
+
+**Costs:** a Mac with Xcode to build and sign; Apple Developer account ($99/yr; 15% cut under the small-business
+program); App Store review; on-device performance and UI-scale testing per update. Premium iPad games are a
+tough market; Apple Arcade is a pitch option.
+
+**Do now:** nothing, except keep controller support solid (it also serves Steam Deck).
