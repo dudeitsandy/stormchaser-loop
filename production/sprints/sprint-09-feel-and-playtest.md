@@ -75,10 +75,15 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 | PT-1 | Andy | Outside playtest round 1 findings into `production/qa/playtest-round-1.md` (due 2026-10-11); unblocks S9-01 | — |
 
 ## Andy's queue (~1 h, one sitting)
-- [ ] RG-008 career goals smoke run → **6 / 10 done (2026-10-05, 0.8.4)**; left: SICK SCORE, TOSS SURVIVOR, BIG AIR, FRONT PAGE (seed 554) (`production/qa/smoke-run-goals.md` doesn't exist yet: I'll write the seed list before you start)
+- [ ] RG-008 career goals smoke run → **6 / 10 done (2026-10-05, 0.8.4)**; during the goal pass on 0.8.6 Andy got stuck
+  upside down after a storm → fixed (88bbf0c: no phantom wheels when flipped, 3 s failsafe, jump rights the truck);
+  Andy: "back-to-back near misses seems complicated" → see the bounty note in the backlog; left: SICK SCORE, TOSS SURVIVOR, BIG AIR, FRONT PAGE (seed 554) (`production/qa/smoke-run-goals.md` doesn't exist yet: I'll write the seed list before you start)
 - [x] RS-001 Windows quit / Alt-tab check: Esc-Esc, pause → Quit to Desktop and Alt-tab auto-pause all ✅ (2026-10-05) → **M1 "run screens" ticked**
 - [ ] CA-1 Codex live checks X7-02 / X7-03 / X7-07, 15 min (Andy asking Codex to do them, 2026-10-05)
-- [ ] CA-2 physics caveat accept or one smash, 5 min
+- [~] CA-2 physics smash: **Andy's Windows smash (0.8.6, `-physProbe=1`, 2026-10-05): max step 3.46 ms at 68 s, 0 over the
+  4 ms budget, avg 0.29 ms, 12 impacts, peak 6 awake bodies** (heaviest load measured; scripted runs peak 3–4). Ended at
+  ≈ 105 s (partial). Caveats: native Windows physics is faster than WebGL, and 6 bodies is a small pile-up (up to ≈ 40
+  knock-loose props possible). To close fully: one browser smash with `?physProbe=1`, or accept with this as evidence
 - [ ] Chase PT-1 testers (findings due 2026-10-11)
 
 After RG-008, M1 "run goals" can be ticked. Revisit M1's 11-16 date once PT-1 is in; it may close early.

@@ -187,3 +187,16 @@ Impulse); a few frames of hit-stop on big impacts; controller rumble on impacts,
 funnel's pull (Input System motor speeds; Windows only, browser gamepad haptics are unreliable); heavier landing
 thump, crunch and debris audio/VFX (Codex); suspension bottom-out squash on hard landings. Camera shake plus rumble is
 probably about 2 h and fits the freeze rule; decide with PT-1 feedback.
+
+---
+
+## Bounty: BACK-TO-BACK NEAR MISSES feels complicated (Andy, 2026-10-05, goal pass)
+
+**Rule today:** two near misses within 10 s (`NearMissPairWindow`). A near miss is passing a funnel between its damage
+radius and damage radius + 6 m, at over 8 m/s, at most once per funnel per 3 s. So it needs two clean threads of that
+6 m band inside 10 s, usually around two different funnels or a turn-back past the same one.
+
+**Options (all tuning or text, no new system):** clearer text ("2 NEAR MISSES IN 10 S"); a wider band (margin 6 → 10 m)
+or a longer pair window (10 → 20 s); a visible "1 / 2" counter while the window is open; or swap the bounty for a
+simpler one. Decide with Andy, ideally with PT-1 answers to "did any goal feel impossible or unclear?".
+
