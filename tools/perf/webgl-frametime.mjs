@@ -2,7 +2,7 @@
 // WebGL frame-time capture for the Unity build. Emits observations only; budgets are applied by the reader.
 // Usage: node tools/perf/webgl-frametime.mjs [options]   (see --help or tools/perf/README.md)
 import { createServer } from 'node:http';
-import { readFile, writeFile, mkdir, readdir, stat, cp, rm, access } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, stat, cp, access } from 'node:fs/promises';
 import { resolve, join, extname, relative, sep, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
@@ -22,6 +22,8 @@ const HELP = `WebGL frame-time capture (observations only, no verdicts)
   --title-seconds N    title / attract-mode recording before the run (default 20, 0 = skip)
   --seed N             storm seed, sent as ?seed=N (default 554)
   --no-phys            do not add &physProbe=1 (a normal run then ends at 90 s)
+  --spike-log          add &spikeLog=1 and match each [SPIKE] line to its slow frame (builds with FrameSpikeLog)
+  --query K=V          extra URL parameter, repeatable (e.g. --query stormHarness=hold)
   --build DIR          build folder to snapshot and serve (default builds/webgl)
   --url URL            measure an already-served build instead (no snapshot)
   --version V          version label when using --url (default: read from the page)
@@ -34,7 +36,7 @@ const HELP = `WebGL frame-time capture (observations only, no verdicts)
 
 function parseArgs(argv) {
   const opts = {
-    seconds: 190, titleSeconds: 20, seed: 554, phys: true, build: 'builds/webgl', url: null, version: null,
+    seconds: 190, titleSeconds: 20, seed: 554, phys: true, spikeLog: false, query: [], build: 'builds/webgl', url: null, version: null,
     out: 'production/qa/perf', width: 1280, height: 800, screenshotEvery: 30, headed: false, force: false,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -54,6 +56,14 @@ function parseArgs(argv) {
       case '--title-seconds': opts.titleSeconds = number(); break;
       case '--seed': opts.seed = Math.trunc(number()); break;
       case '--no-phys': opts.phys = false; break;
+      case '--spike-log': opts.spikeLog = true; break;
+      case '--query': {
+        const pair = value();
+        const at = pair.indexOf('=');
+        if (at < 1) throw new Error('--query needs KEY=VALUE');
+        opts.query.push([pair.slice(0, at), pair.slice(at + 1)]);
+        break;
+      }
       case '--build': opts.build = value(); break;
       case '--url': opts.url = value(); break;
       case '--version': opts.version = value(); break;
@@ -154,10 +164,21 @@ async function prepareBuild(opts, log) {
   const newestAgeS = (Date.now() - Math.max(...second.map(f => f.mtimeMs))) / 1000;
   const unity = await unityProcesses();
 
-  const snapshotDir = resolve(repo, 'builds', 'perf-snapshot', version);
+  // A rebuild that keeps the version number gets its own folder (named by build time); snapshots are never replaced.
+  const newest = new Date(Math.max(...second.map(f => f.mtimeMs)));
+  const pad = n => String(n).padStart(2, '0');
+  const stamp = `${newest.getFullYear()}${pad(newest.getMonth() + 1)}${pad(newest.getDate())}-${pad(newest.getHours())}${pad(newest.getMinutes())}`;
+  let snapshotDir = null, existing = null;
+  for (const name of [version, `${version}-${stamp}`]) {
+    const dir = join(snapshotsRoot, name);
+    let found = null;
+    try { found = JSON.parse(await readFile(join(dir, '.snapshot.json'), 'utf8')); } catch { /* none or unreadable */ }
+    const occupied = await access(dir).then(() => true, () => false);
+    if (found && sameFiles(found.files, second)) { snapshotDir = dir; existing = found; break; }
+    if (!occupied) { snapshotDir = dir; break; }
+  }
+  if (!snapshotDir) throw new Error(`Snapshot folders ${version} and ${version}-${stamp} both hold a different build; remove one or pass --build.`);
   const marker = join(snapshotDir, '.snapshot.json');
-  let existing = null;
-  try { existing = JSON.parse(await readFile(marker, 'utf8')); } catch { /* no snapshot yet */ }
 
   const info = {
     version, source: relative(repo, source).split(sep).join('/'), snapshot: relative(repo, snapshotDir).split(sep).join('/'),
@@ -177,8 +198,7 @@ async function prepareBuild(opts, log) {
     log(`Warning: ${why}; snapshotting anyway (--force).`);
   }
   log(`Copying ${info.source} to ${info.snapshot} ...`);
-  await rm(snapshotDir, { recursive: true, force: true });
-  await cp(source, snapshotDir, { recursive: true, preserveTimestamps: true });
+  await cp(source, snapshotDir, { recursive: true, preserveTimestamps: true, errorOnExist: true, force: false });
   const copied = (await listFiles(snapshotDir)).filter(f => f.path !== '.snapshot.json');
   if (!sameFiles(second, copied, false)) throw new Error('Snapshot copy does not match the source file list and sizes.');
   info.snapshotCopiedAt = new Date().toISOString();
@@ -201,11 +221,22 @@ const PAGE_PROBE = `(() => {
   };
   requestAnimationFrame(tick);
   P.begin = name => {
-    P.phases[name] = { deltas: [], longTasks: [], startedAudio: P.audio.started };
+    const start = performance.now();
+    P.phases[name] = { start, deltas: [], longTasks: [], startedAudio: P.audio.started };
     P.audio.maxActive = P.audio.active;
     P.phase = name;
-    last = performance.now();
+    last = start;
   };
+  // Page-clock stamps for probe lines, so they can be matched to individual frames.
+  P.logs = [];
+  for (const level of ['log', 'info', 'warn', 'error']) {
+    const original = console[level].bind(console);
+    console[level] = (...args) => {
+      const text = typeof args[0] === 'string' ? args[0] : '';
+      if (text.includes('[PHYS') || text.includes('[SPIKE')) P.logs.push({ now: performance.now(), text });
+      return original(...args);
+    };
+  }
   P.maxFrameOver = ms => new Promise(done => {
     let prev = null, worst = 0;
     const end = performance.now() + ms;
@@ -218,6 +249,7 @@ const PAGE_PROBE = `(() => {
   });
   P.end = () => {
     const ph = P.phases[P.phase];
+    if (ph) ph.end = performance.now();
     if (ph) { ph.audioSourcesStarted = P.audio.started - ph.startedAudio; ph.audioMaxActive = P.audio.maxActive; }
     P.phase = null;
   };
@@ -302,21 +334,108 @@ function serve(root, opts) {
 
 // ---------- statistics ----------
 
-function frameStats(deltas) {
-  if (!deltas.length) return null;
-  const sorted = [...deltas].sort((a, b) => a - b);
+// Each frame gets its end time on the page clock (phase start + running sum of deltas).
+function timedFrames(phase) {
+  let end = phase.start ?? 0;
+  return phase.deltas.map(ms => {
+    end += ms;
+    return { ms, end, atS: (end - (phase.start ?? 0)) / 1000 };
+  });
+}
+
+function frameStats(frames) {
+  if (!frames.length) return null;
+  const sorted = frames.map(f => f.ms).sort((a, b) => a - b);
   const pct = p => sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1))];
-  const mean = deltas.reduce((a, b) => a + b, 0) / deltas.length;
-  let elapsed = 0;
-  const timed = deltas.map(d => { elapsed += d; return { ms: d, atS: elapsed / 1000 }; });
+  const total = sorted.reduce((a, b) => a + b, 0);
+  const mean = total / sorted.length;
   return {
-    frames: deltas.length,
-    durationS: round(elapsed / 1000, 1),
+    frames: sorted.length,
+    durationS: round(total / 1000, 1),
     meanMs: round(mean), p50Ms: round(pct(50)), p95Ms: round(pct(95)), p99Ms: round(pct(99)), maxMs: round(sorted.at(-1)),
     approxFps: round(1000 / mean, 1),
-    framesOver33_3Ms: deltas.filter(d => d > 33.3).length,
-    framesOver50Ms: deltas.filter(d => d > 50).length,
-    worstFrames: timed.sort((a, b) => b.ms - a.ms).slice(0, 5).map(f => ({ ms: round(f.ms), atS: round(f.atS, 1) })),
+    framesOver33_3Ms: sorted.filter(d => d > 33.3).length,
+    framesOver50Ms: sorted.filter(d => d > 50).length,
+    worstFrames: [...frames].sort((a, b) => b.ms - a.ms).slice(0, 5).map(f => ({ ms: round(f.ms), atS: round(f.atS, 1) })),
+  };
+}
+
+// A wreck plays ~1.5 s slow-mo + results (1 s input delay) before the next key reloads the scene, and the physics
+// probe only reports (PARTIAL) as the scene unloads, hence the 5 s lead-in before that line.
+const RELOAD_LEAD_MS = 5000, RELOAD_TAIL_MS = 2000;
+function reloadWindows(phase, logs) {
+  const inPhase = logs.filter(l => l.now >= phase.start && l.now <= (phase.end ?? Infinity));
+  const windows = [];
+  for (const partial of inPhase.filter(l => /\[PHYS-RESULT\].*PARTIAL/.test(l.text))) {
+    const restart = inPhase.find(l => l.now > partial.now && /\[PHYS\] start/.test(l.text));
+    const from = Math.max(phase.start, partial.now - RELOAD_LEAD_MS);
+    const to = restart ? restart.now + RELOAD_TAIL_MS : phase.end ?? partial.now;
+    windows.push({
+      fromS: round((from - phase.start) / 1000, 1), toS: round((to - phase.start) / 1000, 1),
+      runRestarted: !!restart, from, to,
+    });
+  }
+  return windows;
+}
+
+const SPIKE_LINE = /\[SPIKE\] t=([\d.]+)s frame=([\d.]+)ms gc=(\d+) heapDeltaKB=(-?\d+) heapMB=(\d+) events=\[(.*?)\]\s*(.*)$/;
+function parseSpike(log) {
+  const m = log.text.trim().match(SPIKE_LINE);
+  if (!m) return null;
+  const counts = Object.fromEntries([...m[7].matchAll(/(\w+)=(\S+)/g)].map(c => [c[1], c[2]]));
+  return {
+    now: log.now, unityT: Number(m[1]), unityFrameMs: Number(m[2]), gc: Number(m[3]), heapDeltaKB: Number(m[4]),
+    heapMB: Number(m[5]), events: m[6] ? m[6].split(', ').filter(Boolean) : [], counts,
+  };
+}
+
+// Unity logs a [SPIKE] during the frame after the slow one, i.e. just after that frame's rAF delta ends.
+const SPIKE_MATCH_MS = 100;
+function matchSpikes(frames, spikes) {
+  const slow = frames.filter(f => f.ms > 30);
+  const used = new Set();
+  const matched = slow.map(frame => {
+    let best = null;
+    for (const spike of spikes) {
+      if (used.has(spike)) continue;
+      const lag = spike.now - frame.end;
+      if (lag >= -5 && lag <= SPIKE_MATCH_MS && (!best || lag < best.now - frame.end)) best = spike;
+    }
+    if (best) used.add(best);
+    return { frame, spike: best };
+  });
+  return { matched, unmatchedSpikeLines: spikes.filter(s => !used.has(s)).length };
+}
+
+function spikeSummary(run, logs, opts) {
+  const lines = logs.filter(l => l.text.startsWith('[SPIKE')).map(l => l.text);
+  const spikes = logs.filter(l => l.now >= run.start && l.now <= run.end + SPIKE_MATCH_MS).map(parseSpike).filter(Boolean);
+  if (!opts.spikeLog && !spikes.length) return null;
+  const { matched, unmatchedSpikeLines } = matchSpikes(run.kept, spikes);
+  const heavy = matched.filter(m => m.frame.ms > 33.3);
+  const withSpike = heavy.filter(m => m.spike);
+  const tally = {};
+  for (const m of withSpike) for (const e of m.spike.events) {
+    const kind = e.split(' ')[0];
+    tally[kind] = (tally[kind] ?? 0) + 1;
+  }
+  const row = m => ({
+    atS: round(m.frame.atS, 1), rafMs: round(m.frame.ms), unityFrameMs: m.spike?.unityFrameMs ?? null,
+    gc: m.spike?.gc ?? null, heapDeltaKB: m.spike?.heapDeltaKB ?? null, events: m.spike?.events ?? null, counts: m.spike?.counts ?? null,
+  });
+  return {
+    requested: opts.spikeLog,
+    loggerStarted: lines.some(l => l.startsWith('[SPIKE] start')),
+    spikeLines: spikes.length,
+    unmatchedSpikeLines,
+    summaries: lines.filter(l => l.startsWith('[SPIKE-SUMMARY]')),
+    framesOver33_3Ms: heavy.length,
+    framesOver33_3MsWithSpikeLine: withSpike.length,
+    withGc: withSpike.filter(m => m.spike.gc > 0).length,
+    withEvents: withSpike.filter(m => m.spike.events.length).length,
+    eventTally: tally,
+    worst: [...matched].sort((a, b) => b.frame.ms - a.frame.ms).slice(0, 15).map(row),
+    allSlowFrames: matched.map(row),
   };
 }
 
@@ -353,6 +472,8 @@ async function main() {
   const url = new URL(baseUrl);
   url.searchParams.set('seed', String(opts.seed));
   if (opts.phys) url.searchParams.set('physProbe', '1');
+  if (opts.spikeLog) url.searchParams.set('spikeLog', '1');
+  for (const [key, val] of opts.query) url.searchParams.set(key, val);
 
   log('Sampling machine load for 3 s before launch ...');
   const preSampler = new CpuSampler();
@@ -487,6 +608,8 @@ async function main() {
     // Three left taps per right one makes the truck loop instead of driving off the edge of the map.
     const steerPattern = ['KeyA', 'KeyA', 'KeyA', 'KeyD'];
     let steer = null, steerIndex = 0, nextSteer = 2, steerUntil = -1, nextJump = 10, nextReverse = 20, reverseUntil = -1;
+    // Coasting 0.75 s in every 3 s keeps speed (and so impact damage) down, so fewer runs end in a wreck.
+    let nextCoast = 3, coastUntil = -1;
     const drive = async elapsed => {
       if (elapsed >= nextReverse) {
         // Backing up periodically frees the truck if it has wedged against scenery.
@@ -494,7 +617,10 @@ async function main() {
         reverseUntil = elapsed + 1.5; nextReverse += 20;
       }
       if (reverseUntil >= 0 && elapsed >= reverseUntil) { await up('KeyS'); reverseUntil = -1; }
-      if (reverseUntil < 0) await down('KeyW');
+      if (elapsed >= nextCoast) { coastUntil = elapsed + 0.75; nextCoast += 3; }
+      if (coastUntil >= 0 && elapsed >= coastUntil) coastUntil = -1;
+      if (reverseUntil < 0 && coastUntil < 0) await down('KeyW');
+      else if (coastUntil >= 0) await up('KeyW');
       if (elapsed >= nextSteer) {
         steer = steerPattern[steerIndex++ % steerPattern.length];
         await down(steer);
@@ -514,7 +640,8 @@ async function main() {
     await shoot('run-end');
 
     const pageData = await page.evaluate(() => ({
-      phases: window.__perf.phases, longTaskSupported: window.__perf.longTaskSupported, gpu: window.__perf.gpu(),
+      phases: window.__perf.phases, logs: window.__perf.logs,
+      longTaskSupported: window.__perf.longTaskSupported, gpu: window.__perf.gpu(),
       audioContextStates: window.__perf.audio.contexts.map(c => c.state), userAgent: navigator.userAgent,
     }));
     machine.unityProcessesAfter = await unityProcesses();
@@ -551,9 +678,18 @@ async function reportStem(opts) {
 function buildReport(d) {
   const { opts, pageData } = d;
   const phases = {};
+  const logs = pageData.logs ?? [];
+  let runFrames = null;
   for (const [name, phase] of Object.entries(pageData.phases)) {
+    const frames = timedFrames(phase);
+    const windows = reloadWindows(phase, logs);
+    const kept = frames.filter(f => !windows.some(w => f.end > w.from && f.end - f.ms < w.to));
+    if (name === 'run') runFrames = { frames, kept, start: phase.start, end: phase.end ?? Infinity };
     phases[name] = {
-      stats: frameStats(phase.deltas),
+      stats: frameStats(frames),
+      reloadWindows: windows.map(({ fromS, toS, runRestarted }) => ({ fromS, toS, runRestarted })),
+      statsExcludingReloads: windows.length ? frameStats(kept) : null,
+      framesExcluded: frames.length - kept.length,
       longTasks: pageData.longTaskSupported ? longTaskStats(phase.longTasks) : null,
       machineCpuBusy: d.phaseCpu[name] ?? null,
       audioSourcesStarted: phase.audioSourcesStarted ?? null,
@@ -581,6 +717,12 @@ function buildReport(d) {
   if (opts.phys && !d.physResult) notes.push('No [PHYS-RESULT] line arrived before the capture ended.');
   if (!opts.phys) notes.push('Run without physProbe: a normal run ends at 90 s, so later run-phase frames may be the results screen.');
   for (const e of d.events) notes.push(`t=${e.t}s: ${e.what}`);
+  for (const [name, p] of Object.entries(phases)) for (const w of p.reloadWindows) {
+    notes.push(`${name} ${w.fromS}–${w.toS} s treated as a wreck/reload (${w.runRestarted ? 'run restarted' : 'run did not restart'}); ` +
+      `"excluding reloads" stats leave these ${p.framesExcluded} frames out.`);
+  }
+  const spikes = runFrames ? spikeSummary(runFrames, logs, opts) : null;
+  if (opts.spikeLog && spikes && !spikes.loggerStarted) notes.push('--spike-log was set but no "[SPIKE] start" line appeared; this build may not include FrameSpikeLog.');
 
   return {
     tool: 'tools/perf/webgl-frametime.mjs',
@@ -588,7 +730,8 @@ function buildReport(d) {
     version: d.build?.version ?? opts.version ?? 'unknown',
     seed: opts.seed,
     physProbe: opts.phys,
-    options: { seconds: opts.seconds, titleSeconds: opts.titleSeconds, width: opts.width, height: opts.height, headed: opts.headed },
+    spikeLog: opts.spikeLog,
+    options: { seconds: opts.seconds, titleSeconds: opts.titleSeconds, width: opts.width, height: opts.height, headed: opts.headed, query: opts.query },
     url: d.url.href.replace(/127\.0\.0\.1:\d+/, '127.0.0.1:<port>'),
     build: d.build ? { ...d.build, root: undefined, port: undefined } : null,
     machine: d.machine,
@@ -597,16 +740,24 @@ function buildReport(d) {
     timeline: { playerReadyAtS: d.playerReadyAtS, settledAfterS: d.settledAfterS, runStartedAtS: d.runStartedAtS, enterPresses: d.enterPresses, runStartConfirmed: d.runStartConfirmed },
     phases,
     physics: { lines: d.phys, result: physicsResult, resultRaw: d.physResult?.text ?? null },
-    console: { lines: d.consoleLines.length, errorCount: d.errors.length, errors: d.errors.slice(0, 100) },
+    spikes,
+    console: { lines: d.consoleLines.length, errorCount: d.errors.length, errors: d.errors.slice(0, 100), all: d.consoleLines.slice(0, 5000) },
     notes,
     screenshots: d.screenshots,
-    raw: Object.fromEntries(Object.entries(pageData.phases).map(([name, p]) => [name, { frameDeltasMs: p.deltas, longTasksMs: p.longTasks }])),
+    raw: {
+      ...Object.fromEntries(Object.entries(pageData.phases).map(([name, p]) => [name, { startMs: p.start, frameDeltasMs: p.deltas, longTasksMs: p.longTasks }])),
+      probeLogs: logs.map(l => ({ nowMs: round(l.now, 1), text: l.text.trim() })),
+    },
   };
 }
 
 function markdown(r) {
-  const row = (label, f) => `| ${label} | ${['title', 'run'].map(p => (r.phases[p] ? f(r.phases[p]) ?? '–' : '–')).join(' | ')} |`;
-  const s = key => p => p.stats?.[key];
+  const clean = r.phases.run?.statsExcludingReloads;
+  const columns = [['Title', r.phases.title, 'stats'], ['Run', r.phases.run, 'stats']];
+  if (clean) columns.push(['Run, reloads excluded', r.phases.run, 'statsExcludingReloads']);
+  const row = (label, f) => `| ${label} | ${columns.map(([, p, key]) => (p ? f(p, key) ?? '–' : '–')).join(' | ')} |`;
+  const s = field => (p, key) => p[key]?.[field];
+  const phaseOnly = f => (p, key) => (key === 'stats' ? f(p) : null);
   const lines = [
     `# WebGL frame time: ${r.version}, seed ${r.seed}`,
     '',
@@ -626,8 +777,8 @@ function markdown(r) {
     '',
     '## Frame times (requestAnimationFrame deltas)',
     '',
-    '| | Title | Run |',
-    '|---|---|---|',
+    `| | ${columns.map(c => c[0]).join(' | ')} |`,
+    `|---|${columns.map(() => '---').join('|')}|`,
     row('Duration (s)', s('durationS')),
     row('Frames', s('frames')),
     row('Mean (ms)', s('meanMs')),
@@ -637,12 +788,15 @@ function markdown(r) {
     row('Max (ms)', s('maxMs')),
     row('Frames > 33.3 ms', s('framesOver33_3Ms')),
     row('Frames > 50 ms', s('framesOver50Ms')),
-    row('Long tasks (count / total ms)', p => (p.longTasks ? `${p.longTasks.count} / ${p.longTasks.totalMs}` : null)),
-    row('Machine CPU busy (mean / max %)', p => (p.machineCpuBusy ? `${p.machineCpuBusy.meanPct} / ${p.machineCpuBusy.maxPct}` : null)),
-    row('Audio sources started / max active', p => (p.audioSourcesStarted == null ? null : `${p.audioSourcesStarted} / ${p.audioMaxActiveSources}`)),
+    row('Long tasks (count / total ms)', phaseOnly(p => (p.longTasks ? `${p.longTasks.count} / ${p.longTasks.totalMs}` : null))),
+    row('Machine CPU busy (mean / max %)', phaseOnly(p => (p.machineCpuBusy ? `${p.machineCpuBusy.meanPct} / ${p.machineCpuBusy.maxPct}` : null))),
+    row('Audio sources started / max active', phaseOnly(p => (p.audioSourcesStarted == null ? null : `${p.audioSourcesStarted} / ${p.audioMaxActiveSources}`))),
     '',
     'Worst run frames: ' + (r.phases.run?.stats?.worstFrames.map(f => `${f.ms} ms at ${f.atS} s`).join(', ') || '–'),
+    ...(clean ? ['', 'Worst run frames, reloads excluded: ' + clean.worstFrames.map(f => `${f.ms} ms at ${f.atS} s`).join(', '),
+      `Reload windows: ${r.phases.run.reloadWindows.map(w => `${w.fromS}–${w.toS} s`).join(', ')} (${r.phases.run.framesExcluded} frames).`] : []),
     '',
+    ...spikeMarkdown(r.spikes),
     '## Physics probe',
     '',
     r.physics.resultRaw ? '```\n' + r.physics.resultRaw + '\n```' : (r.physProbe ? 'No `[PHYS-RESULT]` line arrived.' : 'Not requested (`--no-phys`).'),
@@ -667,6 +821,28 @@ function markdown(r) {
   return lines.join('\n');
 }
 
+function spikeMarkdown(sp) {
+  if (!sp) return [];
+  const cell = v => (v == null ? '–' : String(v).replace(/\|/g, '/'));
+  return [
+    '## Spike log (`?spikeLog=1`)',
+    '',
+    sp.loggerStarted ? `${sp.spikeLines} \`[SPIKE]\` lines during the run phase; ${sp.framesOver33_3MsWithSpikeLine} of ${sp.framesOver33_3Ms} run frames over 33.3 ms ` +
+      `(reloads excluded) matched one within ${SPIKE_MATCH_MS} ms. Of those, ${sp.withGc} had a GC and ${sp.withEvents} had a game event; ` +
+      `${sp.unmatchedSpikeLines} lines matched no frame.` : 'The game printed no `[SPIKE] start` line (build without FrameSpikeLog?).',
+    '',
+    `Events on matched heavy frames: ${Object.entries(sp.eventTally).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}.`,
+    '',
+    '| At (s) | rAF (ms) | Unity (ms) | GC | Heap Δ (KB) | Events | Scene |',
+    '|---|---|---|---|---|---|---|',
+    ...sp.worst.map(w => `| ${w.atS} | ${w.rafMs} | ${cell(w.unityFrameMs)} | ${cell(w.gc)} | ${cell(w.heapDeltaKB)} | ` +
+      `${cell(w.events?.join(', ') || (w.events ? '' : null))} | ${cell(w.counts && Object.entries(w.counts).map(([k, v]) => `${k} ${v}`).join(', '))} |`),
+    '',
+    'At = seconds into the run phase (page clock). Unity (ms) is the game\'s own frame interval for the same frame. Every slow frame is in the `.json` (`spikes.allSlowFrames`).',
+    '',
+  ];
+}
+
 async function writeReports(opts, stem, report, log) {
   const outDir = resolve(repo, opts.out);
   await mkdir(outDir, { recursive: true });
@@ -677,6 +853,9 @@ async function writeReports(opts, stem, report, log) {
   log(`Wrote ${relative(repo, jsonPath)} and ${relative(repo, mdPath)}`);
   const run = report.phases.run?.stats;
   if (run) log(`Run: ${run.frames} frames, p95 ${run.p95Ms} ms, max ${run.maxMs} ms, >50 ms: ${run.framesOver50Ms}`);
+  const clean = report.phases.run?.statsExcludingReloads;
+  if (clean) log(`Run, reloads excluded: ${clean.frames} frames, p95 ${clean.p95Ms} ms, max ${clean.maxMs} ms, >50 ms: ${clean.framesOver50Ms}`);
+  if (report.spikes) log(`Spikes: ${report.spikes.spikeLines} lines, ${report.spikes.framesOver33_3MsWithSpikeLine}/${report.spikes.framesOver33_3Ms} heavy frames matched`);
   for (const note of report.notes) log(`Note: ${note}`);
 }
 
