@@ -14,7 +14,7 @@ public static class BuildScript
 {
     private const string ProductName = "Doomsday";
     /// <summary>Shipped version; also shown on the title screen via Application.version.</summary>
-    public const string Version = "0.7.9";
+    public const string Version = "0.8.0";
     /// <summary>The only scene that ships. 0.5+: the ADR-0003 restyled scene.</summary>
     private const string ShippingScene = "Assets/Scenes/ArtTest.unity";
     /// <summary>S7-01 G1 gate scene; dev-only, own output folder.</summary>
@@ -51,8 +51,12 @@ public static class BuildScript
         PlayerSettings.bundleVersion = Version;
         PlayerSettings.companyName = "Ghostweave Games";
         if (target == BuildTarget.WebGL)
-            // itch.io serves without Content-Encoding headers; gzip/brotli builds fail to load there.
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
+        {
+            // itch.io serves without Content-Encoding headers, so gzip ships with the decompression fallback: the
+            // loader decompresses in the browser. Shrinks the download several times (0.8.0; was Disabled).
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+            PlayerSettings.WebGL.decompressionFallback = true;
+        }
 
         var options = new BuildPlayerOptions
         {
