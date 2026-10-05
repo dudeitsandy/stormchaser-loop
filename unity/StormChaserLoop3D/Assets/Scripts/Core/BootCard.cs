@@ -50,7 +50,7 @@ public sealed class BootCard : MonoBehaviour
     /// </summary>
     public bool Play(Action done)
     {
-        if (ShownThisSession || (Application.isBatchMode && !AllowInBatchmode))
+        if (ShownThisSession || CleanCapture.Active || (Application.isBatchMode && !AllowInBatchmode))
         {
             done?.Invoke();
             return false;

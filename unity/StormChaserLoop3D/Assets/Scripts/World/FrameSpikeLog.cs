@@ -19,6 +19,39 @@ public sealed class FrameSpikeLog : MonoBehaviour
     [Tooltip("Seconds between [SPIKE-SUMMARY] lines.")]
     [SerializeField] private float _summaryEvery = 30f;
 
+    /// <summary>True while a log is installed (<c>?spikeLog=1</c>): callers may time their steps with <see cref="Step"/>.</summary>
+    public static bool Enabled { get; private set; }
+    private static readonly System.Diagnostics.Stopwatch StepWatch = new System.Diagnostics.Stopwatch();
+    private static readonly StringBuilder StepLine = new StringBuilder(256);
+    private static double _stepLastMs;
+
+    /// <summary>Starts a "[SPIKE-STEPS] label" line (no-op unless <see cref="Enabled"/>).</summary>
+    public static void BeginSteps(string label)
+    {
+        if (!Enabled) return;
+        StepLine.Clear().Append("[SPIKE-STEPS] ").Append(label).Append(':');
+        _stepLastMs = 0;
+        StepWatch.Restart();
+    }
+
+    /// <summary>Adds " name=ms" for the time since the previous step.</summary>
+    public static void Step(string name)
+    {
+        if (!Enabled || !StepWatch.IsRunning) return;
+        double now = StepWatch.Elapsed.TotalMilliseconds;
+        StepLine.Append(' ').Append(name).Append('=').Append((now - _stepLastMs).ToString("0.0"));
+        _stepLastMs = now;
+    }
+
+    /// <summary>Logs the line with the total.</summary>
+    public static void EndSteps()
+    {
+        if (!Enabled || !StepWatch.IsRunning) return;
+        StepWatch.Stop();
+        StepLine.Append(" total=").Append(StepWatch.Elapsed.TotalMilliseconds.ToString("0.0")).Append("ms");
+        Debug.Log(StepLine.ToString());
+    }
+
     private readonly List<(int frame, string what)> _events = new List<(int, string)>();
     private readonly StringBuilder _sb = new StringBuilder(256);
     private int _lastGc0, _lastGc1, _lastGc2, _spikes, _gcFrames, _frames, _skipFrame = -1;
@@ -45,6 +78,7 @@ public sealed class FrameSpikeLog : MonoBehaviour
 
     private void OnEnable()
     {
+        Enabled = true;
         GameEvents.StormCellForming += OnForming;
         GameEvents.StormCellPeak += OnPeak;
         GameEvents.StormCellRopeOut += OnRopeOut;
@@ -66,6 +100,7 @@ public sealed class FrameSpikeLog : MonoBehaviour
 
     private void OnDisable()
     {
+        Enabled = false;
         GameEvents.StormCellForming -= OnForming;
         GameEvents.StormCellPeak -= OnPeak;
         GameEvents.StormCellRopeOut -= OnRopeOut;

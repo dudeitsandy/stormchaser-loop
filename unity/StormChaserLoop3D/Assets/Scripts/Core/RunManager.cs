@@ -331,10 +331,13 @@ public class RunManager : MonoBehaviour
     /// <summary>Starts a run immediately (title dismissed). Public for PlayMode tests.</summary>
     public void StartRun()
     {
+        FrameSpikeLog.BeginSteps("startrun"); // ?spikeLog=1 only: S9-04 found a 111 ms run-start frame
         Current = State.Running;
         Time.timeScale = 1f;
         _attract.End(); // camera eases to the chase cam; the spawner's Begin below replaces the demo storm
+        FrameSpikeLog.Step("attract");
         _screens.Hide();
+        FrameSpikeLog.Step("screens");
         SetGameplayActive(true);
         // The press that dismissed the title/results belongs to the menu: keep the shutter safe until it's released.
         if (_photo != null)
@@ -344,9 +347,14 @@ public class RunManager : MonoBehaviour
         }
         _timer.Begin();
         _spawner.Begin();
+        FrameSpikeLog.Step("director");
         _goals.BeginRun(); // after the director has its plan: bounties are drawn from it
+        FrameSpikeLog.Step("goals");
         _radio.StartRadio();
+        FrameSpikeLog.Step("radio");
         GameEvents.RaiseRunStarted();
+        FrameSpikeLog.Step("runStartedListeners");
+        FrameSpikeLog.EndSteps();
     }
 
     private void OnTimerEnd() => EndRun(wrecked: false);

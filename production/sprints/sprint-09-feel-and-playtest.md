@@ -43,9 +43,10 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
   (tactile feedback on impacts, flips and tosses; backlog → Crash weight). Both also go to PT-1 testers.
 
 ## Sprint 10 carry-ins (decided 2026-10-05)
-- **Smooth the title → run start** (111 ms frame in S9-04: demo storm cleared, run plan built, screens swapped in one
-  frame): pre-build the run's storm plan / first spawns and UI during the title, spread over frames. Andy: transitions
-  sit outside M1's "3-min run", so this is polish, not a gate blocker.
+- ~~**Smooth the title → run start**~~ **Not needed (measured 2026-10-05):** `StartRun` itself costs 3.0–4.6 ms in the
+  browser (step timer `[SPIKE-STEPS]`, `?spikeLog=1`: attract 0.1–0.3, screens 0.5–0.7, director 0.5–0.6, goals 0.6–0.8,
+  radio 0.7–1.1, RunStarted listeners 0.5–1.1), and without the physics probe the run-start frame was ≤ 33 ms in 3 of 3
+  trials. The 111 ms frame was a `?physProbe=1` run (the probe's run-start work and manual stepping).
 
 ## Polish notes (Andy 2026-10-05 via stormchaser-38; low priority, behind S9-02a)
 - **Sirens, one spatial source** (Codex, X9-03): instead of four poles (X8-01), one central siren (farmstead or town
@@ -54,6 +55,12 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 - **Siren tail + radio return** (Codex siren release + Claude RadioLite duck release, X9-04): the siren tails off longer
   instead of stopping, and the radio comes back with a 1–2 s ease after the duck instead of snapping. The radio ramp
   starts as the siren tail fades, so they never overlap loudly.
+
+## Clean capture (Andy 2026-10-05 via stormchaser-96; < 1 h, dev toggle)
+- [x] `?clean=1` / `-clean=1`: hides every UI Toolkit overlay (title, HUD, crawl, style pops, off-screen markers,
+  viewfinder), skips the boot card; world, storms and the title flyover keep running; **V** toggles the viewfinder back
+  on. Never active without the flag; no effect on scoring, goals or saves. F9 capture exists only in editor / dev
+  builds. Evidence `clean-title-attract.png`, `clean-run.png`, `clean-run-viewfinder.png`; 0 console errors.
 
 ## Boot card (Andy 2026-10-05 via stormchaser-96; ~1 h, passes the freeze rule)
 - [x] Ghostweave Labs badge between Unity's splash and the title: fade in 0.4 s with a VHS-tracking glitch (2 shallow
