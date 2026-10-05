@@ -35,37 +35,56 @@ public class RadioLiteTests
     }
 
     [Test]
-    public void Warning_DucksForTheSirenCycle_ThenRestores()
+    public void Warning_DucksFiveSeconds_ThenRadioRecoversOverTen_WhileTheWarningIsStillLive()
     {
+        // Arrange
         var d = new MusicDuck();
         Assert.AreEqual(1f, d.TargetGain(0f));
+        // Act
         d.OnCellForming(cellId: 1, trueEf: 3, now: 10f);
+        // Assert: attention hold, then a DJ-break recovery under the still-live siren (X9-04, Andy 2026-10-05)
         Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(10f));
-        Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(34.9f));
-        // X9-04: hold through the first second of the siren tail, then ease back over 2 s (no snap).
-        Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(35.9f));
-        float mid = d.TargetGain(37f);
+        Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(14.9f));
+        float mid = d.TargetGain(20f);
         Assert.Greater(mid, MusicDuck.DuckedGain);
         Assert.Less(mid, 1f);
-        Assert.AreEqual(1f, d.TargetGain(38.01f));
+        Assert.IsTrue(d.IsDucked(25.1f), "the warning is still live");
+        Assert.AreEqual(1f, d.TargetGain(25.1f), 1e-4f, "radio fully back while the siren sits underneath");
+    }
+
+    [Test]
+    public void SameCellAgain_DoesNotRestartRecovery_ANewCellReDucks()
+    {
+        // Arrange: a warning, recovering
+        var d = new MusicDuck();
+        d.OnCellForming(1, 4, 0f);
+        float recovering = d.TargetGain(10f);
+        // Act: the same cell again (duplicate lifecycle event)
+        d.OnCellForming(1, 4, 9f);
+        // Assert
+        Assert.AreEqual(recovering, d.TargetGain(10f), 1e-5f, "a duplicate never fabricates a fresh duck");
+        // Act: a different cell warns
+        d.OnCellForming(2, 3, 12f);
+        // Assert
+        Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(12f), "a new warning re-ducks");
     }
 
     [Test]
     public void Release_RisesSmoothly_NeverJumps()
     {
-        // Arrange
+        // Arrange: duck ends during the attention hold (from the ducked level)
         var d = new MusicDuck();
-        d.OnCellForming(1, 3, 0f);
-        float prev = d.TargetGain(25f);
-        // Act / Assert: sampled at 60 Hz through the release, gain only rises, by small steps
-        for (float t = 25f; t <= 29f; t += 1f / 60f)
+        d.OnCellPeak(7, StormCellRole.Anchor, 4, 0f); // live 8 s, attention hold 5 s then recovering
+        float prev = d.TargetGain(0f);
+        // Act / Assert: sampled at 60 Hz until well after release, gain only rises, by small steps
+        for (float t = 0f; t <= 16f; t += 1f / 60f)
         {
             float g = d.TargetGain(t);
             Assert.GreaterOrEqual(g, prev - 1e-6f, $"t {t}");
             Assert.Less(g - prev, 0.03f, $"t {t}: a step, not a ramp");
             prev = g;
         }
-        Assert.AreEqual(1f, prev);
+        Assert.AreEqual(1f, prev, 1e-4f);
     }
 
     [Test]
@@ -77,26 +96,47 @@ public class RadioLiteTests
     }
 
     [Test]
-    public void Emergency_DucksUntilThatCellRopesOut()
+    public void Emergency_StaysLiveUntilThatCellRopesOut_RadioRecoversUnderIt_NoDipAtTheEnd()
     {
+        // Arrange
         var d = new MusicDuck();
         d.OnCellForming(5, 5, 0f);
-        Assert.IsTrue(d.IsDucked(500f), "an EF5 emergency holds the duck past the siren cycle");
+        // Assert: still live long after, but the radio has come back underneath
+        Assert.IsTrue(d.IsDucked(500f), "an EF5 emergency stays live past the siren cycle");
+        Assert.AreEqual(1f, d.TargetGain(500f), 1e-4f);
         d.OnCellDeclined(4, 500f);
         Assert.IsTrue(d.IsDucked(500f), "another cell's rope-out doesn't release it");
+        // Act
         d.OnCellDeclined(5, 500f);
+        // Assert: already recovered, so the end-of-demand release never dips it again
         Assert.IsFalse(d.IsDucked(500f));
-        Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(500.5f), "held through the siren tail's first second");
-        Assert.AreEqual(1f, d.TargetGain(503.01f));
+        Assert.AreEqual(1f, d.TargetGain(500.5f), 1e-4f);
+        Assert.AreEqual(1f, d.TargetGain(503.01f), 1e-4f);
+    }
+
+    [Test]
+    public void EmergencyEndingDuringTheHold_HoldsThenEasesBackOverTheSirenTail()
+    {
+        // Arrange: the EF5 ropes out 2 s after forming (still in the attention hold)
+        var d = new MusicDuck();
+        d.OnCellForming(5, 5, 0f);
+        d.OnCellDeclined(5, 2f);
+        // Assert: held for 1 s of the siren tail, then eased back over 2 s
+        Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(2.9f));
+        float mid = d.TargetGain(4f);
+        Assert.Greater(mid, MusicDuck.DuckedGain);
+        Assert.Less(mid, 1f);
+        Assert.AreEqual(1f, d.TargetGain(5.01f), 1e-4f);
     }
 
     [Test]
     public void AnchorTouchdown_DucksBriefly_SatelliteDoesNot()
     {
         var d = new MusicDuck();
-        d.OnCellPeak(StormCellRole.Satellite, 4, 0f);
+        d.OnCellPeak(3, StormCellRole.Satellite, 4, 0f);
         Assert.IsFalse(d.IsDucked(1f));
-        d.OnCellPeak(StormCellRole.Anchor, 4, 0f);
+        d.OnCellPeak(4, StormCellRole.Anchor, 4, 0f);
+        Assert.AreEqual(MusicDuck.DuckedGain, d.TargetGain(1f));
         Assert.IsTrue(d.IsDucked(7.9f));
         Assert.IsFalse(d.IsDucked(8.1f));
     }
