@@ -124,6 +124,9 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-05 — **0.8.7 pushed** (html5 + windows): a flipped truck never stays stuck on its back (no phantom wheels
+  when flipped, 3 s failsafe, jump rights it), near-miss bounty text "TWO NEAR MISSES, TEN SECONDS". EditMode 409/409,
+  PlayMode 78/78, WebGL 0 console errors (30 s smoke p95 17.1 ms, max 33.7 ms).
 - 2026-10-05 — **0.8.6 pushed** (html5 + windows): Ghostweave Labs boot card between Unity's splash and the title
   (skippable, once per session); slow-frame logger behind `?spikeLog=1` (dev only). No gameplay change. EditMode
   409/409, PlayMode 74/74, WebGL 0 console errors.

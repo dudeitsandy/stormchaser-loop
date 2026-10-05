@@ -84,7 +84,7 @@ public static class GoalCatalogue
         new GoalDef(B + "before_touchdown", GoalKind.Bounty, GoalType.Storm, "CATCH THE MAIN STORM FORMING", "CAUGHT FORMING", 250, BountyNeed.Anchor),
         new GoalDef(B + "rope_out", GoalKind.Bounty, GoalType.Storm, "GET THE ROPE-OUT", "ROPE-OUT", 200, BountyNeed.AnyCell),
         new GoalDef(B + "close_call", GoalKind.Bounty, GoalType.Storm, "RIDE IT OUT UP CLOSE", "CLOSE CALL", 300, BountyNeed.Ef3Plus),
-        new GoalDef(B + "double_near_miss", GoalKind.Bounty, GoalType.Style, "BACK-TO-BACK NEAR MISSES", "DOUBLE MISS", 250, BountyNeed.Always),
+        new GoalDef(B + "double_near_miss", GoalKind.Bounty, GoalType.Style, "TWO NEAR MISSES, TEN SECONDS", "DOUBLE MISS", 250, BountyNeed.Always),
         new GoalDef(B + "drift_by", GoalKind.Bounty, GoalType.Style, "DRIFT PAST A TWISTER", "DRIFT-BY", 250, BountyNeed.AnyCell),
     };
 

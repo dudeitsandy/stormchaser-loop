@@ -234,7 +234,7 @@ the next EF3 within 40 seconds, and the clock is running.
    | `before_touchdown` | "CATCH THE MAIN STORM FORMING" | Photo of the anchor while its phase is Forming | an anchor (not Chaos) | 250 |
    | `rope_out` | "GET THE ROPE-OUT" | Photo of any tornado whose phase is RopingOut | any cell | 200 |
    | `close_call` | "RIDE IT OUT UP CLOSE" | `CloseCallSeconds` in total within `CloseCallRange` of an EF3+ tornado that is on the ground (Mature or RopingOut) | a non-dropped EF3+ cell | 300 |
-   | `double_near_miss` | "BACK-TO-BACK NEAR MISSES" | Two near-miss style moments within `NearMissPairWindow` | always | 250 |
+   | `double_near_miss` | "TWO NEAR MISSES, TEN SECONDS" (was "BACK-TO-BACK NEAR MISSES" until 0.8.7: Andy found it unclear) | Two near-miss style moments within `NearMissPairWindow` | always | 250 |
    | `drift_by` | "DRIFT PAST A TWISTER" | A drift style moment that ends with a tornado within `DriftByRange` | any cell | 250 |
 
    Deferred until their systems exist: Airborne Subject (needs debris-in-frame detection), Dual Cataclysm

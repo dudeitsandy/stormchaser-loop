@@ -196,6 +196,8 @@ probably about 2 h and fits the freeze rule; decide with PT-1 feedback.
 radius and damage radius + 6 m, at over 8 m/s, at most once per funnel per 3 s. So it needs two clean threads of that
 6 m band inside 10 s, usually around two different funnels or a turn-back past the same one.
 
+**0.8.7:** text changed to "TWO NEAR MISSES, TEN SECONDS" (no digits: event-system RG AC) (clarity only, same rule). Difficulty waits for PT-1.
+
 **Options (all tuning or text, no new system):** clearer text ("2 NEAR MISSES IN 10 S"); a wider band (margin 6 → 10 m)
 or a longer pair window (10 → 20 s); a visible "1 / 2" counter while the window is open; or swap the bounty for a
 simpler one. Decide with Andy, ideally with PT-1 answers to "did any goal feel impossible or unclear?".
