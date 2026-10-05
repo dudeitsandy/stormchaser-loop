@@ -400,7 +400,7 @@ setting, parked by the freeze rule).
 | E2 | **Jump farming** — jump spam on flat ground ≈ continuous airtime → infinite boost | Airtime refill/style only counts while **> 0.6 m above ground** (S9-02a; was 1.8 m, above the 1.5 m jump apex, so jumps never counted). A full jump counts ≈ 0.6 s; the 0.8 s jump cooldown and passive-only refill below the floor keep spam bounded. Curb hops don't count |
 | E3 | **Near-miss farming** — orbiting just outside a damage radius | Near-miss cooldown 3 s per tornado; requires speed > 8 m/s |
 | E4 | Toss → hard landing → damage | Intended risk; normal landing rules; post-hit invulnerability prevents stacking |
-| E5 | Upended in wind — linear speed never drops below 2 m/s, auto-right never fires | Auto-right condition: upended 1.2 s **and** angular speed < 1.5 rad/s (linear speed ignored) |
+| E5 | Upended in wind — linear speed never drops below 2 m/s, auto-right never fires | Auto-right condition: upended 1.2 s **and** angular speed < 1.5 rad/s (linear speed ignored). **Plus (2026-10-05, Andy stuck on his back after a storm):** on its side or back no wheel counts as grounded (the cast started inside the ground and read as a compressed wheel, so the truck rocked on phantom suspension and the timer kept resetting); **failsafe:** up·Y < 0.3 for 3 s straight auto-rights whatever the spin |
 | E6 | Tunneling at boost/toss speeds | Continuous-dynamic collision detection on the vehicle body |
 | E7 | Low framerate (Steam Deck 30 fps, WebGL hitches) | Fixed 50 Hz physics, independent of render rate; max catch-up 0.1 s per frame |
 | E8 | Flung out of the world | Soft boundary push-back + hard clamp; below y = −10, respawn at last grounded position (no HP cost) |
@@ -409,7 +409,7 @@ setting, parked by the freeze rule).
 | E11 | Storm Cam with no disaster in range | Falls back to free orbit while staying toggled; re-locks when one enters range; switching targets requires the new one to be ≥ 25 % closer (no flicker) |
 | E12 | Multiple impacts in one physics step | Apply only the single highest severity |
 | E13 | Hitting light destructibles (fences, signs) | Severity scaled by `min(1, m_other / (0.5 · M))`; static geometry = full mass. Plowing through fences never hurts; silos do. *(Masses per ADR-0004 §5)* |
-| E14 | Jump input while Upended or Disabled | Ignored (needs ≥ 2 grounded wheels and not Critical) |
+| E14 | Jump input while Upended or Disabled | **Upside down (up·Y < 0.3): jump rights the truck at once** (2026-10-05). Otherwise a jump needs ≥ 2 grounded wheels and not Critical |
 | E15 | Photo with camera looking backward | Allowed — aim is camera-forward and the viewfinder shows what will be scored; shooting over your shoulder while fleeing is valid |
 
 ## Dependencies

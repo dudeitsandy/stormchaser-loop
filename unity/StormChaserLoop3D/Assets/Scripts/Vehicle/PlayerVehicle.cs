@@ -261,6 +261,18 @@ public class PlayerVehicle : MonoBehaviour
     {
         Vector3 down = -transform.up;
         float maxDistance = _values.RestLength + 0.5f;
+        // On its side or back no wheel can be on the ground. The lifted cast origin then starts inside the ground and
+        // read as a fully compressed wheel, so a flipped truck rocked on phantom suspension and never auto-righted
+        // (Andy, 0.8.6 goal pass). Real slopes stop at MaxGroundSlopeDeg (60°), well inside this.
+        if (Vector3.Dot(transform.up, Vector3.up) < _values.UpendedDot)
+        {
+            for (int i = 0; i < VehicleModel.WheelCount; i++)
+            {
+                _contacts[i].Grounded = false;
+                _contacts[i].GroundDistance = maxDistance;
+            }
+            return;
+        }
         for (int i = 0; i < VehicleModel.WheelCount; i++)
         {
             Vector3 anchor = transform.TransformPoint(_anchors[i]);

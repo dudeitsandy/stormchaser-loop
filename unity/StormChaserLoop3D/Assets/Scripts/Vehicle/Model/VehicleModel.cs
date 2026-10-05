@@ -84,6 +84,7 @@ public sealed class VehicleModel
 
     private float _airTimer;
     private float _upendedTimer;
+    private float _flippedTimer;
     private float _rearGripMul = 1f;
     private float _airMaxFallSpeed;
     private bool _tossLatched;
@@ -426,7 +427,19 @@ public sealed class VehicleModel
     private void UpdateState(in VehicleStepInput input, Vector3 up, int groundedCount, float dt, VehicleStepOutput output)
     {
         VehicleState previous = State;
-        bool upended = Vector3.Dot(up, Vector3.up) < _v.UpendedDot && input.AngularVelocity.magnitude < _v.UpendedAngularSpeed;
+        // Never stuck upside down (Andy 2026-10-05): jump rights the truck at once, and after UpendedFailsafeSeconds
+        // on its side or back it rights itself whatever the spin (the E5 rule below waits for it to settle).
+        bool upsideDown = Vector3.Dot(up, Vector3.up) < _v.UpendedDot;
+        _flippedTimer = upsideDown ? _flippedTimer + dt : 0f;
+        if (upsideDown && (input.Input.JumpPressed || _flippedTimer >= _v.UpendedFailsafeSeconds))
+        {
+            output.AutoRight = true;
+            _flippedTimer = 0f;
+            _upendedTimer = 0f;
+            State = VehicleState.Upended;
+            return;
+        }
+        bool upended = upsideDown && input.AngularVelocity.magnitude < _v.UpendedAngularSpeed;
 
         if (upended && groundedCount < 2)
         {

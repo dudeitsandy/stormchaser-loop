@@ -55,6 +55,8 @@ public struct VehicleFeelValues
     public float FeatherLimitStartDeg, FeatherLimitEndDeg;
     public float AirborneGrace;
     public float UpendedDot, UpendedAngularSpeed, AutoRightDelay;
+    [Tooltip("Failsafe: upside down (up·Y < UpendedDot) this long, whatever the spin or contacts, auto-rights. Jump while upside down rights at once.")]
+    public float UpendedFailsafeSeconds;
     public float MaxGroundSlopeDeg;
 
     [Header("Wind (F11)")]
@@ -146,6 +148,7 @@ public struct VehicleFeelValues
         FeatherLimitStartDeg = 35f, FeatherLimitEndDeg = 55f,
         AirborneGrace = 0.1f,
         UpendedDot = 0.3f, UpendedAngularSpeed = 1.5f, AutoRightDelay = 1.2f,
+        UpendedFailsafeSeconds = 3f, // Andy 2026-10-05: stuck on its back after a storm
         MaxGroundSlopeDeg = 60f,
 
         WindResponse = 1.1f, WindForceCapG = 1.2f, WindLeverHeight = 0.2f, WindGripLossAt = 10f,
