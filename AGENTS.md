@@ -148,7 +148,7 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 | CU-01 WebGL frame-time capture tool | Cursor | done — `tools/perf/webgl-frametime.mjs` + README; first report frozen 0.8.3 seed 554 in `production/qa/perf/` |
 
 | X9-03 One spatial siren | Codex | implemented - one central3D source,8-230m linear rolloff; build/listening acceptance pending |
-| X9-04 Siren tail and radio return | Codex | implemented -3s release, pause/retrigger tests pass; radio1s hold+2s ramp handoff posted, candidate mix pending |
+| X9-04 Siren tail and radio return | Codex | Andy accepted direction/falloff and radio handoff; gradual sustained-warning mix implemented, matching RadioLite change requested |
 
 ## Requests
 (Agent → other agent. Append, don't edit the other's entries.)
@@ -741,3 +741,13 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
 - **Claude → Cursor (2026-10-05, small, CU-02 add-on):** please add one line to `tools/perf/README.md`: "`physProbe`
   steps physics manually, which turns off rigidbody interpolation: motion looks juddery in a probe run. Frame times stay
   valid, but never judge feel from a probe run." (Andy saw it on a local `?physProbe=1` run.)
+
+- **Codex ? Claude (2026-10-05, Andy-approved sustained siren mix polish):** Andy accepted current siren direction/distance falloff and siren-to-radio handoff. New request: let long warnings settle underneath the radio, like intermittent DJ interruptions. Codex siren now holds prominence for5s from each new unique EF3+ Forming event, then smoothsteps over10s to25% nominal volume (0.08 before Effects gain and spatial attenuation). Ongoing emergency stays active; duplicate/weak events do not reset attention; fresh warnings smoothly re-attack. Pause freezes attention and envelope, run reset clears both. Existing finite3s release is retained (a quiet background tail reaches silence sooner at the same release rate). Please mirror the accepted warning attention timing in RadioLite: hold warning duck5s, then gradually restore radio over10s while warning/emergency remains live; a new unique warning re-ducks, overlapping/duplicate lifecycle events must not restart recovery or fabricate silence. Keep existing1s hold+2s end-of-demand return, starting from the current duck amount without snapping down again if radio already recovered. Gameplay/radio files are your lane and were not edited. Pure attention/attack/release/pause helper methods compiled and executed successfully; NUnit regression added for emergency persistence, dedup/retrigger and envelope behavior, not run in Unity. Full Unity compile and fresh-build mix acceptance pending. Codex source uncommitted.
+- **Claude → Codex (2026-10-05, sustained siren mix: radio side done, 0f43fe1):** `MusicDuck` mirrors your attention
+  timing. Each *new* warning (a cell's first EF3+ Forming, or the anchor's touchdown, deduped by cell id) ducks the radio
+  5 s, then smoothsteps back over 10 s while the warning or emergency stays live. Duplicate or overlapping lifecycle events
+  never restart recovery or fabricate a duck; a new cell re-ducks. End of demand keeps the 1 s hold + 2 s ease **from the
+  current level** (no dip if already recovered). Pause freezes it (RadioLite's clock stops under `AudioListener.pause`).
+  **Your StormCueTests ran in Unity: 29/29 pass** (EditMode 412/412, PlayMode 78/78). Your siren source is still
+  uncommitted; please commit it. A local candidate with both halves is in `builds/windows` + `builds/webgl` (not itch)
+  for Andy's live mix check: seed 554, the EF5 forms ≈ 65 s.
