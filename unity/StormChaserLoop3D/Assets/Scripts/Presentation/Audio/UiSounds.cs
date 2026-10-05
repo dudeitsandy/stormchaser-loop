@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>Runtime synthesized menu and goal sounds; menu audio remains audible while the listener is paused.</summary>
 public sealed class UiSounds : MonoBehaviour
 {
+    private readonly PresentationEffectsGain _gain = new PresentationEffectsGain();
     [SerializeField, Range(0f, 1f)] private float _volume = 0.38f;
     private static UiSounds _current;
     private AudioSource _menu, _goals;
@@ -32,7 +33,7 @@ public sealed class UiSounds : MonoBehaviour
     private void Awake()
     {
         _menu = gameObject.AddComponent<AudioSource>(); _goals = gameObject.AddComponent<AudioSource>();
-        foreach (var source in new[] { _menu, _goals }) { source.playOnAwake = false; source.spatialBlend = 0f; }
+        foreach (var source in new[] { _menu, _goals }) { source.playOnAwake = false; source.spatialBlend = 0f; _gain.Set(source, 1f); }
         _menu.ignoreListenerPause = true;
         _move = Clip("MenuMoveTick", 0.045f, 0); _pick = Clip("MenuPickClunk", 0.12f, 1);
         _complete = Clip("GoalCompleteSting", 0.42f, 2); _firstEver = Clip("FirstEverGoalSting", 0.7f, 3);
@@ -40,6 +41,7 @@ public sealed class UiSounds : MonoBehaviour
     }
     private void OnEnable()
     {
+        _gain.Enable();
         _current = this; GameEvents.GoalCompleted += Completed; GameEvents.BountyFailed += Failed;
         GameEvents.MenuMoved += MenuMove; GameEvents.MenuPicked += MenuPick;
     }
@@ -74,6 +76,7 @@ public sealed class UiSounds : MonoBehaviour
     }
     private void OnDisable()
     {
+        _gain.Disable();
         GameEvents.GoalCompleted -= Completed; GameEvents.BountyFailed -= Failed;
         GameEvents.MenuMoved -= MenuMove; GameEvents.MenuPicked -= MenuPick;
         if (_current == this) _current = null;

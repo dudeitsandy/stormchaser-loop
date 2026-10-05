@@ -70,3 +70,17 @@ StormEnvironmentCues is the shared exposure owner. StormWindProvider sums indivi
 StormCueTests adds15 pure cases (52 total managed presentation cases). Native StormWindProviderTests checks actual provider sampling with opposite wind probes; it is compiled by the verification script but requires Unity to execute. For native acceptance, check e=0/0.5/1 with opposing cells, sky/sun brightness and restoration on results/Retry, cue density/length, EF5 rumble, one EF3+ forming siren, no EF2 cue, immediate anchor-only touchdown, duplicate suppression and cancellation. Radio is synthetic filtered chatter/static plus tones, not intelligible recorded speech; HUD captions are Claude's lane. No EF number is announced or displayed by this feature.
 
 Failed-touchdown visuals consume real Forming/Peak/RopeOut/Ended events. Until a stable controller CellId query is exposed, initial association requires a unique same-EF actor within1m of Forming's spawn position. Later events use the bound CellId. Capture an early Forming eviction: the previous short funnel must only get shorter, with no tilt/dust/debris. Also verify direct Ended hides it without fake touchdown. Director must lower Intensity over the retraction window and keep the actor alive until it finishes.
+
+
+### Settings brightness comparison (X8-07)
+Set `PRESENTATION_PROBE_QUERY=seed=554`, `PRESENTATION_PROBE_STATIONARY=1`, and
+`PRESENTATION_PROBE_BRIGHTNESS=1`, then run the probe for 75 seconds. After the
+ordinary run capture, it pauses and uses the existing SessionManager menu handlers
+to focus BRIGHTNESS and step from a fresh profile's default 0 to -50%, back to 0,
+and to +50%. Each setting produces a settings-panel proof and a resumed main/PiP
+capture. The isolated Chrome profile prevents changing the player's saved settings.
+These are sequential nearby moments, not identical frozen frames; changes pause
+game time, with 300 ms of resumed rendering per capture. Verify the displayed
+settings values before treating screenshots as evidence. This uses actual Settings
+exposure mapping, currently log2(1 + brightness), not the earlier +/-0.5 EV proposal.
+The existing WebGL build does not acquire new source changes until rebuilt.

@@ -125,6 +125,38 @@ try {
       await cdp('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
     }
   }
+  if (process.env.PRESENTATION_PROBE_BRIGHTNESS === '1') {
+    async function key(key, code, vk) {
+      await cdp('Input.dispatchKeyEvent', {type:'keyDown', key, code, windowsVirtualKeyCode:vk});
+      await sleep(100);
+      await cdp('Input.dispatchKeyEvent', {type:'keyUp', key, code, windowsVirtualKeyCode:vk});
+      await sleep(150);
+    }
+    async function send(method, value) {
+      const firstLog = logs.length;
+      await evaluate(`__unity.SendMessage('SessionManager', ${JSON.stringify(method)}${value === undefined ? '' : ',' + value})`);
+      await sleep(100);
+      const missing = logs.slice(firstLog).find(line => /does not have receiver|has no receiver/.test(line));
+      if (missing) {
+        await writeFile(join(output, 'brightness-prerequisite-failure.json'), JSON.stringify({build, query, method, error:missing}, null, 2));
+        throw new Error(`Brightness capture requires a rebuilt Settings candidate: ${missing}`);
+      }
+    }
+    for (const [label, direction, steps] of [['minus50',-1,5], ['zero',1,5], ['plus50',1,5]]) {
+      await key('Escape','Escape',27);
+      await send('OnPauseClick',1);
+      await send('OnSettingsHover',3);
+      for(let i=0;i<steps;i++) await send('ChangeSetting',direction);
+      const settings = await cdp('Page.captureScreenshot', {format:'png'});
+      await writeFile(join(output, `brightness-${label}-settings.png`),Buffer.from(settings.data,'base64'));
+      await send('CloseSettings');
+      await send('Resume');
+      await sleep(300);
+      const shot = await cdp('Page.captureScreenshot', {format:'png'});
+      await writeFile(join(output, `brightness-${label}.png`),Buffer.from(shot.data,'base64'));
+      console.log(`Captured brightness ${label}.`);
+    }
+  }
   await evaluate('__presentationProbe.stop()');
   await cdp('Tracing.end', {}, null);
   for (let i = 0; i < 30 && !traceFinished; i++) await sleep(100);

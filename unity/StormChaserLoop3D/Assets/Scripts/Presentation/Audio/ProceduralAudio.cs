@@ -5,6 +5,7 @@ using Unity.Profiling;
 /// <summary>Synthesized truck, wind, shutter, damage and end-of-run audio without imported assets.</summary>
 public sealed class ProceduralAudio : MonoBehaviour
 {
+    private readonly PresentationEffectsGain _gain = new PresentationEffectsGain();
     [SerializeField, Range(0f, 1f)] private float _effectsVolume = 0.55f;
     [SerializeField, Range(0f, 1f)] private float _engineVolume = 0.16f;
     [SerializeField, Range(0f, 1f)] private float _windVolume = 0.4f;
@@ -73,11 +74,12 @@ public sealed class ProceduralAudio : MonoBehaviour
         source.playOnAwake = false;
         source.loop = loop;
         source.spatialBlend = 0;
-        source.volume = 0;
+        _gain.Set(source, 0);
         return source;
     }
     private void OnEnable()
     {
+        _gain.Enable();
         _engine.Play();
         _wind.Play();
         _skid.Play();
@@ -97,6 +99,7 @@ public sealed class ProceduralAudio : MonoBehaviour
     }
     private void OnDisable()
     {
+        _gain.Disable();
         GameEvents.PhotoTaken -= Photo;
         GameEvents.PhotoMissed -= Shutter;
         GameEvents.OutOfFilm -= DryShutter;
@@ -115,7 +118,7 @@ public sealed class ProceduralAudio : MonoBehaviour
         if (_wind != null) _wind.Stop();
         if (_skid != null) _skid.Stop();
         if (_vehicleEffects != null) _vehicleEffects.Stop();
-        if (_boost != null) { _boost.Stop(); _boost.volume = 0f; }
+        if (_boost != null) { _boost.Stop(); _gain.Set(_boost, 0f); }
         _wasBoosting = false;
     }
     private void Photo(PhotoResult result) => Shutter();
@@ -130,7 +133,7 @@ public sealed class ProceduralAudio : MonoBehaviour
         _playingCellId = -1;
         _playingPeak = false;
         if (_stormAlert != null) _stormAlert.Stop();
-        if (_rumble != null) { _rumble.Stop(); _rumble.volume = 0f; }
+        if (_rumble != null) { _rumble.Stop(); _gain.Set(_rumble, 0f); }
     }
     private void QueueStormCue(StormCellInfo cell)
     {
@@ -147,7 +150,7 @@ public sealed class ProceduralAudio : MonoBehaviour
         _stormAlert.clip = _peakAlert;
         _playingCellId = cell.CellId;
         _playingPeak = true;
-        _stormAlert.volume = _stormAlertVolume;
+        _gain.Set(_stormAlert, _stormAlertVolume);
         _stormAlert.Play();
     }
     private void CellRopeOut(StormCellInfo cell)
@@ -162,7 +165,7 @@ public sealed class ProceduralAudio : MonoBehaviour
     }
     private void Play(AudioClip clip)
     {
-        _effects.volume = _effectsVolume;
+        _gain.Set(_effects, _effectsVolume);
         _effects.PlayOneShot(clip);
     }
     private bool Running => _vehicle != null && _vehicle.InputEnabled && Time.timeScale > 0f;
@@ -170,7 +173,7 @@ public sealed class ProceduralAudio : MonoBehaviour
     {
         if (!Running) return;
         _vehicleEffects.pitch = pitch;
-        _vehicleEffects.volume = _effectsVolume;
+        _gain.Set(_vehicleEffects, _effectsVolume);
         _vehicleEffects.PlayOneShot(clip, level);
     }
     private void Landed(float verticalSpeed)
@@ -197,24 +200,24 @@ public sealed class ProceduralAudio : MonoBehaviour
         bool boosting = running && _vehicle.BoostActive;
         if (boosting && !_wasBoosting) { _boost.Play(); Play(_boostStart); }
         _wasBoosting = boosting;
-        _boost.volume = Mathf.MoveTowards(_boost.volume, boosting ? _boostVolume : 0f, Time.unscaledDeltaTime * 3f);
+        _gain.Set(_boost, Mathf.MoveTowards(_gain.Get(_boost), boosting ? _boostVolume : 0f, Time.unscaledDeltaTime * 3f));
         _boost.pitch = Mathf.Lerp(0.9f, 1.2f, speed);
-        if (!boosting && _boost.volume <= 0f && _boost.isPlaying) _boost.Stop();
+        if (!boosting && _gain.Get(_boost) <= 0f && _boost.isPlaying) _boost.Stop();
         float airborne = running && (_vehicle.State == VehicleState.Airborne || _vehicle.State == VehicleState.Tossed) ? 1f : 0f;
         _engine.pitch = Mathf.MoveTowards(_engine.pitch, Mathf.Lerp(0.8f, 2.1f, speed) + _load * 0.15f + airborne * 0.1f,
             Time.unscaledDeltaTime * 3f);
-        _engine.volume = Mathf.MoveTowards(_engine.volume, running ? _engineVolume * (0.4f + speed * 0.5f + _load * 0.1f) : 0,
-            Time.unscaledDeltaTime);
+        _gain.Set(_engine, Mathf.MoveTowards(_gain.Get(_engine), running ? _engineVolume * (0.4f + speed * 0.5f + _load * 0.1f) : 0,
+            Time.unscaledDeltaTime));
         float slip = running ? VehicleFeedbackLevels.Skid(_vehicle.State, _vehicle.GroundedWheels,
             absoluteSpeed, _vehicle.SlipAngle) : 0f;
-        _skid.volume = Mathf.MoveTowards(_skid.volume, slip * _skidVolume, Time.unscaledDeltaTime * 2f);
+        _gain.Set(_skid, Mathf.MoveTowards(_gain.Get(_skid), slip * _skidVolume, Time.unscaledDeltaTime * 2f));
         _skid.pitch = Mathf.Lerp(0.85f, 1.25f, speed);
         float exposure = running ? StormEnvironmentCues.Exposure : 0f;
-        _wind.volume = Mathf.MoveTowards(_wind.volume, exposure * _windVolume, Time.unscaledDeltaTime * 0.5f);
+        _gain.Set(_wind, Mathf.MoveTowards(_gain.Get(_wind), exposure * _windVolume, Time.unscaledDeltaTime * 0.5f));
         float rumble = running ? StormEnvironmentCues.Ef5Exposure : 0f;
         if (rumble > 0f && !_rumble.isPlaying) _rumble.Play();
-        _rumble.volume = Mathf.MoveTowards(_rumble.volume, rumble * _rumbleVolume, Time.unscaledDeltaTime * 0.5f);
-        if (_rumble.volume == 0f && _rumble.isPlaying) _rumble.Stop();
+        _gain.Set(_rumble, Mathf.MoveTowards(_gain.Get(_rumble), rumble * _rumbleVolume, Time.unscaledDeltaTime * 0.5f));
+        if (_gain.Get(_rumble) == 0f && _rumble.isPlaying) _rumble.Stop();
         if (!running) { _stormQueue.Clear(); _stormAlert.Stop(); }
         else if (!_stormAlert.isPlaying && _stormQueue.Count > 0)
         {
@@ -224,7 +227,7 @@ public sealed class ProceduralAudio : MonoBehaviour
                 _stormAlert.clip = cue.Emergency ? _emergencyAlert : _formingAlert;
                 _playingCellId = cue.CellId;
                 _playingPeak = false;
-                _stormAlert.volume = _stormAlertVolume * cue.Level;
+                _gain.Set(_stormAlert, _stormAlertVolume * cue.Level);
                 _stormAlert.Play();
             }
         }

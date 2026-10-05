@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>Self-installing positional civil-defense sirens driven only by storm lifecycle events.</summary>
 public sealed class OutdoorWarningSirens : MonoBehaviour
 {
+    private readonly PresentationEffectsGain _gain = new PresentationEffectsGain();
     [SerializeField, Min(1f)] private float _sirenCycleSeconds = 25f;
     [SerializeField, Range(0f, 1f)] private float _volume = 0.32f;
     [SerializeField, Min(10f)] private float _audibleRange = 230f;
@@ -66,7 +67,7 @@ public sealed class OutdoorWarningSirens : MonoBehaviour
         source.minDistance = 12f;
         source.maxDistance = _audibleRange;
         source.dopplerLevel = 0f;
-        source.volume = 0f;
+        _gain.Set(source, 0f);
         _sources.Add(source);
     }
     private void Part(Transform parent, PrimitiveType type, Vector3 position, Vector3 scale)
@@ -82,6 +83,7 @@ public sealed class OutdoorWarningSirens : MonoBehaviour
     }
     private void OnEnable()
     {
+        _gain.Enable();
         GameEvents.StormCellForming += Forming;
         GameEvents.StormCellRopeOut += EndEmergency;
         GameEvents.StormCellEnded += EndEmergency;
@@ -105,18 +107,19 @@ public sealed class OutdoorWarningSirens : MonoBehaviour
         foreach (var source in _sources)
         {
             if (active && !source.isPlaying) { source.UnPause(); if (!source.isPlaying) source.Play(); }
-            source.volume = Mathf.MoveTowards(source.volume, active ? _volume : 0f, Time.deltaTime * _volume * 2f);
-            if (!active && source.volume == 0f) source.Stop();
+            _gain.Set(source, Mathf.MoveTowards(_gain.Get(source), active ? _volume : 0f, Time.deltaTime * _volume * 2f));
+            if (!active && _gain.Get(source) == 0f) source.Stop();
         }
     }
     private void EndRun(RunSummary summary) => Reset();
     private void Reset()
     {
         _cycle.Reset();
-        foreach (var source in _sources) { source.Stop(); source.volume = 0f; }
+        foreach (var source in _sources) { source.Stop(); _gain.Set(source, 0f); }
     }
     private void OnDisable()
     {
+        _gain.Disable();
         GameEvents.StormCellForming -= Forming;
         GameEvents.StormCellRopeOut -= EndEmergency;
         GameEvents.StormCellEnded -= EndEmergency;
