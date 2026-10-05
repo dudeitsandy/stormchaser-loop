@@ -53,7 +53,7 @@ No `tr-registry.yaml` exists yet; requirement IDs are local to this epic and cit
 | 001 | [Measure counted airtime and set the big-air threshold](story-001-airtime-measurement.md) | Integration | Done | ADR-0005 |
 | 002 | [Goal catalogue and seeded bounty draw](story-002-catalogue-bounty-draw.md) | Logic | Done | N/A |
 | 003 | [Goal evaluation, bonuses and goal events](story-003-goal-evaluation.md) | Logic | Done | N/A |
-| 004 | [Goal tracker in a live run](story-004-tracker-in-play.md) | Integration | Ready | ADR-0005 |
+| 004 | [Goal tracker in a live run](story-004-tracker-in-play.md) | Integration | Done | ADR-0005 |
 | 005 | [Accomplishments record and first save slice](story-005-accomplishments-save-slice.md) | Integration | Ready (WebGL sync check first) | N/A (M1 stem) |
 | 006 | [KTVR livery reward](story-006-livery-reward.md) | Integration | Ready (after 005) | N/A |
 | 007 | [HUD bounty list and career-goal pop-up](story-007-hud-bounties-popup.md) | UI | Ready | N/A |

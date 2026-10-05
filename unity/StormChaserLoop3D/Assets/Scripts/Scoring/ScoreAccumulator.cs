@@ -14,4 +14,7 @@ public class ScoreAccumulator : MonoBehaviour
         PhotoCount++;
         if (amount > BestShot) BestShot = amount;
     }
+
+    /// <summary>Adds a goal bonus (event-system.md Run Goals): counts toward the score, not as a photo.</summary>
+    public void AddBonus(float amount) => TotalScore += amount;
 }

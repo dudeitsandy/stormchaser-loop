@@ -1,7 +1,7 @@
 # Story 004: Goal tracker in a live run
 
 > **Epic**: Run Goals v1
-> **Status**: Ready
+> **Status**: Done (2026-10-04)
 > **Layer**: Feature
 > **Type**: Integration
 > **Estimate**: 3 h (M)
@@ -68,7 +68,7 @@ Wire the pure tracker into the run: a thin component subscribes to the existing 
 **Story Type**: Integration
 **Required evidence**: Integration test `unity/StormChaserLoop3D/Assets/Tests/PlayMode/GoalTrackerPlayTests.cs` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] `Tests/PlayMode/GoalTrackerPlayTests.cs` (4 cases) passing
 
 ---
 

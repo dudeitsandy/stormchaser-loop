@@ -29,6 +29,7 @@ public class RunManager : MonoBehaviour
     [SerializeField] private float _wreckTimeScale = 0.25f;
 
     private RunScreens _screens;
+    private GoalRunner _goals;
     private IDisposable _anyButton;
     private PauseMenu _pauseMenu;
     private float _stickY;
@@ -53,6 +54,9 @@ public class RunManager : MonoBehaviour
 
         _screens = GetComponent<RunScreens>();
         if (_screens == null) _screens = gameObject.AddComponent<RunScreens>();
+        _goals = GetComponent<GoalRunner>();
+        if (_goals == null) _goals = gameObject.AddComponent<GoalRunner>();
+        _goals.Bind(_score, _spawner, _vehicle);
     }
 
     private void OnEnable()
@@ -164,6 +168,7 @@ public class RunManager : MonoBehaviour
         if (Current != State.Paused && Current != State.Running) return;
         _timer.Stop();
         _spawner.Stop();
+        _goals.StopRun();
         GameEvents.RaiseRunForfeited();
         AudioListener.pause = false;
         if (quitToDesktop && CanQuit) Quit();
@@ -288,6 +293,7 @@ public class RunManager : MonoBehaviour
         }
         _timer.Begin();
         _spawner.Begin();
+        _goals.BeginRun(); // after the director has its plan: bounties are drawn from it
         GameEvents.RaiseRunStarted();
     }
 
@@ -303,10 +309,12 @@ public class RunManager : MonoBehaviour
         _spawner.Stop();
         SetGameplayActive(false);
 
+        // Score tiers are judged on the final score, which already includes goal bonuses (they pay none themselves).
+        RunGoalsInfo goals = _goals.EndRun(_score.TotalScore, endedOnTimer: !wrecked);
         float previousBest = BestScoreStore.Load();
         BestScoreStore.TrySave(_score.TotalScore);
         StormRunInfo storm = _spawner.Director != null ? _spawner.Director.RunInfo() : default;
-        var summary = new RunSummary(_score.TotalScore, _score.PhotoCount, _score.BestShot, wrecked, previousBest, storm);
+        var summary = new RunSummary(_score.TotalScore, _score.PhotoCount, _score.BestShot, wrecked, previousBest, storm, goals);
         GameEvents.RaiseRunEnded(summary);
 
         StartCoroutine(ShowResults(summary));

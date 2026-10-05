@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>Quality tier of a photo, derived from framing quality (not raw score) so every EF class can earn PERFECT.</summary>
@@ -39,6 +40,27 @@ public readonly struct PhotoResult
     public bool IsStaleRepeat => RepeatMultiplier < 0.6f;
 }
 
+/// <summary>Run Goals facts for the results screen (default when no goals ran).</summary>
+public readonly struct RunGoalsInfo
+{
+    /// <summary>This run's completions, in order.</summary>
+    public readonly IReadOnlyList<GoalCompletion> Completions;
+    /// <summary>This run's drawn bounty IDs, in draw order.</summary>
+    public readonly IReadOnlyList<string> Bounties;
+    /// <summary>Drawn bounties that failed (timed window closed).</summary>
+    public readonly IReadOnlyCollection<string> FailedBounties;
+
+    public RunGoalsInfo(IReadOnlyList<GoalCompletion> completions, IReadOnlyList<string> bounties,
+                        IReadOnlyCollection<string> failedBounties)
+    {
+        Completions = completions;
+        Bounties = bounties;
+        FailedBounties = failedBounties;
+    }
+
+    public bool Valid => Completions != null;
+}
+
 /// <summary>End-of-run tally handed to the results screen.</summary>
 public readonly struct RunSummary
 {
@@ -49,10 +71,13 @@ public readonly struct RunSummary
     public readonly float PreviousBest;
     /// <summary>Storm Director facts for the results screen (default when the legacy spawner ran).</summary>
     public readonly StormRunInfo Storm;
+    /// <summary>Run Goals completions and bounties (default when no goals ran).</summary>
+    public readonly RunGoalsInfo Goals;
 
     public RunSummary(float score, int photosTaken, float bestShot, bool wrecked, float previousBest,
-                      StormRunInfo storm = default)
+                      StormRunInfo storm = default, RunGoalsInfo goals = default)
     {
+        Goals = goals;
         Score = score;
         PhotosTaken = photosTaken;
         BestShot = bestShot;
