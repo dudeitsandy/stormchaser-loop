@@ -67,7 +67,7 @@ public class ScheduleTests
             PlannedCell anchor = p.Cells.First(c => c.Role == StormCellRole.Anchor);
             PlannedCell co = p.Cells.First(c => c.Role == StormCellRole.CoAnchor);
             Assert.AreEqual(anchor.DesiredTime - p.SequenceDelta, co.DesiredTime, 1e-3f, $"seed {p.Seed}");
-            Assert.AreEqual(p.SatellitesDrawn - 1, p.Cells.Count(c => c.Role == StormCellRole.Satellite) + p.SatellitesDroppedEarly,
+            Assert.AreEqual(p.SatellitesDrawn - 1, p.Cells.Count(c => c.Role == StormCellRole.Satellite && !c.Pacing) + p.SatellitesDroppedEarly,
                             $"seed {p.Seed}");
             checkedPlans++;
         }
@@ -85,7 +85,7 @@ public class ScheduleTests
         {
             int anchorEf = p.Cells.First(c => c.Role == StormCellRole.Anchor).Ef;
             int[] expected = WeatherPlanner.SequenceEfs(p.SatellitesDrawn, anchorEf);
-            int[] actual = p.Cells.Where(c => c.Role == StormCellRole.Satellite).OrderBy(c => c.DesiredTime).Select(c => c.Ef).ToArray();
+            int[] actual = p.Cells.Where(c => c.Role == StormCellRole.Satellite && !c.Pacing).OrderBy(c => c.DesiredTime).Select(c => c.Ef).ToArray();
             CollectionAssert.AreEqual(expected.Skip(expected.Length - actual.Length).ToArray(), actual, $"seed {p.Seed}");
         }
     }
@@ -102,7 +102,7 @@ public class ScheduleTests
             plans++;
             sCounts[p.SatellitesDrawn] = sCounts.TryGetValue(p.SatellitesDrawn, out int n) ? n + 1 : 1;
             if (p.Cells.First(c => c.Role == StormCellRole.Anchor).Ef != 4) continue;
-            foreach (PlannedCell s in p.Cells.Where(c => c.Role == StormCellRole.Satellite)) { efCounts[s.Ef]++; efTotal++; }
+            foreach (PlannedCell s in p.Cells.Where(c => c.Role == StormCellRole.Satellite && !c.Pacing)) { efCounts[s.Ef]++; efTotal++; }
         }
         for (int ef = 0; ef < 4; ef++) Assert.AreEqual(0.25f, efCounts[ef] / (float)efTotal, 0.05f, $"EF{ef} of {efTotal}");
         CollectionAssert.AreEquivalent(new[] { 1, 2 }, sCounts.Keys);
@@ -133,7 +133,8 @@ public class ScheduleTests
             if (anchor != null) Assert.That(anchor.SpawnTime + anchor.Form, Is.InRange(72f - 1e-3f, 117f + 1e-3f), $"seed {p.Seed}");
             if (p.Regime == Regime.Sequence) Assert.That(p.SatellitesDrawn, Is.InRange(1, 3));
             if (p.Regime == Regime.Outbreak) Assert.That(p.SatellitesDrawn, Is.InRange(1, 2));
-            if (p.Regime == Regime.Chaos) Assert.That(p.Cells.Count, Is.InRange(3, 5));
+            if (p.Regime == Regime.Chaos) Assert.That(p.Cells.Count(c => !c.Pacing), Is.InRange(3, 5));
+            Assert.That(p.PacingCells, Is.InRange(0, 2));
         }
     }
 
@@ -204,5 +205,46 @@ public class ScheduleTests
         }
         Assert.AreNotEqual(Of(30f, 1f), Of(31f, 1f), "Mature length");
         Assert.AreNotEqual(Of(30f, 1f), Of(30f, 0.5f), "early rope-out start intensity");
+    }
+
+    // ---------- Pacing fill (Andy 2026-10-05: dead moments) ----------
+
+    [TestCase(0)]
+    [TestCase(5)]
+    public void PacingFill_EveryPlanHasAnEarlyAndALateStorm(int heat)
+    {
+        CompactSettings c = CompactSettings.Defaults;
+        foreach (WeatherPlan p in Plans(heat))
+        {
+            Assert.IsTrue(p.Cells.Any(x => x.DesiredTime <= c.OpenerBy), $"seed {p.Seed}: nothing early");
+            Assert.IsTrue(p.Cells.Any(x => x.DesiredTime <= c.CloserAliveAt
+                                           && x.DesiredTime + x.Form + x.Mature + x.Rope >= c.CloserAliveAt),
+                          $"seed {p.Seed}: nothing alive late");
+            foreach (PlannedCell x in p.Cells.Where(x => x.Pacing)) Assert.AreEqual(StormCellRole.Satellite, x.Role);
+        }
+    }
+
+    [TestCase(0)]
+    [TestCase(5)]
+    public void PacingFill_NeverChangesTheRegimesOwnCells(int heat)
+    {
+        CompactSettings off = CompactSettings.Defaults;
+        off.PacingFill = false;
+        for (int seed = 0; seed < Samples; seed++)
+        {
+            WeatherPlan with = WeatherPlanner.BuildCompact(seed, heat, DirectorTuning.Defaults, CompactSettings.Defaults, Ef, Vector2.zero);
+            WeatherPlan without = WeatherPlanner.BuildCompact(seed, heat, DirectorTuning.Defaults, off, Ef, Vector2.zero);
+            var own = with.Cells.Where(x => !x.Pacing).ToList();
+            Assert.AreEqual(without.Cells.Count, own.Count, $"seed {seed}");
+            Assert.AreEqual(without.Regime, with.Regime);
+            for (int i = 0; i < own.Count; i++)
+            {
+                Assert.AreEqual(without.Cells[i].Ef, own[i].Ef, $"seed {seed} cell {i}");
+                Assert.AreEqual(without.Cells[i].Role, own[i].Role);
+                Assert.AreEqual(without.Cells[i].DesiredTime, own[i].DesiredTime, 1e-4f);
+                Assert.AreEqual(without.Cells[i].Position.x, own[i].Position.x, 1e-4f);
+                Assert.AreEqual(without.Cells[i].Position.y, own[i].Position.y, 1e-4f);
+            }
+        }
     }
 }

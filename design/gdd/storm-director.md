@@ -221,6 +221,16 @@ The cell schedule formula is defined as:
   anchor", rerolling per Edge Cases); CapTotal = 2. At Heat 5 the anchor
   and co-anchor fill the cap, so any satellite still live when they spawn ropes out early. Every other rule
   is the same.
+- **Compact pacing fill (Andy, 2026-10-05: "real dead moments with nothing to do").** After the regime's own
+  schedule, and with draws taken after all of it (so a seed's regime cells and anchor never change):
+  - **Opener:** if no cell is scheduled to spawn by 18 s, add one satellite at U(8, 14) s, EF U{0..2}.
+  - **Closer:** if no cell is planned to be alive at 160 s, add one satellite EF U{1..3}, timed to be on the
+    ground at 160 s (spawn U(160 − Form − Mature, 160 − Form)).
+  - Both are capped at the regime's own satellite ceiling (never above what the regime allows), go through
+    the cap pass like any satellite, and are flagged `Pacing` in the plan.
+  - Measured over 1000 seeds (`AttractSeedProbe.PacingQuietTime`), median: no storm alive 98 → 49 s of 180,
+    longest gap 61 → 27 s, wait for the first storm 49 → 11 s, empty tail 37 → 3 s; anchor touchdown unchanged.
+  - Knobs: `CompactSettings` `PacingFill`, `OpenerBy`, `OpenerWindow`, `OpenerEf`, `CloserAliveAt`, `CloserEf`.
 
 **Variables:**
 | Variable | Type | Range | Source | Description |

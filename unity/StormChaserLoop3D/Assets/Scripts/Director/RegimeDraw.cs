@@ -155,6 +155,8 @@ public sealed class WeatherPlan
     public int SatellitesDrawn;
     /// <summary>Sequence slots dropped for spawning before 5 s.</summary>
     public int SatellitesDroppedEarly;
+    /// <summary>Opener / closer satellites the compact pacing fill added (0–2).</summary>
+    public int PacingCells;
     /// <summary>Sequence spacing Δ in seconds (Sequence plans only).</summary>
     public float SequenceDelta;
 
@@ -185,7 +187,7 @@ public sealed class WeatherPlan
               .Append(",EF").Append(c.Ef.ToString(CultureInfo.InvariantCulture))
               .Append(',').Append(F(c.Position.x)).Append(',').Append(F(c.Position.y))
               .Append(",t").Append(F(c.DesiredTime)).Append('>').Append(F(c.SpawnTime))
-              .Append(c.Dropped ? ",dropped" : "")
+              .Append(c.Dropped ? ",dropped" : "").Append(c.Pacing ? ",pacing" : "")
               .Append(",life").Append(F(c.Form)).Append('/').Append(F(c.Mature)).Append('/').Append(F(c.Rope))
               .Append(c.EarlyRopeTime >= 0f ? ",rope@" + F(c.EarlyRopeTime) + "x" + F(c.EarlyRopeStartIntensity) : "")
               .Append(']');

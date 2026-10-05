@@ -30,6 +30,9 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 ## Andy's 0.8.4 feel check (2026-10-05)
 - Drift and counter-steer "feel pretty good". The camera slide lean was "a little too jarring": eased (0.6 s in/out)
   and softened (35 % → 20 %).
+- **Run pacing, quick fix in (Andy: "fit in an early and late storm"):** Storm Director compact pacing fill, an
+  opener storm by ≈ 11 s and a closer on the ground at 160 s (`storm-director.md` Rule 12 → Compact pacing fill).
+  Median empty time 98 → 49 s of 180. The bigger pacing plan (non-storm activity) stays in the backlog.
 - **For planning:** run pacing (dead moments; measured, `production/backlog.md` → Run pacing) and crash weight
   (tactile feedback on impacts, flips and tosses; backlog → Crash weight). Both also go to PT-1 testers.
 

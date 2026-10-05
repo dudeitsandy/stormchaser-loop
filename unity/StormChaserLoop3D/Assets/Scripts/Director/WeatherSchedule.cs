@@ -43,6 +43,19 @@ public class CompactSettings
     public float MinForm = 4f;
     public float LifeScale = 0.5f;
 
+    [Header("Pacing (Andy 2026-10-05: dead moments; median 49 s wait for the first storm, 37 s empty tail)")]
+    [Tooltip("Adds the opener / closer satellites below. Off = the GDD's original schedule.")]
+    public bool PacingFill = true;
+    [Tooltip("If no cell is scheduled to spawn by this time (s), an opener satellite is added.")]
+    public float OpenerBy = 18f;
+    [Tooltip("Opener spawn window (s) and EF range (inclusive).")]
+    public Vector2 OpenerWindow = new Vector2(8f, 14f);
+    public Vector2Int OpenerEf = new Vector2Int(0, 2);
+    [Tooltip("If no cell is planned to be alive at this time (s), a closer satellite is added, timed to be on the ground (touched down, not yet roping) at this time.")]
+    public float CloserAliveAt = 160f;
+    [Tooltip("Closer EF range (inclusive).")]
+    public Vector2Int CloserEf = new Vector2Int(1, 3);
+
     /// <summary>The GDD's compact defaults.</summary>
     public static CompactSettings Defaults => new CompactSettings();
 }
@@ -76,6 +89,8 @@ public sealed class PlannedCell
     public bool Dropped;
     /// <summary>Time an anchor's arrival forced this cell to rope out early, or −1.</summary>
     public float EarlyRopeTime = -1f;
+    /// <summary>Added by the compact pacing fill (opener / closer), not by the regime's own schedule.</summary>
+    public bool Pacing;
     /// <summary>Intensity the early rope-out starts from (F3: no jump).</summary>
     public float EarlyRopeStartIntensity = 1f;
 
@@ -119,6 +134,8 @@ public static partial class WeatherPlanner
         var place = new DirectorRng(s, PlacementStream);
         if (plan.Regime == Regime.Chaos) ScheduleChaos(plan, rng, place, c, ef, origin);
         else ScheduleAnchored(plan, rng, place, c, ef, origin);
+        // Pacing draws come after every regime draw, so a seed's existing cells (and its anchor) never change.
+        SchedulePacing(plan, rng, place, c, ef, origin);
 
         ResolveCaps(plan, c);
         for (int i = 0; i < plan.Cells.Count; i++) plan.Cells[i].Id = i;
@@ -198,6 +215,58 @@ public static partial class WeatherPlanner
                 }
                 break;
             }
+        }
+    }
+
+    /// <summary>
+    /// Pacing fill (compact, Andy 2026-10-05): an opener satellite when nothing spawns early, and a closer satellite
+    /// when nothing is alive near the end. Judged on desired times, before the cap pass (which may still delay or
+    /// drop them like any satellite).
+    /// </summary>
+    private static void SchedulePacing(WeatherPlan plan, DirectorRng rng, DirectorRng place, CompactSettings c,
+                                       StormEfTable ef, Vector2 origin)
+    {
+        if (!c.PacingFill) return;
+        bool hasOpener = false, hasCloser = false;
+        foreach (PlannedCell cell in plan.Cells)
+        {
+            if (cell.DesiredTime <= c.OpenerBy) hasOpener = true;
+            float end = cell.DesiredTime + cell.Form + cell.Mature + cell.Rope;
+            if (cell.DesiredTime <= c.CloserAliveAt && end >= c.CloserAliveAt) hasCloser = true;
+        }
+        int cap = SatelliteEfCap(plan);
+        if (!hasOpener)
+        {
+            PlannedCell opener = NewCell(Mathf.Min(rng.RangeInclusive(c.OpenerEf.x, c.OpenerEf.y), cap), StormCellRole.Satellite, c, ef);
+            opener.Pacing = true;
+            opener.DesiredTime = rng.Range(c.OpenerWindow.x, c.OpenerWindow.y);
+            opener.Position = PlacePoint(place, origin, c.SatelliteDistance, c, null, 0f);
+            plan.Cells.Add(opener);
+            plan.PacingCells++;
+        }
+        if (!hasCloser)
+        {
+            PlannedCell closer = NewCell(Mathf.Min(rng.RangeInclusive(c.CloserEf.x, c.CloserEf.y), cap), StormCellRole.Satellite, c, ef);
+            closer.Pacing = true;
+            // On the ground at CloserAliveAt: touched down by then, rope-out not started.
+            closer.DesiredTime = rng.Range(c.CloserAliveAt - closer.Form - closer.Mature, c.CloserAliveAt - closer.Form);
+            closer.Position = PlacePoint(place, origin, c.SatelliteDistance, c, null, 0f);
+            plan.Cells.Add(closer);
+            plan.PacingCells++;
+        }
+    }
+
+    /// <summary>The strongest satellite a regime allows (F2 caps), so pacing cells never outrank the regime's own.</summary>
+    private static int SatelliteEfCap(WeatherPlan plan)
+    {
+        int a = plan.AnchorEf;
+        switch (plan.Regime)
+        {
+            case Regime.Quiet: return Mathf.Clamp(Mathf.Min(2, a), 0, 3);
+            case Regime.LoneGiant: return Mathf.Clamp(Mathf.Min(2, a - 2), 0, 3);
+            case Regime.Sequence:
+            case Regime.Outbreak: return Mathf.Clamp(Mathf.Min(a - 1, 3), 0, 3);
+            default: return 3;
         }
     }
 
