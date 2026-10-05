@@ -124,6 +124,10 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-05 — **0.8.5 pushed** (html5 + windows) before PT-1 testers got far: S9-02a pass 2 (feathering works:
+  throttle 0.3/0.6/1.0 holds 16/22/33° of drift; counter-steer no longer locks out; smooth drift blend, 60 % rear
+  drive), radio eases back after the siren tail (X9-04), jingle_07 + jingle_08. Unity Connect left off (an editor had
+  flipped it on; reverted). EditMode 408/408, PlayMode 72/72, WebGL 0 console errors.
 - 2026-10-05 — **0.8.4 pushed** (html5 + windows), the build PT-1 testers start on: S9-02a feel pass (drift carries
   speed, counter-steer assist, snappier jump that counts as AIR, faster chase camera with an eased drift lean), Storm
   Director pacing fill (early + late storm; median empty time 98 → 49 s), low-end crash shake, jingle_06, Codex's
