@@ -33,6 +33,7 @@ public class RunManager : MonoBehaviour
     private GoalRunner _goals;
     private RadioLite _radio;
     private TitleAttract _attract;
+    private BootCard _bootCard;
     private IDisposable _anyButton;
     private PauseMenu _pauseMenu;
     private SettingsMenu _settingsMenu;
@@ -73,6 +74,8 @@ public class RunManager : MonoBehaviour
         if (_radio == null) _radio = gameObject.AddComponent<RadioLite>();
         _attract = GetComponent<TitleAttract>();
         if (_attract == null) _attract = gameObject.AddComponent<TitleAttract>();
+        _bootCard = GetComponent<BootCard>();
+        if (_bootCard == null) _bootCard = gameObject.AddComponent<BootCard>();
     }
 
     private void OnEnable()
@@ -114,7 +117,8 @@ public class RunManager : MonoBehaviour
         }
         else
         {
-            EnterTitle();
+            // Ghostweave Labs boot card once per app session, then the title (immediately if already shown).
+            _bootCard.Play(EnterTitle);
         }
     }
 

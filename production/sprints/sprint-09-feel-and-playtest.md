@@ -50,6 +50,16 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
   instead of stopping, and the radio comes back with a 1–2 s ease after the duck instead of snapping. The radio ramp
   starts as the siren tail fades, so they never overlap loudly.
 
+## Boot card (Andy 2026-10-05 via stormchaser-96; ~1 h, passes the freeze rule)
+- [x] Ghostweave Labs badge between Unity's splash and the title: fade in 0.4 s with a VHS-tracking glitch (2 shallow
+  dips, ≤ 3/s) and a quiet synthesized tape-static sting, hold 1.8 s, fade 0.4 s into the title + attract mode. Any
+  press skips (armed once visible, so a click to focus the browser canvas during Unity's splash doesn't skip it unseen;
+  the skip press never starts a run). Once per app session. Holds until `SplashScreen.isFinished` (otherwise it played
+  out hidden behind Unity's splash). Logo `Resources/UI/GhostweaveLogo.png` (full-res master, sprite import capped at
+  1024, no mipmaps; 919×1024 isn't a multiple of 4 so it stays uncompressed, unloaded after the card): WebGL download
+  +283 KB. Tests: `BootCardTests` (2), `BootCardGlitchTests`. Evidence `bootcard-{960x600,1920x1080,1080-into-title}.png`,
+  WebGL 0 console errors.
+
 ## Carried over from Sprint 8 (closed 2026-10-05)
 | ID | Owner | Task | Est. |
 |----|-------|------|------|

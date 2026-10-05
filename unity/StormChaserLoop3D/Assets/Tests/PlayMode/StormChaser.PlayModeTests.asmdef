@@ -4,6 +4,7 @@
     "references": [
         "StormChaser",
         "Unity.Cinemachine",
+        "Unity.InputSystem",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.RenderPipelines.Core.Runtime",
