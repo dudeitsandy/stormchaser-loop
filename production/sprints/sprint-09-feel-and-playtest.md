@@ -60,8 +60,8 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
 | PT-1 | Andy | Outside playtest round 1 findings into `production/qa/playtest-round-1.md` (due 2026-10-11); unblocks S9-01 | — |
 
 ## Andy's queue (~1 h, one sitting)
-- [ ] RG-008 career goals smoke run, ~30 min (`production/qa/smoke-run-goals.md` doesn't exist yet: I'll write the seed list before you start)
-- [ ] RS-001 Windows quit / Alt-tab check, 5 min → then M1 "run screens" can be ticked
+- [ ] RG-008 career goals smoke run → **6 / 10 done (2026-10-05, 0.8.4)**; left: SICK SCORE, TOSS SURVIVOR, BIG AIR, FRONT PAGE (seed 554) (`production/qa/smoke-run-goals.md` doesn't exist yet: I'll write the seed list before you start)
+- [ ] RS-001 Windows quit / Alt-tab check → **Esc-Esc on the title ✅ (2026-10-05)**; left: pause → Quit to Desktop, Alt-tab auto-pause (2 min) → then M1 "run screens" can be ticked
 - [ ] CA-1 Codex live checks X7-02 / X7-03 / X7-07, 15 min
 - [ ] CA-2 physics caveat accept or one smash, 5 min
 - [ ] Chase PT-1 testers (findings due 2026-10-11)

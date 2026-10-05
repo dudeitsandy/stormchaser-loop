@@ -26,16 +26,21 @@ Found with `AttractSeedProbe.ListGoalSmokeSeeds` (Explicit probe), positions at 
 
 | # | Goal (career page) | What counts (thresholds from `GoalTuning`) | Try on | Seed | Build | Date | Done |
 |---|---|---|---|---|---|---|---|
-| 1 | ROOKIE SCORE | Run score ≥ 750 | any | | | | |
-| 2 | PRO SCORE | Run score ≥ 1,500 | 554 | | | | |
+| 1 | ROOKIE SCORE | Run score ≥ 750 | any | 390204103 | 0.8.4 | 2026-10-05 | ✅ |
+| 2 | PRO SCORE | Run score ≥ 1,500 | 554 | 390204103 | 0.8.4 | 2026-10-05 | ✅ |
 | 3 | SICK SCORE | Run score ≥ 3,000 (expect this to be the hard one: note your best if it doesn't fall) | 554 | | | | |
-| 4 | EF4 AT PEAK | Photo of an EF4+ while it's at peak (mature, not forming or roping) | 554 / 210, 75–110 s | | | | |
-| 5 | POINT BLANK | Photo of any tornado from under 20 m | 554 | | | | |
+| 4 | EF4 AT PEAK | Photo of an EF4+ while it's at peak (mature, not forming or roping) | 554 / 210, 75–110 s | 839455485 | 0.8.4 | 2026-10-05 | ✅ |
+| 5 | POINT BLANK | Photo of any tornado from under 20 m | 554 | 390204103 | 0.8.4 | 2026-10-05 | ✅ |
 | 6 | TOSS SURVIVOR | Get tossed by a tornado, then **finish the run on the timer** (not wrecked, not quit) | 554, EF5 | | | | |
-| 7 | STORM DRIFT | One drift of 3 s or longer, ending within 60 m of a tornado | 210 / 667 | | | | |
-| 8 | BIG AIR | 1.0 s of airtime. **Right now only a toss gets there** (jumps peak ≈ 1.55 m, under the 1.8 m airtime floor: S9-02a fixes this). Do it with the toss in #6 | 554 | | | | |
-| 9 | NEAR MISSES | 3 near misses in one run | 667 | | | | |
+| 7 | STORM DRIFT | One drift of 3 s or longer, ending within 60 m of a tornado | 210 / 667 | 839455485 | 0.8.4 | 2026-10-05 | ✅ |
+| 8 | BIG AIR | 1.0 s of counted airtime. **Only a toss gets there** (since 0.8.4 a full jump counts ≈ 0.6 s, enough for the AIR pop but not BIG AIR, by design). Do it with the toss in #6 | 554 | | | | |
+| 9 | NEAR MISSES | 3 near misses in one run | 667 | 390204103 | 0.8.4 | 2026-10-05 | ✅ |
 | 10 | FRONT PAGE | A **Perfect** shot of the main storm (the anchor): centred, close, at peak | 210 / 69, 75–110 s | | | | |
+
+## Progress (from the Windows save, `profile.json`, 2026-10-05)
+6 / 10 career goals done on 0.8.4 in two random-seed runs; KTVR paint unlocked (5 goals), so the reward path works.
+Open: SICK SCORE (best 2,151 of 3,000), TOSS SURVIVOR, BIG AIR, FRONT PAGE. All three storm/air ones are on seed 554
+(EF5 toss → BIG AIR + TOSS SURVIVOR; Perfect anchor shot at peak ≈ 80–110 s).
 
 ## Notes
 - A toss costs truck HP. If the EF5 wrecks you, TOSS SURVIVOR doesn't count (the run must end on the timer): get tossed,
