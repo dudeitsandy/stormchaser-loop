@@ -1,0 +1,9 @@
+# Music rights log. One line per file: file, original title, tool, plan, generated, edits.
+# Needed for commercial rights and Steam's AI-content disclosure. Keep in sync with the files here.
+# WAV masters live in audio-staging/music/ (gitignored). In-game files are OGG Vorbis q6, converted with ffmpeg 2026-10-05.
+title_loop.ogg, "title_loop", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG
+storm_radio_jingle.ogg, "storm_radio_jingle", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG
+radio_lasagna_on_my_mind.ogg, "Lasagna on My Mind", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG, renamed
+radio_let_the_soft_error_through.ogg, "Let the Soft Error Through", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG, renamed
+radio_raw_garage_drive.ogg, "Raw Garage Drive", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG, renamed
+radio_winding_chase.ogg, "Winding Chase", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG, renamed
