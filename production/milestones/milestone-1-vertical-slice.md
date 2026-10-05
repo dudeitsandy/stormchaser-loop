@@ -36,7 +36,7 @@ target**, for performance and player experience. WebGL becomes at most a free de
       *(Done 2026-10-05: run-screens epic stories 001–006 closed; Andy's Windows check passed: pause → Quit to
       Desktop, Title Esc-Esc, Alt-tab auto-pause.)*
 - [ ] **WebGL budget holds** *(Andy 2026-10-05: screen transitions (load, title → run, run → results) are outside
-      "the 3-min run"; the 111 ms title → run hitch gets smoothed in Sprint 10 anyway. S9-04 on 0.8.5: p95 17.1 ms,
+      "the 3-min run". The 111 ms title → run frame turned out to be a `physProbe` run; without it StartRun costs 3–5 ms and the frame ≤ 33 ms, so no fix is needed. S9-04 on 0.8.5: p95 17.1 ms,
       physics ≤ 1.8 ms, in-play frames ≤ 50 ms; see `sprint-09-feel-and-playtest.md` S9-04)*: over a 3-min run with live storms, debris and full presentation (storm sky,
       sirens, PiP), no frame > 50 ms and p95 frame ≤ 33.3 ms on the reference laptop (Radeon 890M, Chrome),
       physics step ≤ 4 ms (`?physProbe=1`). Measured headlessly, no Profiler session needed *(reworded
@@ -75,5 +75,5 @@ findings go to the active sprint file and are triaged there.
 |--------|--------|-------|
 | 7 | 2026-10-01 → G3 | Vehicle feel build (closing: G3 + Codex live checks) |
 | 8 | 2026-10-06 → 10-19 | Storm Director compact epic + S8-C1 durability *(done early)*; re-scoped 2026-10-04 to add run goals v1 and run screens |
-| 9 | 2026-10-20 → 11-02 | Driving feel pass from outside playtest round 1, round 2 + G6 feel sign-off (`sprint-09-feel-and-playtest.md`) |
-| 10 | 2026-11-03 → 11-16 | Integration, WebGL budget, outside playtest, 0.9 release |
+| 9 | **2026-10-06 → 10-19** (re-dated 2026-10-05, Andy) | Driving feel pass from outside playtest round 1, round 2 + G6 feel sign-off (`sprint-09-feel-and-playtest.md`) |
+| 10 | **2026-10-20 → 11-02** (draft: `sprint-10-m1-close.md`) | Integration, WebGL budget, outside playtest, 0.9 release; M1 can close ≈ 2 weeks before the 11-16 target |
