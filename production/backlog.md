@@ -202,3 +202,22 @@ radius and damage radius + 6 m, at over 8 m/s, at most once per funnel per 3 s. 
 or a longer pair window (10 → 20 s); a visible "1 / 2" counter while the window is open; or swap the bounty for a
 simpler one. Decide with Andy, ideally with PT-1 answers to "did any goal feel impossible or unclear?".
 
+
+---
+
+## Storm visuals pass, before any Steam page (Andy, 2026-10-05)
+
+**Finding:** the HUD-free capture (`?clean=1`, `production/qa/evidence/clean-title-attract.png`) shows the slice's
+visual gaps, which don't matter for testing but would for a store page:
+- **Funnel reads pale:** a translucent grey cone, half washed out by its own rain curtain (Codex's "EF5 wedge
+  reads pale" note from 0.7.4). Also a gameplay readability point: the threat should be unmistakable.
+- **Sky has no structure:** a near-black green slab, no visible cloud deck shape, wall cloud or inflow bands.
+- **Lighting mismatch:** the ground stays brightly lit under a pitch-dark sky, so the scene reads composited.
+  The ground needs to darken and desaturate under storminess `s` like the sky does.
+- Sparse farmland (expected on the compact arena; the 2 km world and Heartland kit fix it).
+
+**When:** top of the post-M1 art list, before Steam capsule and screenshot work. Exception: if PT-1 testers say
+storms are hard to see, funnel opacity moves into M1 as a small Codex tuning task (passes the freeze rule).
+
+**Owner:** Codex (presentation: funnel cards, sky deck, storminess grading), with an art-direction check against
+ADR-0003.
