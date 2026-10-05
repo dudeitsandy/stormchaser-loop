@@ -19,6 +19,9 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
   driving at some point a little more" (G4, 2026-10-04).
 
 ## Known input from Sprint 8
+- **Andy, 2026-10-04 (0.7.8):** rain "looks and feels good". Driving: **drift / e-brake** needs more of a driver feel;
+  **camera turn on drift and turn** needs work (how the chase camera swings and lags through slides and corners);
+  **lower the camera** for a better sky perspective, especially with tornadoes forming and rain (S9-02b).
 - Jumps peak ≈ 1.55 m, below `MinAirtimeHeight` 1.8 m, so the Airtime style moment and its boost refill never fire
   from a jump on the compact map, only from tosses (`production/qa/evidence/rg-airtime-evidence.md`). Consider in
   S9-02 alongside the "floaty jump" note.
