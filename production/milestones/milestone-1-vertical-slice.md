@@ -14,6 +14,11 @@ outside players: the Rocket League-feel truck, a Storm Director-driven sky of st
 photos plus style goals that score, damage that matters, and a run that ends cleanly. Built on today's
 ±85 m arena (compact mode). The 2 km streamed Epic world is **not** in this milestone.
 
+**Platform (Andy, 2026-10-05):** WebGL on itch is the home of this slice: browser play is the fastest way to
+get outside players into it. **After M1 the game moves to a Windows desktop build (Steam) as the primary
+target**, for performance and player experience. WebGL becomes at most a free demo of the compact slice
+(see `milestone-2-steam-ready.md` and risk R13).
+
 ## Success Criteria
 
 - [x] **Storm Director compact mode** running in the shipping build: all 9 stories in

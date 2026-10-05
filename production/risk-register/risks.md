@@ -1,6 +1,6 @@
 # Risk Register
 
-**Last Updated:** 2026-10-04
+**Last Updated:** 2026-10-05
 
 ---
 
@@ -17,6 +17,7 @@
 | R10 | Andy-time bottleneck: gates and live checks queue up (Sprint 7: G3 + 5 Codex acceptances waiting) | High | Medium | Open | Batch all Andy checks into one session per sprint; Claude verifies what it can headlessly first |
 | R11 | Two agents editing the same Unity tree (Claude + Codex) cause recompile-in-play NREs or lane collisions | Medium | Medium | Open | AGENTS.md lanes; "Recompile After Finished Playing"; commit own lane only |
 | R12 | WebGL physics budget under real debris (G1 condition, ≤ 4 ms) unmeasured | Medium | High | Open | Measure in Sprint 7's closing session with X7-07 props; cap debris or warm-up if it fails; 1 km fallback (ADR-0004 Alt 5) |
+| R13 | WebGL can't carry the full game: download size (74 MB at 0.7.9, uncompressed; est. 120–200 MB by Season 1, past itch's 200 MB per-file limit later), single-thread CPU and a 2–4 GB memory cap against the 2 km world, debris physics and several storms | High (post-M1) | High | Decided (Andy, 2026-10-05) | WebGL hosts the M1 slice only. After M1, the Windows desktop build (Steam) is primary; WebGL becomes an optional compact demo or is retired (M2). Until then, keep the slice lean: gzip + decompression fallback, a short web playlist |
 
 ---
 
