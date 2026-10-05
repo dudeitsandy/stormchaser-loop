@@ -12,3 +12,4 @@ jingle_01.ogg, "jingle_01", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV
 jingle_02.ogg, "jingle_02", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +1.5 dB to match songs
 jingle_04.ogg, "jingle_04", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +1.5 dB to match songs, trailing silence trimmed
 jingle_05.ogg, "jingle_05", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +1.5 dB to match songs
+jingle_06.ogg, "jingle_06", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +1.2 dB to match songs
