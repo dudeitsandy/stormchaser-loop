@@ -41,7 +41,7 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
   fast-forwarded so the anchor touches down ≈ 6 s in and framed in the right margin clear of the title column; truck
   frozen; effects muted (`GameAudio.AttractMute`), title music only; HUD crawl and radio duck ignore the demo. StartRun
   eases to the chase camera and `DisasterSpawner.Begin` replaces the demo with the real seed; Codex's sky/rain reset on
-  RunStarted. Evidence: `attract-{08s,14s,20s,30s,run-blend,run-chase}.png`, PlayMode `TitleAttractTests` (2), EditMode
+  RunStarted. Evidence: `attract-{14s,20s,30s,run-blend,run-chase}.png`, PlayMode `TitleAttractTests` (2), EditMode
   attract-mute test, WebGL 0 console errors.
 
 ## Gates (Andy)

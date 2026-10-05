@@ -34,7 +34,7 @@ public sealed class TitleAttract : MonoBehaviour
     [Tooltip("How far the orbit centre moves from the truck toward the anchor storm.")]
     [Range(0f, 1f)] [SerializeField] private float _orbitTowardStorm = 0.5f;
     [Tooltip("Turns the camera off the storm so the funnel sits in the open right margin, clear of the centred title column.")]
-    [SerializeField] private float _screenOffsetDegrees = 24f;
+    [SerializeField] private float _screenOffsetDegrees = 30f;
     [SerializeField] private int _priority = 100;
 
     private DisasterSpawner _spawner;
