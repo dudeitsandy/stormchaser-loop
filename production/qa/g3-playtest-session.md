@@ -121,7 +121,7 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 - [ ] Trees, barns, silos and poles block solidly
 
 **X7-09 — storm telegraph presentation (Sprint 8)**
-- [ ] Forecast indicator and world cues point the right way; a jog visibly bows before the storm turns
+- [x] Forecast indicator and world cues point the right way; a jog visibly bows before the storm turns *(Andy, 0.7.6: jog motion looks good)*
 - [ ] EF5 reads dark and rumbles; the failed-touchdown cue reads as a storm that didn't drop
 
 **X7-10 — broadcast alert tones (Sprint 8)**
@@ -131,7 +131,7 @@ Tick each item that fires correctly. Any item that fails becomes one line in AGE
 - [x] Sirens wail from a direction and get louder near a pole; 25 s per warning, continuous for an EF5 *(Andy, 0.7.6: "sirens sound good")*
 
 **X8-02 — run-wide storm sky (Sprint 8)**
-- [ ] The whole sky darkens as storms build (near-black for an EF5) and eases back slowly after rope-out
+- [x] The whole sky darkens as storms build (near-black for an EF5) and eases back slowly after rope-out *(Andy, 0.7.6: "sky looks good")*
 
 ---
 

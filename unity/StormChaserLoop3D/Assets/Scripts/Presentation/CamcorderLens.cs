@@ -19,6 +19,8 @@ public sealed class CamcorderLens : MonoBehaviour
     private Material _material;
     private Image _preview, _fallback;
     private Texture2D _fallbackTexture;
+    private Texture2D _rainTexture;
+    private Image _rainDrops;
     private Label _recording, _stamp;
     private VisualElement _overlay;
     private float _elapsed, _reviewUntil;
@@ -45,6 +47,11 @@ public sealed class CamcorderLens : MonoBehaviour
         _overlay = new VisualElement { pickingMode = PickingMode.Ignore };
         Fill(_overlay);
         container.Add(_overlay);
+        _rainTexture = BuildRainDrops();
+        _rainDrops = new Image { image = _rainTexture, scaleMode = ScaleMode.StretchToFill, pickingMode = PickingMode.Ignore };
+        Fill(_rainDrops);
+        _rainDrops.style.opacity = 0f;
+        _overlay.Add(_rainDrops);
         if (_material == null)
         {
             _fallbackTexture = BuildFallback(source.width, source.height);
@@ -96,6 +103,32 @@ public sealed class CamcorderLens : MonoBehaviour
         texture.SetPixels(pixels);
         texture.Apply(false, true);
         return texture;
+    }
+    private static Texture2D BuildRainDrops()
+    {
+        const int width = 160, height = 120;
+        var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+            { name = "CamcorderWaterDrops", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+        var pixels = new Color[width * height];
+        var random = new System.Random(804);
+        for (int drop = 0; drop < 14; drop++)
+        {
+            int cx = random.Next(6, width - 6), cy = random.Next(6, height - 6);
+            // Keep the center aim mark unobscured.
+            if (Mathf.Abs(cx - width / 2) < 16 && Mathf.Abs(cy - height / 2) < 16) continue;
+            float radius = 2f + (float)random.NextDouble() * 3f;
+            for (int y = Mathf.Max(0, cy - 8); y <= Mathf.Min(height - 1, cy + 8); y++)
+                for (int x = Mathf.Max(0, cx - 6); x <= Mathf.Min(width - 1, cx + 6); x++)
+                {
+                    float dx = (x - cx) / radius, dy = (y - cy) / (radius * 1.45f);
+                    float distance = Mathf.Sqrt(dx * dx + dy * dy);
+                    float ring = Mathf.Clamp01(1f - Mathf.Abs(distance - 0.8f) / 0.22f);
+                    float fill = Mathf.Clamp01(1f - distance) * 0.14f;
+                    float highlight = dy > 0f ? 0.9f : 0.18f;
+                    pixels[y * width + x] = new Color(highlight, highlight + 0.04f, highlight + 0.06f, Mathf.Max(fill, ring * 0.7f));
+                }
+        }
+        texture.SetPixels(pixels); texture.Apply(false, true); return texture;
     }
     private void OnEnable()
     {
@@ -160,6 +193,7 @@ public sealed class CamcorderLens : MonoBehaviour
     {
         using var sample = UpdateMarker.Auto();
         if (_preview == null) return;
+        if (_rainDrops != null) _rainDrops.style.opacity = RainLevels.LensOpacity(StormEnvironmentCues.Storminess);
         if (_camera != null && _camera.enabled) _elapsed += Time.unscaledDeltaTime;
         bool reviewing = Time.unscaledTime < _reviewUntil;
         _preview.image = reviewing ? _photo : _material != null ? _processed : _source;
@@ -182,6 +216,7 @@ public sealed class CamcorderLens : MonoBehaviour
         Release(_photo);
         if (_material != null) Destroy(_material);
         if (_fallbackTexture != null) Destroy(_fallbackTexture);
+        if (_rainTexture != null) Destroy(_rainTexture);
     }
     private static void Release(RenderTexture texture)
     {

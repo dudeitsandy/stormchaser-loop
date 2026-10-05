@@ -6,6 +6,10 @@ using Unity.Profiling;
 [RequireComponent(typeof(TornadoController))]
 public sealed class TornadoCardVisual : MonoBehaviour
 {
+    /// <summary>World-space cloud-base height above the cell ground, shared by cosmetic rain curtains.</summary>
+    public float CloudBaseHeight => _cloudHeight > 0f ? _cloudHeight : 26.2f;
+    /// <summary>Current cloud-card span for keeping rain curtains beneath the visible cloud base.</summary>
+    public float CloudBaseWidth => _cloud != null ? Mathf.Max(8f, _cloud.localScale.x) : 8f;
     // Preserve the prefab field; its value now controls continuous mesh tessellation.
     [InspectorName("Funnel Segments")]
     [SerializeField, Range(6, 20)] private int _bandCount = 12;

@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 /// <summary>Owned, lazily generated illustrated card textures and transparent URP materials.</summary>
 internal sealed class CardVfxAssets : IDisposable
 {
-    internal enum Shape { Band, Dust, Streak, Debris, Funnel, Flame, Cloud, AmbientDebris, Overcast }
+    internal enum Shape { Band, Dust, Streak, Debris, Funnel, Flame, Cloud, AmbientDebris, Overcast, Rain }
     private readonly Dictionary<Shape, Material> _materials = new Dictionary<Shape, Material>();
     private readonly List<UnityEngine.Object> _owned = new List<UnityEngine.Object>();
     private Mesh _quad;
@@ -110,6 +110,7 @@ internal sealed class CardVfxAssets : IDisposable
             { name = "HandDrawn" + shape, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
         if (shape == Shape.Band) texture.wrapModeU = TextureWrapMode.Repeat;
         if (shape == Shape.Funnel) texture.wrapModeV = TextureWrapMode.Repeat;
+        if (shape == Shape.Rain) texture.wrapModeV = TextureWrapMode.Repeat;
         if (shape == Shape.Overcast) texture.wrapMode = TextureWrapMode.Repeat;
         var pixels = new Color[width * height];
         for (int y = 0; y < height; y++)
@@ -122,6 +123,15 @@ internal sealed class CardVfxAssets : IDisposable
             float alpha, tone;
             switch (shape)
             {
+                case Shape.Rain:
+                    float atlasU = u < 0f ? u * 2f + 1f : u * 2f - 1f;
+                    if (u < 0f)
+                        alpha = Mathf.Clamp01((1f - Mathf.Abs(atlasU)) * 2f) * Mathf.Pow(Mathf.Max(0f, Mathf.Cos(v * Mathf.PI * 0.5f)), 2f);
+                    else
+                        alpha = Mathf.Clamp01((1f - Mathf.Abs(atlasU)) * 4f)
+                            * (0.18f + 0.82f * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(atlasU * 49f + v * 5f)), 8f));
+                    tone = 1f;
+                    break;
                 case Shape.Overcast:
                     alpha = 1f;
                     tone = 0.78f + 0.12f * Mathf.Sin(u * Mathf.PI * 2f) * Mathf.Cos(v * Mathf.PI * 2f)
