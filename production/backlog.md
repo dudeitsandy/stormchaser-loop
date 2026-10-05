@@ -258,3 +258,33 @@ towns.
 
 **When:** after M1. The first cheap step is consistent names and voice in existing text (crawl lines, bounty text,
 jingles), which can happen any time as copy edits.
+
+---
+
+## Disaster roster and combinations (Andy, 2026-10-05, long-term brainstorm)
+
+**Frame:** "Crazy Taxi and Tony Hawk meet disaster movie." A disaster earns its place if it adds a new photo
+subject, a new chase or escape pattern, new stunt terrain (THPS) and new jobs (Crazy Taxi). Season mapping
+follows `vision-1.0.md`; this list only adds ideas.
+
+**Real weather (Storm Season and later, grounded tension):** lightning (strike zones; strike photos), derecho
+(a straight-line wind wall to outrun), haboob (dust wall, visibility to zero, drive by radar and sound), giant hail
+(dents, hold the shot), flash flood (roads become rivers, bow-wave jumps, roof rescues), blizzard and avalanche
+(whiteout; the Cool Boarders "oh no" escape), wildfire (in the vision), volcano (lava rivers, ash, flying rocks,
+cooled-lava ramps).
+
+**Combinations (Disaster Alchemy):** Firenado (tornado + wildfire, the planned first merge), Waterspout
+(tornado over water; the path to Sharknado), Thundersnow (blizzard + lightning, real), Dirty thunderstorm
+(volcano + lightning, real), Hail core (tornado + hail, ice shrapnel), Fire run (derecho + wildfire, the front
+races), Flaming debris tornado (meteor shower + tornado).
+
+**Disaster-movie tier (later seasons, in the vision):** earthquake, tsunami, sinkhole, kaiju, rogue mech, swarm,
+alien invasion, dimensional rift. New: meteor shower (shoot the impact) and solar flare (EMP glitches the
+camcorder and HUD; play half-blind).
+
+**B-movie modifier days (unlockable rewards, not core):** Sharknado (above), **Cownado** (a Twister nod; nearly
+free since knock-loose props exist: swap debris for cows), **Haunted fog** (ties to the Ghostweave "Paranormal
+Field Unit" badge), **UFO night** (tractor beams lift the truck).
+
+**Suggested order after M1:** lightning → hail and derecho (keeps Storm Season coherent) → wildfire (unlocks
+Firenado) → the season plan. Cownado any time as a cheap Easter egg.
