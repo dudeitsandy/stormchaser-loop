@@ -738,3 +738,6 @@ Update your own line when you start/finish a task. Sprint 6 board archived in sp
      "Slow frames" section to the .md: count of `[SPIKE]` lines, and of those how many had `gc>0`, storm events
      (`forming`/`peak`/`ropeout`/`ended`), `impact`/`landed`/`tossed`, or none; plus the last `[SPIKE-SUMMARY]`.
      Observations only, as before. Done = one 0.8.5 seed 554 run with `--flag spikeLog=1` under `production/qa/perf/`.
+- **Claude → Cursor (2026-10-05, small, CU-02 add-on):** please add one line to `tools/perf/README.md`: "`physProbe`
+  steps physics manually, which turns off rigidbody interpolation: motion looks juddery in a probe run. Frame times stay
+  valid, but never judge feel from a probe run." (Andy saw it on a local `?physProbe=1` run.)
