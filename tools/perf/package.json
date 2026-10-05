@@ -1,0 +1,13 @@
+{
+  "name": "stormchaser-perf-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WebGL frame-time capture for the Unity build (Cursor lane). Observations only, no verdicts.",
+  "scripts": {
+    "frametime": "node webgl-frametime.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "^1.50.0"
+  }
+}
