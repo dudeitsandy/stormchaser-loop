@@ -38,6 +38,11 @@ public class ChaseCameraRig : CinemachineExtension
     [Tooltip("Seconds to ease 99 % of the slide lean in or out, so starting or ending a drift doesn't swing the camera.")]
     [SerializeField] private float _slideLeanEase = 0.6f;
     private float _slideLean;
+
+    [Header("Crash weight (Sprint 9)")]
+    [Tooltip("Short jolts on impacts, hard landings and tosses, chase view only (Storm Cam stays steady for photos).")]
+    [SerializeField] private CameraShakeTuning _shakeTuning = CameraShakeTuning.Defaults;
+    private CameraShake _shake;
     [Tooltip("Seconds to settle 99 % of a height change (suspension bob, jumps).")]
     [SerializeField] private float _heightDamping = 0.5f;
     [Tooltip("A target jump larger than this (m) in one update is a teleport: the camera snaps.")]
@@ -130,10 +135,19 @@ public class ChaseCameraRig : CinemachineExtension
         base.OnEnable();
         _controls.Driving.Enable();
         _controls.Driving.StormCam.performed += OnStormCam;
+        _shake = new CameraShake(_shakeTuning);
+        GameEvents.VehicleImpact += OnVehicleImpact;
+        GameEvents.Landed += OnLanded;
+        GameEvents.Tossed += OnTossed;
+        GameEvents.RunStarted += OnRunStarted;
     }
 
     private void OnDisable()
     {
+        GameEvents.VehicleImpact -= OnVehicleImpact;
+        GameEvents.Landed -= OnLanded;
+        GameEvents.Tossed -= OnTossed;
+        GameEvents.RunStarted -= OnRunStarted;
         _controls.Driving.StormCam.performed -= OnStormCam;
         _controls.Driving.Disable();
     }
@@ -145,6 +159,10 @@ public class ChaseCameraRig : CinemachineExtension
     }
 
     private void OnStormCam(InputAction.CallbackContext ctx) => _stormCamRequested = true;
+    private void OnVehicleImpact(ImpactInfo impact) => _shake?.OnImpact(impact.HpLoss);
+    private void OnLanded(float speed) => _shake?.OnLanding(speed);
+    private void OnTossed() => _shake?.OnToss();
+    private void OnRunStarted() => _shake?.Clear();
 
     private void Update()
     {
@@ -217,9 +235,21 @@ public class ChaseCameraRig : CinemachineExtension
         }
 
         _initialized = true;
+        AimYaw = orientation.eulerAngles.y; // aim and Storm Cam framing never see the shake
+
+        // Crash weight: chase view only; Storm Cam advances (so jolts don't wait) but stays steady.
+        if (snap) _shake?.Clear();
+        if (_shake != null)
+        {
+            _shake.Advance(dt, out Vector3 tilt, out Vector3 offset);
+            if (StormCamTarget == null)
+            {
+                position += orientation * offset;
+                orientation *= Quaternion.Euler(tilt);
+            }
+        }
         state.RawPosition = position;
         state.RawOrientation = orientation;
-        AimYaw = orientation.eulerAngles.y;
     }
 
     /// <summary>Settings: look sensitivity multiplier (mouse and stick), 1 = default.</summary>

@@ -356,6 +356,23 @@ throttle with the held steer for 2.5 s) and `AirtimeProbeTests`. Awaiting Andy's
 
 Escape turn (brake + e-brake + steer at 18 m/s) still reverses heading in 1.10 s (bar 2.5 s).
 
+**Crash weight (2026-10-05, Andy: crashes, flips and tosses need tactile feedback, "noticeable but not
+disruptive"):** chase-camera jolts, `CameraShake` + `ChaseCameraRig` → `CameraShakeTuning`. Chase view only; Storm
+Cam and photo aim never shake. Each jolt fades as (1 − t/d)²; overlapping jolts add up to a cap.
+
+| Event | Peak tilt | Peak offset | Fade |
+|---|---|---|---|
+| Impact, 0 HP (scrapes, fences) | none | none | — |
+| Impact, 1 HP | 0.4° | 4 cm | 0.25 s |
+| Impact, 2+ HP | 0.9° | 10 cm | 0.35 s |
+| Landing < 9 m/s (a normal jump lands ≈ 8.4) | none | none | — |
+| Landing 9 → 16 m/s | 0.3 → 0.7° | 3 → 8 cm (drop) | 0.3 s |
+| Toss | 0.6° | 6 cm | 0.4 s |
+| Cap, all combined | 1.2° | 12 cm | — |
+
+Not included (post-PT-1 if wanted): hit-stop, controller rumble, a Settings "screen shake" toggle (a new saved
+setting, parked by the freeze rule).
+
 ## Edge Cases
 
 | # | Situation | Resolution |
