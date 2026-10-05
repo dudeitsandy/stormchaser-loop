@@ -2,7 +2,7 @@
 
 > **Build:** 0.8.5 on itch (2026-10-05: drift pass 2, pacing fill, radio). Testers who started on 0.7.5–0.8.4
 > record which build they played: 0.8.2 had a no-steering bug, and drift and pacing changed from 0.8.4 on
-> **Brief:** Google Doc "Doomsday — Playtest Brief (0.7.5)", 16 questions in four sections (Q15 goals added for 0.8.5)
+> **Brief:** Google Doc "Doomsday — Playtest Brief (0.8.5)", 16 questions in four sections (Q15 goals added for 0.8.5)
 > **Due:** findings in this file by **2026-10-11** (Sprint 8 PT-1)
 > **Feeds:** Sprint 9 S9-01 driving triage → S9-02 feel pass; S9-05 non-driving triage; G6 feel sign-off
 
