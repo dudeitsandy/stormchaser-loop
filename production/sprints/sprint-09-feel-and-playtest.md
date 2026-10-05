@@ -27,6 +27,14 @@ playtest round 1, checked by a second round on the tuned build. Closes M1's "fee
   from a jump on the compact map, only from tosses (`production/qa/evidence/rg-airtime-evidence.md`). Consider in
   S9-02 alongside the "floaty jump" note.
 
+## Polish notes (Andy 2026-10-05 via stormchaser-38; low priority, behind S9-02a)
+- **Sirens, one spatial source** (Codex, X9-03): instead of four poles (X8-01), one central siren (farmstead or town
+  crossroads), fully 3D with a clear distance rolloff, so you hear where it is and that it's off in the distance. First
+  check whether today's setup sounds "everywhere" (spatialBlend, overlapping poles).
+- **Siren tail + radio return** (Codex siren release + Claude RadioLite duck release, X9-04): the siren tails off longer
+  instead of stopping, and the radio comes back with a 1–2 s ease after the duck instead of snapping. The radio ramp
+  starts as the siren tail fades, so they never overlap loudly.
+
 ## Carried over from Sprint 8 (closed 2026-10-05)
 | ID | Owner | Task | Est. |
 |----|-------|------|------|
@@ -65,7 +73,7 @@ After RG-008, M1 "run goals" can be ticked. Revisit M1's 11-16 date once PT-1 is
 | ID | Task | Type | Est. | Status |
 |----|------|------|------|--------|
 | S9-01 | Triage round 1 feedback into a tuning list: each complaint → the `vehicle-feel.md` knob(s) it maps to, with a proposed value. Andy picks | Analysis | 1.5 h | Blocked on PT-1 only: starts as soon as findings land in the repo (due 2026-10-11), not on 10-20 |
-| S9-02a | **Feel pass from Andy's notes (start now):** drift / e-brake driver feel; chase-camera swing and lag through drifts and corners; jump a touch floaty; **bug:** jumps peak ≈ 1.55 m < `MinAirtimeHeight` 1.8 m, so the Airtime moment, its boost refill and `big_air` never fire from a jump (`rg-airtime-evidence.md`): fix the threshold or the jump so a good jump counts, `big_air` achievable but not trivial. Every changed value in `vehicle-feel.md` → Playtest Tuning Log; PlayMode vehicle tests green | Config/Data | 4 h | Ready |
+| S9-02a | **Feel pass from Andy's notes (start now):** drift / e-brake driver feel; chase-camera swing and lag through drifts and corners; jump a touch floaty; **bug:** jumps peak ≈ 1.55 m < `MinAirtimeHeight` 1.8 m, so the Airtime moment, its boost refill and `big_air` never fire from a jump (`rg-airtime-evidence.md`): fix the threshold or the jump so a good jump counts, `big_air` achievable but not trivial. Every changed value in `vehicle-feel.md` → Playtest Tuning Log; PlayMode vehicle tests green | Config/Data | 4 h | **First pass done 2026-10-05 (0.8.4 local build), awaiting Andy's feel check.** Values + probe numbers: `vehicle-feel.md` → Tuning Log → S9-02a. Evidence `s902a-jump-4.png` (AIR 0.6 s), `s902a-drift.png` |
 | S9-02b | Second tuning pass from S9-01 (round 1 findings, `production/qa/playtest-round-1.md`: stormchaser-38 fills the tally and knob table) | Config/Data | 2 h | Blocked on S9-01 |
 | S9-02b | ~~Camera default~~ **Pulled into Sprint 8 (S8-08, done 2026-10-04); the swing through drifts and corners stays here.** Camera default (Andy, 2026-10-04: "lower so it captures more of the sky, like Rocket League"): default pitch from 26.6° toward ≈ 10–12° so storms stay on screen, tuned with round 1 feedback; it becomes the SKY/CLASSIC preset split shipped with Settings (run-screens RS-2) | Config/Data | 1 h | With S9-02 |
 | S9-03 | 0.8.x release with the tuned feel; tester brief v2 (same questions plus "compared to last time") | Release | 1.5 h | Blocked on S9-02a/b |

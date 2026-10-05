@@ -97,6 +97,47 @@ public class VehicleVerbsPlayTests
         Assert.LessOrEqual(turnedAt, 2.5f);
     }
 
+    /// <summary>
+    /// Probe (S9-02a drift feel): at 16 m/s, e-brake + full steer for 0.5 s, then release into throttle with
+    /// <paramref name="holdSteer"/> for 2.5 s (negative = counter-steer). Logs how long the slide carries, the slip
+    /// angle held, speed kept and total heading change, so tuning changes are compared on numbers, not guesses.
+    /// </summary>
+    [UnityTest, Explicit, Category("Probe")]
+    public IEnumerator DriftProbe([Values(0f, -0.4f, 1f)] float holdSteer)
+    {
+        SpawnGround();
+        var input = new ScriptedInput();
+        PlayerVehicle truck = SpawnTruck(input);
+        truck.transform.position = new Vector3(0f, 0.8f, -60f); // inside the 95 m soft boundary
+        for (int i = 0; i < 30; i++) yield return new WaitForFixedUpdate();
+        input.Frame.Throttle = 1f;
+        while (truck.CurrentSpeed < 16f) yield return new WaitForFixedUpdate();
+        Vector3 startFwd = Flat(truck.transform.forward);
+        input.Frame = new VehicleInputFrame { Throttle = 1f, Handbrake = true, Steer = 1f };
+        float t = 0f, slideTime = 0f, maxSlip = 0f, slipAfterRelease = 0f, heldSlipSum = 0f;
+        int heldSamples = 0;
+        string series = "";
+        while (t < 3f)
+        {
+            yield return new WaitForFixedUpdate();
+            t += Time.fixedDeltaTime;
+            if (t > 0.5f) input.Frame = new VehicleInputFrame { Throttle = 1f, Steer = holdSteer };
+            if (truck.State == VehicleState.Sliding) slideTime += Time.fixedDeltaTime;
+            float slip = truck.Model.SlipAngleDeg;
+            maxSlip = Mathf.Max(maxSlip, slip);
+            if (t > 0.5f && t < 1.5f) { heldSlipSum += slip; heldSamples++; }
+            if (t > 1.0f && slipAfterRelease == 0f) slipAfterRelease = slip;
+            if (Mathf.Repeat(t, 0.25f) < Time.fixedDeltaTime)
+                series += $" | {t:F2}s v{truck.CurrentSpeed:F1} rb{truck.GetComponent<Rigidbody>().linearVelocity.magnitude:F1} " +
+                          $"yaw{truck.GetComponent<Rigidbody>().angularVelocity.y:F1} slip{slip:F0} {truck.State} w{truck.GroundedWheels}";
+        }
+        float heading = Vector3.SignedAngle(startFwd, Flat(truck.transform.forward), Vector3.up);
+        Debug.Log($"[Drift] hold {holdSteer:+0.0;-0.0;0}: sliding {slideTime:F2} s, max slip {maxSlip:F0} deg, " +
+                  $"mean slip 0.5-1.5 s {heldSlipSum / Mathf.Max(1, heldSamples):F0} deg, slip at 1.0 s {slipAfterRelease:F0} deg, " +
+                  $"speed {truck.CurrentSpeed:F1} m/s, heading {heading:F0} deg" + series);
+        Assert.Pass();
+    }
+
     private static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z).normalized;
 
     /// <summary>
@@ -154,7 +195,7 @@ public class VehicleVerbsPlayTests
         GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
         _spawned.Add(ground);
         ground.transform.position = new Vector3(0f, -0.5f, 0f);
-        ground.transform.localScale = new Vector3(60f, 1f, 400f);
+        ground.transform.localScale = new Vector3(120f, 1f, 400f);
     }
 
     private PlayerVehicle SpawnTruck(IVehicleInput input)

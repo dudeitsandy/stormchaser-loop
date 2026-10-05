@@ -109,7 +109,7 @@ public class AirtimeProbeTests
         finally { GameEvents.StyleEvent -= onStyle; }
 
         string events = styleAir.Count == 0 ? "none" : string.Join(", ", styleAir.Select(a => a.ToString("F2")));
-        Debug.Log($"[Airtime] {label}: counted (above 1.8 m) max {maxCounted:F2} s, total air max {maxTotal:F2} s, " +
+        Debug.Log($"[Airtime] {label}: counted (above MinAirtimeHeight) max {maxCounted:F2} s, total air max {maxTotal:F2} s, " +
                   $"peak body rise {maxHeight:F2} m, Airtime style events: {events}");
         Assert.Pass($"{label}: counted {maxCounted:F2} s, total {maxTotal:F2} s");
     }

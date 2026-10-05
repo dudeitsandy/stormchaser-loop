@@ -20,11 +20,27 @@ public class VehicleVerbsTests
         var output = new VehicleStepOutput();
         // Act
         model.Step(input, Grounded(Vector3.zero), output);
-        // Assert: apex v² / (2 · g · AirGravityMul) ≈ 1.5 m (6.65 m/s against 1.5 g rising, 2026-10-03).
+        // Assert: apex v² / (2 · g · AirGravityMul) ≈ 1.5 m (7.3 m/s against 1.8 g rising, S9-02a).
         Assert.IsTrue(output.Jumped);
         Assert.AreEqual(V.JumpSpeed, output.JumpVelocity.magnitude, 1e-4f);
         Assert.AreEqual(1f, Vector3.Dot(output.JumpVelocity.normalized, Vector3.up), 1e-4f);
         Assert.AreEqual(1.5f, V.JumpSpeed * V.JumpSpeed / (2f * 9.81f * V.AirGravityMul), 0.01f);
+    }
+
+    [Test]
+    public void FullJump_CountsAsAirtime_ButNeverBigAir()
+    {
+        // Arrange: the ballistic arc of a flat jump with the arcade rise / fall gravity.
+        const float g = 9.81f;
+        float riseG = g * V.AirGravityMul, fallG = g * V.FallGravityMul;
+        float apex = V.JumpSpeed * V.JumpSpeed / (2f * riseG);
+        float above = apex - V.MinAirtimeHeight;
+        // Act: time spent above the E2 floor, going up and coming down.
+        float counted = above > 0f ? Mathf.Sqrt(2f * above / riseG) + Mathf.Sqrt(2f * above / fallG) : 0f;
+        // Assert: a full jump raises the Airtime moment (S9-02a bug: it never did) but big_air stays toss-only
+        // (Andy 2026-10-04, rg-airtime-evidence.md). Measured in play: 0.62 s.
+        Assert.GreaterOrEqual(counted, V.MinStyleSeconds, "a full jump counts as airtime");
+        Assert.Less(counted, GoalTuning.Defaults.BigAirSeconds, "a jump alone never earns BIG AIR");
     }
 
     [Test]
@@ -189,8 +205,8 @@ public class VehicleVerbsTests
     [Test]
     public void AirtimeBelowMinHeight_RefillsOnlyPassively()
     {
-        // Arrange: start at 50 so refills are visible; jump-apex clearance 1.5 m (E2).
-        float bunnyHop = Refill(clearance: 1.5f);
+        // Arrange: start at 50 so refills are visible; a hop just under the E2 floor never refills.
+        float bunnyHop = Refill(clearance: V.MinAirtimeHeight - 0.1f);
         float realAir = Refill(clearance: 2.5f);
         ArchetypeParams p = ArchetypeParams.Derive(Stars.Pickup, V);
         // Assert: per second of airtime.

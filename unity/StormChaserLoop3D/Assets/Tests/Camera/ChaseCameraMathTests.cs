@@ -11,6 +11,19 @@ public class ChaseCameraMathTests
     private const float Sway = 3f;
     private const float MaxOffset = 8f;
 
+    [TestCase(0f, 0f, 0f)]       // grip driving: no slip, no lean
+    [TestCase(10f, 0f, 0.778f)]  // light corner slip: a small lean (0.35 · 10/45 · 10)
+    [TestCase(45f, 0f, 15.75f)]  // drift at full lean: 35 % toward the nose
+    [TestCase(90f, 0f, 31.5f)]   // past full lean: capped at 35 %
+    [TestCase(35f, 350f, 5.75f)] // wraps across 0/360: 45 deg slip the short way, lean 15.75 deg
+    public void SlideYaw_LeansTowardFacing_ScaledBySlip_CappedAtBlend(float facing, float travel, float expected)
+    {
+        // Arrange / Act
+        float yaw = ChaseCameraMath.SlideYaw(travel, facing, 0.35f, 45f);
+        // Assert
+        Assert.AreEqual(0f, Mathf.DeltaAngle(expected, yaw), 1e-3f);
+    }
+
     [TestCase(0f, 1f)]
     [TestCase(7.5f, 0.5f)]
     [TestCase(15f, 0f)]

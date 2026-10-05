@@ -37,6 +37,12 @@ public struct VehicleFeelValues
 
     [Header("States (F5, E5, E9)")]
     public float SlideEnterDeg, SlideExitDeg, SlideMinSpeed, SlideExitSpeed;
+    [Tooltip("Steering factor at top speed while Sliding (1 = full lock, so counter-steer can catch a drift). Grip driving uses HighSpeedSteerFactor.")]
+    public float SlideSteerFactor;
+    [Tooltip("Arcade drift drive (m/s²) along the direction of travel while Sliding on throttle, fading to 0 at top speed: a powered slide carries speed instead of scrubbing it.")]
+    public float DriftDriveAccel;
+    [Tooltip("Counter-steer assist (1/s): while Sliding off the e-brake, steering against the rotation damps the yaw rate by this × |steer|, so a driver can catch and hold a drift.")]
+    public float CounterSteerAssist;
     public float AirborneGrace;
     public float UpendedDot, UpendedAngularSpeed, AutoRightDelay;
     public float MaxGroundSlopeDeg;
@@ -118,10 +124,13 @@ public struct VehicleFeelValues
         MaxSteerDeg = 32f, HighSpeedSteerFactor = 0.45f,
         DownforceCoeff = 0.25f,
         AntiRoll = 0.6f, YawStability = 0.6f,
-        GripRecoveryTime = 0.25f,
+        // S9-02a ("drift needs more driver feel"): 0.25 → 0.4 s so letting off the e-brake flows into the slide.
+        GripRecoveryTime = 0.4f,
         RollStabilization = 0.6f, RollStabilizeAngleDeg = 25f,
 
         SlideEnterDeg = 20f, SlideExitDeg = 10f, SlideMinSpeed = 3f, SlideExitSpeed = 2f,
+        // S9-02a: baseline drifts bled 16 → 4–9 m/s in 1.5 s even on throttle, and counter-steer got only 45 % lock.
+        SlideSteerFactor = 0.7f, DriftDriveAccel = 6f, CounterSteerAssist = 4f,
         AirborneGrace = 0.1f,
         UpendedDot = 0.3f, UpendedAngularSpeed = 1.5f, AutoRightDelay = 1.2f,
         MaxGroundSlopeDeg = 60f,
@@ -134,13 +143,16 @@ public struct VehicleFeelValues
 
         AirAccel = 20f, AirMaxRate = 4.5f,
         // Playtest 2026-10-03 ("jump is a little floaty"): heavier air, same 1.5 m apex (v = √(2·1.5g·1.5)).
-        JumpSpeed = 6.65f, JumpCooldown = 0.8f, JumpWorldUpBlend = 0.5f,
-        AirGravityMul = 1.5f, FallGravityMul = 2f,
+        // S9-02a (Andy 2026-10-04, still "a touch floaty"): heavier again at the same ≈ 1.5 m apex, v = √(2·1.8g·1.5).
+        JumpSpeed = 7.3f, JumpCooldown = 0.8f, JumpWorldUpBlend = 0.5f,
+        AirGravityMul = 1.8f, FallGravityMul = 2.4f,
 
         BoostAccel = 9f, BoostMaxSpeedRatio = 1.35f,
         BoostDrain = 33f, BoostPassiveRegen = 4f, BoostMinStart = 5f,
         RefillSlide = 18f, RefillAir = 14f, RefillNearMiss = 25f,
-        MinSlideRefillSpeed = 6f, MinAirtimeHeight = 1.8f,
+        // S9-02a: 1.8 m was above a full jump's ≈ 1.5 m apex, so jumps never counted (rg-airtime-evidence.md). 0.6 m
+        // lets a full jump count ≈ 0.5 s (AIR pop + refill) while curb hops don't; big_air (1.0 s) stays toss-only.
+        MinSlideRefillSpeed = 6f, MinAirtimeHeight = 0.6f,
         NearMissCooldown = 3f, NearMissMinSpeed = 8f, NearMissMargin = 6f,
         MinStyleSeconds = 0.5f,
 

@@ -897,7 +897,7 @@ MonoBehaviour:
   _minPitch: 5
   _maxPitch: 50
   _restMinSpeed: 3
-  _yawDamping: 1.6
+  _yawDamping: 1.1
   _heightDamping: 0.5
   _teleportSnapDistance: 10
   _stickYawSpeed: 180

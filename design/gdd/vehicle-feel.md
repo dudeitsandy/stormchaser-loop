@@ -338,12 +338,30 @@ values is `VehicleFeelConfig` (`VehicleFeelValues.Defaults`); this table records
 
 Driving noise, response, and slide polish are deferred to the polish pass (Andy, 2026-10-01).
 
+### S9-02a (2026-10-05, from Andy's notes: "drift / e-brake needs more of a driver feel", "camera turn on drift and turn", "jump a touch floaty")
+
+Measured with the Explicit probes `VehicleVerbsPlayTests.DriftProbe` (16 m/s, e-brake + full steer 0.5 s, then
+throttle with the held steer for 2.5 s) and `AirtimeProbeTests`. Awaiting Andy's feel check on 0.8.4.
+
+| Knob | Was | **Now** | Why / measured |
+|------|-----|---------|----------------|
+| `JumpSpeed` / `AirGravityMul` / `FallGravityMul` | 6.65 / 1.5 / 2.0 | **7.3 / 1.8 / 2.4** | same ≈ 1.5 m apex, less hang: total air 0.84 → 0.76 s |
+| `MinAirtimeHeight` (E2) | 1.8 m | **0.6 m** | bug: above the 1.5 m jump apex, so jumps never counted. A full jump now counts 0.62 s (AIR moment + refill); `big_air` (1.0 s) stays toss-only (EF4 toss 1.32 s, EF5 1.48 s) per Andy 2026-10-04 |
+| `GripRecoveryTime` | 0.25 s | **0.4 s** | letting off the e-brake flows into the slide instead of snapping straight |
+| New: `DriftDriveAccel` | — | **6 m/s²** | throttle in a slide pushes along the direction of travel, fading at top speed. Release-and-hold: 15.6 → 16.1 m/s, no mid-slide scrub to ≈ 8 m/s |
+| New: `CounterSteerAssist` | — | **4 /s × \|steer\|** | counter-steer catches the rotation. Counter-steer −0.4: heading 84° → 53°, speed 3.9 → 12.8 m/s (was spinning sideways) |
+| New: `SlideSteerFactor` | (0.45, same as grip) | **0.7** | a little more lock while sliding; measured neutral on its own (0.45 / 0.7 / 1.0 all ≈ 108° without the assist) |
+| Chase camera yaw damping | 1.6 s | **1.1 s** | less lag through corners |
+| New: camera slide lean | — | **35 % toward the nose, full at 45° slip** | a drift shows where the nose points as well as where the truck is going (`ChaseCameraMath.SlideYaw`) |
+
+Escape turn (brake + e-brake + steer at 18 m/s) still reverses heading in 1.10 s (bar 2.5 s).
+
 ## Edge Cases
 
 | # | Situation | Resolution |
 |---|-----------|------------|
 | E1 | **Donut farming** — handbrake spins in place to refill boost | Slide refill only counts at speed > 6 m/s |
-| E2 | **Jump farming** — jump spam on flat ground ≈ continuous airtime → infinite boost | Airtime refill/style only counts while **> 1.8 m above ground** (above the 1.5 m jump apex). Ramps, wreckage, tosses count; bunny-hops don't |
+| E2 | **Jump farming** — jump spam on flat ground ≈ continuous airtime → infinite boost | Airtime refill/style only counts while **> 0.6 m above ground** (S9-02a; was 1.8 m, above the 1.5 m jump apex, so jumps never counted). A full jump counts ≈ 0.6 s; the 0.8 s jump cooldown and passive-only refill below the floor keep spam bounded. Curb hops don't count |
 | E3 | **Near-miss farming** — orbiting just outside a damage radius | Near-miss cooldown 3 s per tornado; requires speed > 8 m/s |
 | E4 | Toss → hard landing → damage | Intended risk; normal landing rules; post-hit invulnerability prevents stacking |
 | E5 | Upended in wind — linear speed never drops below 2 m/s, auto-right never fires | Auto-right condition: upended 1.2 s **and** angular speed < 1.5 rad/s (linear speed ignored) |

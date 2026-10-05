@@ -80,6 +80,18 @@ public static class ChaseCameraMath
     }
 
     /// <summary>World yaw of a direction (0 = +Z).</summary>
+    /// <summary>
+    /// S9-02a drift framing: leans the chase yaw from the direction of travel toward the truck's facing, by up to
+    /// <paramref name="blend"/>, scaled by the slip between them (full lean at <paramref name="fullAtDeg"/>). Grip
+    /// driving (no slip) is unchanged; a drift shows where the nose points as well as where the truck is going.
+    /// </summary>
+    public static float SlideYaw(float travelYaw, float facingYaw, float blend, float fullAtDeg)
+    {
+        float slip = Mathf.DeltaAngle(travelYaw, facingYaw);
+        float weight = Mathf.Clamp01(blend) * Mathf.Clamp01(Mathf.Abs(slip) / Mathf.Max(1f, fullAtDeg));
+        return travelYaw + slip * weight;
+    }
+
     public static float Yaw(Vector3 direction) => Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
 
     /// <summary>The direction projected onto the ground plane (not normalized).</summary>

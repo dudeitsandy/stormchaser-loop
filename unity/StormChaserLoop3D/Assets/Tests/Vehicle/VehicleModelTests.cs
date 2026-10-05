@@ -249,8 +249,8 @@ public class VehicleModelTests
         Assert.AreNotEqual(VehicleState.Airborne, model.State);
     }
 
-    [TestCase(-5f, 2f)]
-    [TestCase(5f, 1.5f)]
+    [TestCase(-5f, 2.4f)] // S9-02a values (was 2.0 / 1.5)
+    [TestCase(5f, 1.8f)]
     public void Airborne_AddsArcadeGravity_FallingHarderThanRising(float verticalSpeed, float expectedMul)
     {
         // Arrange: same airborne step with and without the multipliers (playtest 2026-10-03: floaty jump).

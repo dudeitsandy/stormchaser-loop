@@ -204,8 +204,10 @@ public sealed class VehicleModel
 
         // ---- Steering (F4) ----
         float damageSteer = input.Damage == DamageStage.Damaged ? 0.75f : 1f;
+        // Sliding keeps (near) full lock so counter-steer can catch the drift (S9-02a); grip driving narrows at speed.
+        float speedSteerFactor = State == VehicleState.Sliding ? _v.SlideSteerFactor : _v.HighSpeedSteerFactor;
         float steerDeg = _v.MaxSteerDeg * steerInput
-                         * Mathf.Lerp(1f, _v.HighSpeedSteerFactor, Mathf.Clamp01(Mathf.Abs(ForwardSpeed) / _p.TopSpeed))
+                         * Mathf.Lerp(1f, speedSteerFactor, Mathf.Clamp01(Mathf.Abs(ForwardSpeed) / _p.TopSpeed))
                          * damageSteer;
         SteerAngleDeg = steerDeg;
         Quaternion steerRot = Quaternion.AngleAxis(steerDeg, up);
@@ -292,6 +294,18 @@ public sealed class VehicleModel
             output.CenterAcceleration += -fwd * Mathf.Sign(ForwardSpeed) * assist;
         }
 
+        // ---- Drift drive (S9-02a): throttle in a slide pushes along the direction of travel, fading at top speed ----
+        if (State == VehicleState.Sliding && groundedCount >= 2 && inp.Throttle > 0.01f && _v.DriftDriveAccel > 0f)
+        {
+            Vector3 travel = new Vector3(input.Velocity.x, 0f, input.Velocity.z);
+            float travelSpeed = travel.magnitude;
+            if (travelSpeed > 1f)
+            {
+                float fade = Mathf.Clamp01(1f - travelSpeed / _p.TopSpeed);
+                output.CenterAcceleration += travel / travelSpeed * (_v.DriftDriveAccel * power * inp.Throttle * fade);
+            }
+        }
+
         // ---- Boost (F9): fades to zero at BoostMaxSpeed; works airborne; never while Critical ----
         bool wantBoost = inp.Boost && !Disabled;
         BoostActive = wantBoost && (BoostActive ? BoostMeter > 0f : BoostMeter >= _v.BoostMinStart);
@@ -331,6 +345,14 @@ public sealed class VehicleModel
             bool steeringIntoIt = Mathf.Abs(inp.Steer) > 0.5f && Mathf.Sign(inp.Steer) == Mathf.Sign(yawRate);
             if (Mathf.Abs(yawRate) > Mathf.Abs(intended) && !steeringIntoIt)
                 output.AngularAcceleration += -up * excess * _v.YawStability * 8f;
+        }
+
+        // ---- Counter-steer assist (S9-02a): steering against a slide's rotation catches it ----
+        if (State == VehicleState.Sliding && groundedCount >= 2 && !inp.Handbrake && _v.CounterSteerAssist > 0f)
+        {
+            float yawRate = Vector3.Dot(input.AngularVelocity, up);
+            if (Mathf.Abs(inp.Steer) > 0.05f && Mathf.Sign(inp.Steer) != Mathf.Sign(yawRate))
+                output.AngularAcceleration += -up * yawRate * _v.CounterSteerAssist * Mathf.Abs(inp.Steer);
         }
 
         // ---- Roll stabilization (playtest 2026-10-01: tornado knockbacks rolled the truck) ----
