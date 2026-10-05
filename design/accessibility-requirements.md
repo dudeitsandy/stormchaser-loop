@@ -42,7 +42,7 @@ designed in full. The controller-plus-keyboard support that already exists cover
 | Independent volume | Separate volume for music, effects and the master channel (`run-screens.md` Settings). No voice-over exists yet; when the KTVR DJ gets a voice (post-M1 radio system), it needs its own slider | In spec (run-screens Settings) |
 | No photosensitivity risk | No full-screen flashing above 3 flashes per second. Applies to the EF5 TORNADO EMERGENCY presentation, the camera shutter flash, impact sparks and, later, lightning (`production/backlog.md`) | To audit |
 | Pause anywhere | A run can be paused at any time (`run-screens.md` Pause) | In spec |
-| Brightness control | Basic expects a brightness/gamma setting; `run-screens.md` Settings doesn't have one yet | **Gap**, see Open Questions |
+| Brightness control | A brightness slider in `run-screens.md` Settings (Andy, 2026-10-04), saved with the other settings in the save stem | Decided; in RS-2 |
 | Audio-only gameplay information has a visual backup | Sirens and broadcast tones (X7-10, X8-01) are backed by the news crawl and the forecast panel | Met by design |
 
 ---
@@ -77,4 +77,4 @@ colorblind types (check screenshots with a simulator such as Coblis).
 
 | Question | Owner | Deadline | Resolution |
 |---|---|---|---|
-| Add a brightness slider to `run-screens.md` Settings (Basic tier expects one), or accept the gap for M1? It's one more setting on the existing panel and save stem | Andy | Before RS-2 build | |
+| Add a brightness slider to `run-screens.md` Settings (Basic tier expects one), or accept the gap for M1? | Andy | Before RS-2 build | **Add it** (Andy, 2026-10-04): one more row on the Settings panel, saved in the device file |
