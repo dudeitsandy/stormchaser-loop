@@ -1,7 +1,7 @@
 # Story 001: Pause menu and quitting
 
 > **Epic**: Run Screens
-> **Status**: In Review — Andy 2026-10-05 (0.8.5 Windows): **Title Esc-Esc quits ✅**. Still to confirm: pause → Quit to Desktop, and Alt-tab auto-pause
+> **Status**: Done (2026-10-05) — Andy's Windows check on 0.8.5: Title Esc-Esc quits ✅, pause → Quit to Desktop ✅, Alt-tab auto-pause ✅
 > **Layer**: Presentation
 > **Type**: Integration
 > **Estimate**: 3 h (M)

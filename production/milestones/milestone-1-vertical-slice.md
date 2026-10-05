@@ -31,9 +31,13 @@ target**, for performance and player experience. WebGL becomes at most a free de
       S8-C2 **deferred past M1**, Andy 2026-10-04)*
 - [ ] **Run goals v1**: THPS-style goal list in a run (style moves and storm goals score, not just photos);
       designed in `event-system.md`, reviewed, implemented
-- [ ] **Run screens**: title, pause/quit and game-over/results flows designed (`/ux-design`) and built;
+- [x] **Run screens**: title, pause/quit and game-over/results flows designed (`/ux-design`) and built;
       results show seed, regime and "the big one got away" *(results part done in 0.7.5, story 009)*
-- [ ] **WebGL budget holds**: over a 3-min run with live storms, debris and full presentation (storm sky,
+      *(Done 2026-10-05: run-screens epic stories 001–006 closed; Andy's Windows check passed: pause → Quit to
+      Desktop, Title Esc-Esc, Alt-tab auto-pause.)*
+- [ ] **WebGL budget holds** *(Andy 2026-10-05: screen transitions (load, title → run, run → results) are outside
+      "the 3-min run"; the 111 ms title → run hitch gets smoothed in Sprint 10 anyway. S9-04 on 0.8.5: p95 17.1 ms,
+      physics ≤ 1.8 ms, in-play frames ≤ 50 ms; see `sprint-09-feel-and-playtest.md` S9-04)*: over a 3-min run with live storms, debris and full presentation (storm sky,
       sirens, PiP), no frame > 50 ms and p95 frame ≤ 33.3 ms on the reference laptop (Radeon 890M, Chrome),
       physics step ≤ 4 ms (`?physProbe=1`). Measured headlessly, no Profiler session needed *(reworded
       2026-10-04: X7-06's per-component 3 ms CPU breakdown is a diagnostic, run only if this fails, and

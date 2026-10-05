@@ -48,7 +48,7 @@ Requirement IDs are local to this epic and cite the UX spec section.
 
 | # | Story | Type | Status | ADR |
 |---|-------|------|--------|-----|
-| 001 | [Pause menu and quitting](story-001-pause-and-quit.md) | Integration | In Review (0.7.7) | N/A |
+| 001 | [Pause menu and quitting](story-001-pause-and-quit.md) | Integration | Done (Andy's Windows check 2026-10-05) | N/A |
 | 002 | [Settings panel v1](story-002-settings-panel.md) | UI | Done (0.8.0) | N/A |
 | 003 | [Wrecked slow-mo beat](story-003-wrecked-beat.md) | Visual/Feel | Done (0.8.0) | N/A |
 | 004 | [Results: two columns, goals and save messages](story-004-results-goals.md) | UI | Done (0.8.0) | N/A |
