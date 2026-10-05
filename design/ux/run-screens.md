@@ -128,6 +128,7 @@ SETTINGS (overlay; same panel from Title and Pause; changes apply live)
       ▸ CAMERA         ◂ CLASSIC ▸      SKY · CLASSIC · HIGH  (CAB later)
         SENSITIVITY    ◂ ━━━━○━━ ▸
         INVERT Y       ◂ OFF ▸
+        BRIGHTNESS     ◂ ━━━○━━━ ▸      −50 % … +50 %, default 0 (accessibility Basic)
         MASTER VOLUME  ◂ ━━━━━○━ ▸
         EFFECTS        ◂ ━━━━━○━ ▸
         MUSIC          ◂ ━━━○━━━ ▸
@@ -180,7 +181,7 @@ reward-name text to "1 MORE". Panels are anchored to a 16 px safe margin.
 | KTVR WANTS bounty list (3 rows: open · done ✓ + bonus · failed ✕ struck) | HUD | New |
 | Career-goal pop-up ("GOAL! BIG AIR +150", "NEW" on first ever) | HUD | New |
 | Pause menu (Resume, Settings, Quit Run, Quit to Desktop on Windows, confirm, this run's goals) | Pause | New |
-| Settings panel (camera preset, sensitivity, invert Y, master / effects / music volume, fullscreen, resolution on Windows) | Title + Pause overlay | New |
+| Settings panel (camera preset, sensitivity, invert Y, brightness, master / effects / music volume, fullscreen, resolution on Windows) | Title + Pause overlay | New |
 | Quit-game confirm ("QUIT GAME? ESC AGAIN") | Title, Windows only | New |
 | WRECKED slam + slow-mo | Wrecked | New (today: results header only) |
 | Score, best / NEW BEST, photos, best shot | Results | Built |
@@ -270,7 +271,7 @@ goals tally. Menu sounds (move tick, pick clunk) are a Codex presentation reques
 | Career count, per-goal done, reward progress | Accomplishments record (`save-profile.md`) | Read | Title strip and Career page |
 | Unlocks (livery owned) | `save-profile.md` `Unlocks` | Read | |
 | Chosen livery | `save-profile.md` `LastLoadout.livery` | **Write** | Persistent write on toggle |
-| Settings values | `save-profile.md` device settings file | **Write** | Persistent write on panel close |
+| Settings values (incl. brightness offset −50 % … +50 %, default 0) | `save-profile.md` device settings file (M1 stem) | **Write** | Persistent write on panel close |
 | Profile loaded, slot state (ReadOnly + reason), last write failed | Save & Profile | Read | Drives the loading, storage-banner, write-toast and read-only states |
 | Paused | `RunManager` (owns pause, time scale, audio pause) | Read | **The UI never sets time scale itself** |
 | Platform (Windows vs WebGL) | `Application.platform` | Read | Hides quit-to-desktop and resolution on WebGL |
@@ -375,6 +376,8 @@ scores should be culture-invariant.
 - [ ] Windows: Quit to Desktop and Esc-Esc on Title exit the app; WebGL: neither option is shown
 - [ ] Settings: every value applies live; after a full reload all values persist; the resolution row is absent
       on WebGL
+- [ ] Brightness at −50 % / 0 / +50 % visibly darkens / restores / brightens both the main view and the viewfinder;
+      photo scoring is unchanged (Andy 2026-10-04, accessibility Basic: `design/accessibility-requirements.md`)
 - [ ] Wrecked: slow-mo lasts 1.5 ± 0.1 s of real time, then Results with the WRECKED header; pause is ignored
       during it
 - [ ] Results goals column lists each completion with its bonus, NEW on first-ever completions, the unlock banner

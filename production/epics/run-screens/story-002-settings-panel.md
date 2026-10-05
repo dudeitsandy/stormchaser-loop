@@ -35,7 +35,7 @@ One Settings panel opened from Pause and from Title (O / Select), saved through 
 
 *From `design/ux/run-screens.md`, scoped to this story:*
 
-- [ ] Rows: CAMERA (SKY / CLASSIC / HIGH), SENSITIVITY, INVERT Y, MASTER / EFFECTS / MUSIC volume, FULLSCREEN, and RESOLUTION on Windows only; each value applies live
+- [ ] Rows: CAMERA (SKY / CLASSIC / HIGH), SENSITIVITY, INVERT Y, BRIGHTNESS (−50 % … +50 %, default 0), MASTER / EFFECTS / MUSIC volume, FULLSCREEN, and RESOLUTION on Windows only; each value applies live
 - [ ] Values are saved when the panel closes and are still applied after a full reload (session-only if the stem's WebGL check failed)
 - [ ] Fully usable by keyboard only, gamepad only and mouse; Esc / B backs out to Pause or Title
 
@@ -45,6 +45,9 @@ One Settings panel opened from Pause and from Title (O / Select), saved through 
 
 - Camera presets map to `ChaseCameraRig` default pitch/distance; the SKY default value comes from Sprint 9 S9-02b, use a provisional ≈ 12° until then.
 - Device file API from `run-goals-v1` story 005.
+- **Brightness** (Andy 2026-10-04, accessibility Basic): a post-exposure offset on the global URP Volume (Color
+  Adjustments), applied to the main view **and** the viewfinder (the player needs both brighter); never applied to
+  photo scoring or stored covers. Check the viewfinder's camcorder lens (Codex lane) still reads at both extremes.
 
 ---
 
