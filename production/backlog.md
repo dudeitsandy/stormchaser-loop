@@ -121,3 +121,27 @@ program); App Store review; on-device performance and UI-scale testing per updat
 tough market; Apple Arcade is a pitch option.
 
 **Do now:** nothing, except keep controller support solid (it also serves Steam Deck).
+
+---
+
+## Attract mode, full version: self-driving truck (Andy, 2026-10-05)
+
+**Idea:** a true attract mode on the title: the truck drives itself, chases the storm, drifts, takes photos,
+and the KTVR crawl reacts. It builds on the M1 title attract (flyover camera plus a seeded demo storm, game
+audio muted).
+
+**Needs:** simple driving AI (steer toward a framing point near the anchor storm, keep a safe distance, use
+handbrake and boost for show), a photo trigger when framing is good, and a time-out back to the flyover.
+About 4–6 h. A new system, so post-M1.
+
+---
+
+## Run replays (Andy, 2026-10-05)
+
+**Idea:** replay a real recorded run from its seed and the player's inputs: for the attract mode ("best run
+of the day"), for sharing runs (pairs with Arcade share codes in `session-modes.md`), and for ghost cars.
+
+**Catch:** the Storm Director is deterministic from the seed (Rule 10), but vehicle physics doesn't replay
+exactly from inputs, so input replays drift. Options: record transforms per tick instead of inputs (bigger
+files, exact), or periodic state snapshots with input replay between them. Decide in a design pass. New
+system, post-M1.
