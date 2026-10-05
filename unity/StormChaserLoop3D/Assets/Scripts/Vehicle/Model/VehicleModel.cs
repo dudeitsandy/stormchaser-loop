@@ -107,6 +107,8 @@ public sealed class VehicleModel
     public bool Disabled { get; private set; }
     /// <summary>Body slip angle (F5), degrees.</summary>
     public float SlipAngleDeg { get; private set; }
+    /// <summary>0–1 drift blend from the slip angle (S9-02a pass 2): drift assists fade in and out on it instead of switching on Sliding.</summary>
+    public float DriftAmount { get; private set; }
     /// <summary>Signed speed along the body's forward axis (m/s).</summary>
     public float ForwardSpeed { get; private set; }
     public int GroundedWheels { get; private set; }
@@ -146,6 +148,10 @@ public sealed class VehicleModel
         float latSpeed = Vector3.Dot(input.Velocity, right);
         float planarSpeed = Mathf.Sqrt(ForwardSpeed * ForwardSpeed + latSpeed * latSpeed);
         SlipAngleDeg = planarSpeed > 0.5f ? Mathf.Atan2(Mathf.Abs(latSpeed), Mathf.Abs(ForwardSpeed)) * Mathf.Rad2Deg : 0f;
+        float driftT = planarSpeed > _v.SlideMinSpeed
+            ? Mathf.Clamp01((SlipAngleDeg - _v.DriftStartDeg) / Mathf.Max(0.1f, _v.DriftFullDeg - _v.DriftStartDeg))
+            : 0f;
+        DriftAmount = driftT * driftT * (3f - 2f * driftT);
 
         // ---- Contacts & suspension (F1) ----
         float minGroundDot = Mathf.Cos(_v.MaxGroundSlopeDeg * Mathf.Deg2Rad);
@@ -205,7 +211,7 @@ public sealed class VehicleModel
         // ---- Steering (F4) ----
         float damageSteer = input.Damage == DamageStage.Damaged ? 0.75f : 1f;
         // Sliding keeps (near) full lock so counter-steer can catch the drift (S9-02a); grip driving narrows at speed.
-        float speedSteerFactor = State == VehicleState.Sliding ? _v.SlideSteerFactor : _v.HighSpeedSteerFactor;
+        float speedSteerFactor = Mathf.Lerp(_v.HighSpeedSteerFactor, _v.SlideSteerFactor, DriftAmount);
         float steerDeg = _v.MaxSteerDeg * steerInput
                          * Mathf.Lerp(1f, speedSteerFactor, Mathf.Clamp01(Mathf.Abs(ForwardSpeed) / _p.TopSpeed))
                          * damageSteer;
@@ -255,7 +261,8 @@ public sealed class VehicleModel
 
             // Longitudinal (F2 / F2b) + surface drag.
             bool rear = i >= 2;
-            float fLong = driveTotal * 0.25f * (rear && inp.Handbrake ? 0.5f : 1f);
+            float axleShare = rear ? _v.RearDriveBias : 1f - _v.RearDriveBias; // per axle, split across its 2 wheels
+            float fLong = driveTotal * 0.5f * axleShare * (rear && inp.Handbrake ? 0.5f : 1f);
             if (braking) fLong += -Mathf.Sign(vLong) * Mathf.Min(quarterMass * _v.BrakeDecel, stopLong);
             float resist = (coasting ? _v.CoastDecel : 0f) + c.SurfaceDrag;
             if (resist > 0f) fLong += -Mathf.Sign(vLong) * Mathf.Min(quarterMass * resist, stopLong);
@@ -267,7 +274,10 @@ public sealed class VehicleModel
 
             // Combined friction circle.
             float gripScale = input.GripScale > 0f ? input.GripScale : 1f;
-            float budget = _v.GripMu * load * Mathf.Max(0f, c.SurfaceGrip) * (rear ? _rearGripMul : 1f) * windGripMul * gripScale;
+            // Feathering (S9-02a pass 2): in a drift, throttle loosens the rear; lifting gives the grip back.
+            float featherLimit = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(_v.FeatherLimitStartDeg, _v.FeatherLimitEndDeg, SlipAngleDeg));
+            float featherMul = rear ? 1f - _v.ThrottleRearGripLoss * DriftAmount * featherLimit * Mathf.Clamp01(inp.Throttle) : 1f;
+            float budget = _v.GripMu * load * Mathf.Max(0f, c.SurfaceGrip) * (rear ? _rearGripMul : 1f) * featherMul * windGripMul * gripScale;
             float mag = Mathf.Sqrt(fLong * fLong + fLat * fLat);
             if (mag > budget && mag > 1e-4f)
             {
@@ -295,14 +305,14 @@ public sealed class VehicleModel
         }
 
         // ---- Drift drive (S9-02a): throttle in a slide pushes along the direction of travel, fading at top speed ----
-        if (State == VehicleState.Sliding && groundedCount >= 2 && inp.Throttle > 0.01f && _v.DriftDriveAccel > 0f)
+        if (DriftAmount > 0f && groundedCount >= 2 && inp.Throttle > 0.01f && _v.DriftDriveAccel > 0f)
         {
             Vector3 travel = new Vector3(input.Velocity.x, 0f, input.Velocity.z);
             float travelSpeed = travel.magnitude;
             if (travelSpeed > 1f)
             {
                 float fade = Mathf.Clamp01(1f - travelSpeed / _p.TopSpeed);
-                output.CenterAcceleration += travel / travelSpeed * (_v.DriftDriveAccel * power * inp.Throttle * fade);
+                output.CenterAcceleration += travel / travelSpeed * (_v.DriftDriveAccel * power * inp.Throttle * fade * DriftAmount);
             }
         }
 
@@ -340,19 +350,23 @@ public sealed class VehicleModel
         if (groundedCount >= 2 && !inp.Handbrake && State != VehicleState.Upended)
         {
             float yawRate = Vector3.Dot(input.AngularVelocity, up);
-            float intended = ForwardSpeed * Mathf.Tan(steerDeg * Mathf.Deg2Rad) / _wheelbase;
+            // In a drift the stabiliser aims at "stop rotating", not at the counter-steered heading: pulling toward the
+            // counter-steer direction snapped the truck straight ("locks out at times", S9-02a pass 2). It also eases
+            // to DriftStabilityKeep of its strength so the driver, not the assist, holds the angle.
+            float intended = ForwardSpeed * Mathf.Tan(steerDeg * Mathf.Deg2Rad) / _wheelbase * (1f - DriftAmount);
             float excess = yawRate - intended;
             bool steeringIntoIt = Mathf.Abs(inp.Steer) > 0.5f && Mathf.Sign(inp.Steer) == Mathf.Sign(yawRate);
             if (Mathf.Abs(yawRate) > Mathf.Abs(intended) && !steeringIntoIt)
-                output.AngularAcceleration += -up * excess * _v.YawStability * 8f;
+                output.AngularAcceleration += -up * excess * _v.YawStability * 8f
+                                              * Mathf.Lerp(1f, _v.DriftStabilityKeep, DriftAmount);
         }
 
         // ---- Counter-steer assist (S9-02a): steering against a slide's rotation catches it ----
-        if (State == VehicleState.Sliding && groundedCount >= 2 && !inp.Handbrake && _v.CounterSteerAssist > 0f)
+        if (DriftAmount > 0f && groundedCount >= 2 && !inp.Handbrake && _v.CounterSteerAssist > 0f)
         {
             float yawRate = Vector3.Dot(input.AngularVelocity, up);
             if (Mathf.Abs(inp.Steer) > 0.05f && Mathf.Sign(inp.Steer) != Mathf.Sign(yawRate))
-                output.AngularAcceleration += -up * yawRate * _v.CounterSteerAssist * Mathf.Abs(inp.Steer);
+                output.AngularAcceleration += -up * yawRate * _v.CounterSteerAssist * Mathf.Abs(inp.Steer) * DriftAmount;
         }
 
         // ---- Roll stabilization (playtest 2026-10-01: tornado knockbacks rolled the truck) ----

@@ -356,6 +356,25 @@ throttle with the held steer for 2.5 s) and `AirtimeProbeTests`. Awaiting Andy's
 
 Escape turn (brake + e-brake + steer at 18 m/s) still reverses heading in 1.10 s (bar 2.5 s).
 
+**S9-02a pass 2 (2026-10-05, Andy on 0.8.4: "feathering and countersteering don't work quite right, almost there
+but it locks out at times").** Diagnosis with the Explicit `FeatherProbe` (kick a drift, then hold a light
+counter-steer at a fixed throttle): (1) every drift assist switched on the binary Sliding state, so dropping under
+10° of slip cut them all at once while the yaw stabiliser snapped on and pulled toward the counter-steered heading:
+the lock-out; (2) more throttle held a *smaller* angle (0.3 → 21°, 1.0 → 15°), because near top speed the engine
+force is tiny and even-split AWD can't swing the tail.
+
+| Knob | Was | **Now** | Why / measured |
+|------|-----|---------|----------------|
+| New: drift amount `DriftStartDeg` / `DriftFullDeg` | Sliding state (on/off) | **smoothstep 6° → 20° slip** | steer lock, counter-steer assist, drift drive and the stabiliser blend on it: no switch, no snap |
+| Yaw stabiliser in a drift | full strength, aimed at the counter-steered heading | **aims at "stop rotating", keeps 65 %** (`DriftStabilityKeep`) | at 0 % the truck spun out (80° slip, stopped) |
+| New: `ThrottleRearGripLoss` | — | **0.25** | feathering: throttle loosens the rear in a drift, lifting tightens it |
+| New: feather limiter | — | **fades out 35° → 55° slip** | throttle widens a drift but can't wind it into a spin |
+| New: `RearDriveBias` | 0.5 (even AWD) | **0.6** | a pickup; a touch of power oversteer at low speed |
+
+Result: throttle 0.3 / 0.6 / 1.0 holds 16° / 22° / 33°; full throttle holds steady (no drop-outs, ±7°) at
+13.7 m/s; counter-steer −0.4 keeps 13.6 m/s; releasing the wheel at full throttle runs wide, no spin; escape turn
+1.08 s. Regression test `Feathering_MoreThrottle_HoldsAWiderDrift_WithoutSpinning`.
+
 **Crash weight (2026-10-05, Andy: crashes, flips and tosses need tactile feedback, "noticeable but not
 disruptive"):** chase-camera jolts, `CameraShake` + `ChaseCameraRig` → `CameraShakeTuning`. Chase view only; Storm
 Cam and photo aim never shake. Each jolt fades as (1 − t/d)²; overlapping jolts add up to a cap.

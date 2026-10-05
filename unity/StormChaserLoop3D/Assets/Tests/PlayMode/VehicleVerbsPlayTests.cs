@@ -138,6 +138,88 @@ public class VehicleVerbsPlayTests
         Assert.Pass();
     }
 
+    /// <summary>
+    /// Probe (S9-02a pass 2, Andy: "feathering and countersteering don't work quite right, almost there but it locks
+    /// out at times"): kick a drift (e-brake + full steer 0.4 s), then hold a light counter-steer at a fixed
+    /// <paramref name="throttle"/> for 3 s. Feathering works if more throttle holds more angle; a lock-out shows as
+    /// Sliding/Grounded flips and a sudden yaw-rate step.
+    /// </summary>
+    [UnityTest, Explicit, Category("Probe")]
+    public IEnumerator FeatherProbe([Values(0.3f, 0.6f, 1f)] float throttle)
+    {
+        FeatherResult r = default;
+        yield return MeasureFeather(throttle, x => r = x);
+        Debug.Log($"[Feather] throttle {throttle:F1}: slip 0.8-2.8 s mean {r.MeanSlip:F0} sd {r.SlipSd:F0} deg, state flips {r.Flips}, " +
+                  $"max yaw-rate step {r.MaxYawStep:F2} rad/s, end speed {r.EndSpeed:F1} m/s, state {r.EndState}");
+        Assert.Pass();
+    }
+
+    /// <summary>
+    /// Regression (S9-02a pass 2, Andy 2026-10-05: feathering "doesn't work quite right"): before, more throttle held
+    /// a *smaller* drift angle (0.3 → 21°, 1.0 → 15°) and every hold dropped out of the slide. Now throttle widens the
+    /// drift (measured 16° → 33°) and full throttle holds it without spinning out.
+    /// </summary>
+    [UnityTest]
+    public IEnumerator Feathering_MoreThrottle_HoldsAWiderDrift_WithoutSpinning()
+    {
+        // Arrange / Act
+        FeatherResult light = default, full = default;
+        yield return MeasureFeather(0.3f, x => light = x);
+        yield return MeasureFeather(1f, x => full = x);
+        // Assert
+        Debug.Log($"[Feather] light {light.MeanSlip:F0} deg, full {full.MeanSlip:F0} deg (flips {full.Flips}, end {full.EndSpeed:F1} m/s)");
+        Assert.Greater(full.MeanSlip, light.MeanSlip + 8f, "more throttle holds a wider drift");
+        Assert.AreEqual(0, full.Flips, "a full-throttle drift doesn't drop out mid-hold");
+        Assert.Greater(full.EndSpeed, 8f, "and doesn't spin out to a stop");
+    }
+
+    private struct FeatherResult
+    {
+        public float MeanSlip, SlipSd, MaxYawStep, EndSpeed;
+        public int Flips;
+        public VehicleState EndState;
+    }
+
+    // Kick a drift (e-brake + full steer 0.4 s from 15 m/s), then hold a light counter-steer at a fixed throttle for 3 s.
+    private IEnumerator MeasureFeather(float throttle, System.Action<FeatherResult> report)
+    {
+        SpawnGround();
+        var input = new ScriptedInput();
+        PlayerVehicle truck = SpawnTruck(input);
+        truck.transform.position = new Vector3(0f, 0.8f, -60f);
+        Rigidbody rb = truck.GetComponent<Rigidbody>();
+        for (int i = 0; i < 30; i++) yield return new WaitForFixedUpdate();
+        input.Frame.Throttle = 1f;
+        while (truck.CurrentSpeed < 15f) yield return new WaitForFixedUpdate();
+        input.Frame = new VehicleInputFrame { Throttle = 1f, Handbrake = true, Steer = 1f };
+        float t = 0f, slipSum = 0f, slipSqSum = 0f, maxYawStep = 0f, prevYaw = rb.angularVelocity.y;
+        int samples = 0, flips = 0;
+        VehicleState prevState = truck.State;
+        while (t < 3.4f)
+        {
+            yield return new WaitForFixedUpdate();
+            t += Time.fixedDeltaTime;
+            if (t > 0.4f) input.Frame = new VehicleInputFrame { Throttle = throttle, Steer = -0.25f };
+            float slip = truck.Model.SlipAngleDeg;
+            if (t > 0.8f && t < 2.8f)
+            {
+                slipSum += slip; slipSqSum += slip * slip; samples++;
+                maxYawStep = Mathf.Max(maxYawStep, Mathf.Abs(rb.angularVelocity.y - prevYaw));
+                if ((truck.State == VehicleState.Sliding) != (prevState == VehicleState.Sliding)) flips++;
+            }
+            prevYaw = rb.angularVelocity.y;
+            prevState = truck.State;
+        }
+        float mean = slipSum / Mathf.Max(1, samples);
+        report(new FeatherResult
+        {
+            MeanSlip = mean,
+            SlipSd = Mathf.Sqrt(Mathf.Max(0f, slipSqSum / Mathf.Max(1, samples) - mean * mean)),
+            MaxYawStep = maxYawStep, EndSpeed = truck.CurrentSpeed, Flips = flips, EndState = truck.State,
+        });
+        TearDown();
+    }
+
     private static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z).normalized;
 
     /// <summary>

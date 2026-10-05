@@ -41,8 +41,18 @@ public struct VehicleFeelValues
     public float SlideSteerFactor;
     [Tooltip("Arcade drift drive (m/s²) along the direction of travel while Sliding on throttle, fading to 0 at top speed: a powered slide carries speed instead of scrubbing it.")]
     public float DriftDriveAccel;
-    [Tooltip("Counter-steer assist (1/s): while Sliding off the e-brake, steering against the rotation damps the yaw rate by this × |steer|, so a driver can catch and hold a drift.")]
+    [Tooltip("Counter-steer assist (1/s): in a drift (scaled by the drift amount), steering against the rotation damps the yaw rate by this × |steer|, so a driver can catch and hold a drift.")]
     public float CounterSteerAssist;
+    [Tooltip("Drift amount: 0 below this slip angle (deg), easing to 1 at DriftFullDeg. Drift assists and the yaw stabiliser blend on it instead of switching on the Sliding state (S9-02a pass 2: 'locks out at times').")]
+    public float DriftStartDeg, DriftFullDeg;
+    [Tooltip("Share of drive force on the rear axle (0.5 = even AWD). Rear-biased drive makes throttle swing the tail: feathering holds the drift angle.")]
+    public float RearDriveBias;
+    [Tooltip("Share of the yaw stabiliser kept at full drift (1 = unchanged, 0 = off: the truck spins out).")]
+    public float DriftStabilityKeep;
+    [Tooltip("Feathering: rear grip lost at full throttle in a full drift (0.35 = rear grip × 0.65). More throttle swings the tail wider, lifting tightens it. Near top speed the engine force alone is too small to do this.")]
+    public float ThrottleRearGripLoss;
+    [Tooltip("Feathering fades out between these slip angles (deg), so throttle can widen a drift but not wind it into a spin.")]
+    public float FeatherLimitStartDeg, FeatherLimitEndDeg;
     public float AirborneGrace;
     public float UpendedDot, UpendedAngularSpeed, AutoRightDelay;
     public float MaxGroundSlopeDeg;
@@ -131,6 +141,9 @@ public struct VehicleFeelValues
         SlideEnterDeg = 20f, SlideExitDeg = 10f, SlideMinSpeed = 3f, SlideExitSpeed = 2f,
         // S9-02a: baseline drifts bled 16 → 4–9 m/s in 1.5 s even on throttle, and counter-steer got only 45 % lock.
         SlideSteerFactor = 0.7f, DriftDriveAccel = 6f, CounterSteerAssist = 4f,
+        // S9-02a pass 2 (Andy: feathering and counter-steer "lock out at times"; throttle made the angle smaller).
+        DriftStartDeg = 6f, DriftFullDeg = 20f, RearDriveBias = 0.6f, DriftStabilityKeep = 0.65f, ThrottleRearGripLoss = 0.25f,
+        FeatherLimitStartDeg = 35f, FeatherLimitEndDeg = 55f,
         AirborneGrace = 0.1f,
         UpendedDot = 0.3f, UpendedAngularSpeed = 1.5f, AutoRightDelay = 1.2f,
         MaxGroundSlopeDeg = 60f,
