@@ -124,6 +124,10 @@ the start so players see the new look while the feel work happens.
 - [x] G3 feel playtest run; findings logged for Sprint 8 *(Andy alone; outside players → Sprint 9 G6)*
 
 ## Release Log
+- 2026-10-05 — **0.8.8 pushed** (html5 + windows): sustained siren mix (Codex: siren holds 5 s per new warning, then
+  settles to 25 % over 10 s; one spatial siren with a 3 s tail) + radio mirror (5 s duck, 10 s recovery under live
+  warnings, 1 s hold + 2 s ease at the end), `?clean=1` UI-free capture mode (V toggles the viewfinder). EditMode
+  412/412, PlayMode 78/78, WebGL 0 console errors (80 s seed 554 smoke through the EF5 emergency).
 - 2026-10-05 — **0.8.7 pushed** (html5 + windows): a flipped truck never stays stuck on its back (no phantom wheels
   when flipped, 3 s failsafe, jump rights it), near-miss bounty text "TWO NEAR MISSES, TEN SECONDS". EditMode 409/409,
   PlayMode 78/78, WebGL 0 console errors (30 s smoke p95 17.1 ms, max 33.7 ms).
