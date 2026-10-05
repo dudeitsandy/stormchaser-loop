@@ -41,6 +41,9 @@ public sealed class TitleAttract : MonoBehaviour
     private PlayerVehicle _truck;
     private Rigidbody _rb;
     private RigidbodyConstraints _savedConstraints;
+    private Vector3 _savedInertia;
+    private Quaternion _savedInertiaRotation;
+    private Vector3 _savedCenterOfMass;
     private CinemachineCamera _cam;
     private float _yaw;
     private float _clock;
@@ -70,7 +73,12 @@ public sealed class TitleAttract : MonoBehaviour
         _rb = truck != null ? truck.GetComponent<Rigidbody>() : null;
         if (_rb != null)
         {
+            // FreezeAll zeroes the hand-set inertia tensor and restoring the constraints doesn't bring it back: the
+            // run's truck then drove but could not turn (0.8.2, Windows). Keep the mass properties and restore them.
             _savedConstraints = _rb.constraints;
+            _savedInertia = _rb.inertiaTensor;
+            _savedInertiaRotation = _rb.inertiaTensorRotation;
+            _savedCenterOfMass = _rb.centerOfMass;
             _rb.constraints = RigidbodyConstraints.FreezeAll;
         }
 
@@ -93,7 +101,15 @@ public sealed class TitleAttract : MonoBehaviour
         if (!Active) return;
         Active = false;
         GameAudio.AttractMute = false;
-        if (_rb != null) _rb.constraints = _savedConstraints;
+        if (_rb != null)
+        {
+            _rb.constraints = _savedConstraints;
+            _rb.centerOfMass = _savedCenterOfMass;
+            _rb.inertiaTensor = _savedInertia;
+            _rb.inertiaTensorRotation = _savedInertiaRotation;
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+        }
         if (_cam != null)
         {
             _cam.Priority = -1;

@@ -73,6 +73,40 @@ public class TitleAttractTests
                         "no demo tornado left behind");
     }
 
+    private sealed class ScriptedInput : IVehicleInput
+    {
+        public VehicleInputFrame Frame;
+        public VehicleInputFrame Read() => Frame;
+    }
+
+    /// <summary>
+    /// Regression (Andy, 0.8.2 Windows, 2026-10-05): after sitting on the title while the demo storm ran, the run's
+    /// truck steered its wheels but the body would not turn.
+    /// </summary>
+    [UnityTest]
+    public IEnumerator AfterALongTitle_TheRunsTruckStillDrivesAndTurns()
+    {
+        var run = Object.FindAnyObjectByType<RunManager>();
+        var truck = Object.FindAnyObjectByType<PlayerVehicle>();
+        var rb = truck.GetComponent<Rigidbody>();
+        yield return new WaitForSeconds(35f); // the demo funnel reaches the frozen truck around 30 s
+
+        run.StartRun();
+        yield return null;
+        var input = new ScriptedInput { Frame = new VehicleInputFrame { Throttle = 1f, Steer = 1f } };
+        truck.InputSource = input;
+        Vector3 start = rb.position;
+        float yaw0 = rb.rotation.eulerAngles.y;
+        yield return new WaitForSeconds(3f);
+
+        string diag = $"constraints {rb.constraints}, state {truck.State}, kinematic {rb.isKinematic}, " +
+                      $"inertia {rb.inertiaTensor}, angVel {rb.angularVelocity}";
+        Assert.AreEqual(RigidbodyConstraints.None, rb.constraints, diag);
+        Assert.Greater(rb.inertiaTensor.y, 100f, "the hand-set inertia survived the title freeze: " + diag);
+        Assert.Greater(Vector3.Distance(start, rb.position), 3f, "the truck drives: " + diag);
+        Assert.Greater(Mathf.Abs(Mathf.DeltaAngle(yaw0, rb.rotation.eulerAngles.y)), 20f, "the truck turns: " + diag);
+    }
+
     [UnityTest]
     public IEnumerator Overlays_PauseTheFlyover_AndReturnToTheTitleKeepsAttractRunning()
     {
