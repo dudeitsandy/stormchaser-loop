@@ -288,3 +288,24 @@ Field Unit" badge), **UFO night** (tractor beams lift the truck).
 
 **Suggested order after M1:** lightning → hail and derecho (keeps Storm Season coherent) → wildfire (unlocks
 Firenado) → the season plan. Cownado any time as a cheap Easter egg.
+
+---
+
+## Arenas that change phase mid-run (Andy, 2026-10-05; Power Stone 1/3 stage transitions)
+
+**Idea:** the map changes mid-run on triggers or timing, like Power Stone's stage transitions, driven by the
+disaster. **Earthquake:** fissures split the farmland into new ramps and gaps, an overpass collapses, roads reroute.
+**Flood:** a dam breaks and the low fields become a lake, roads become rivers. **Wildfire:** cover burns away,
+opening sightlines and closing routes. **Tornado:** debris fields and flattened barns persist for the rest of the run.
+
+**Rule (protects "storms are dealt, never scripted"):** a phase change is triggered by the hazard and seeded by the
+Storm Director (same seed, same collapse), never a hand-authored cinematic.
+
+**Builds on:** ADR-0004 destructible tiled world (fracture tiers), the vision's Season 2 earthquake (fissure ramps,
+collapsing overpasses), Disaster Alchemy (Earthquake + dam → Flood).
+
+**Architecture note for post-M1:** put runtime topology changes into ADR-0007 (world context: bounds and spawn
+service) from the start, so roads, spawn zones, civilians and streaming tiles can change mid-run without rework.
+
+**When:** Season 2 with the earthquake; a small first taste (one collapsible bridge or overpass) could come with
+the 2 km Heartland world.
