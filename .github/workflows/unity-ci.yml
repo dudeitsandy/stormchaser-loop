@@ -1,4 +1,5 @@
-# Doomsday CI — tests on every push, builds + itch release on demand.
+# Doomsday CI — DORMANT: manual trigger only (workflow_dispatch); nothing runs on push. Tests, builds and itch
+# releases run locally in batchmode (see AGENTS.md → Verifying). Revived only if CI licensing is solved (S7-12).
 # Builds run on GitHub's Linux runners via GameCI (unityci/editor 6000.6.0f1), so they are
 # unaffected by Windows Smart App Control on the dev machine.
 #
