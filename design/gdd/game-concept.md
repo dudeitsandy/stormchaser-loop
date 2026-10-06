@@ -274,7 +274,7 @@ See `design/gdd/systems-index.md` for the per-system breakdown.
 | ---- | ---- | ---- | ---- |
 | **MVP** | Heartland tiles, Tornado | Drive, photograph, score | Done (0.x) |
 | **Vertical Slice** | Heartland with roads + destructibles; Tornado + Wildfire | All four axes, damage, civilians, objectives, garage | Sprint 8–9 |
-| **Alpha** | Season 1 complete | Hailstorm, alchemy, modifiers, Heat, leaderboard, onboarding | Milestone 3 (Early Access) |
+| **Alpha** | Season 1 complete | Lightning (replaced Hailstorm, 2026-10-05), alchemy, modifiers, Heat, leaderboard, onboarding | Milestone 3 (Early Access) |
 | **Full Vision** | Seasons 2–4 | Accessibility and post-EA content | Post-EA |
 
 ---

@@ -13,7 +13,7 @@ Doomsday is a disaster-chasing roguelite: drive a physics vehicle into escalatin
 disasters, photograph them, rescue people, pull off stunts, and cash the run out into
 meta unlocks. Mechanically that means four clusters. A **driving core** (Vehicle Feel,
 Camera & Aim, Wind, Surfaces) carries Pillar 1, Kinetic Chaos, and is the part already
-built. A **disaster layer** (Disaster Entity Framework, Tornado, Wildfire, Hailstorm,
+built. A **disaster layer** (Disaster Entity Framework, Tornado, Wildfire, Lightning,
 Disaster Alchemy) carries Pillar 2, and only Tornado exists today. A **scoring layer**
 (Photo Documentation, Stunt & Style, Civilians, Objectives, Four-Axis Scoring, Vehicle
 Damage) carries Pillars 3 and 4; Documentation is built, the other three axes are not.
@@ -46,9 +46,9 @@ biomes, and vehicles enter the index when their season is planned.
 | 10 | Wind Field | Gameplay | MVP | Implemented | design/gdd/vehicle-feel.md (F11/F12) | Disaster Entity Framework, Vehicle Feel |
 | 11 | Disaster Entity Framework | Gameplay | MVP | Implemented | design/gdd/disaster-entity-framework.md | Run Manager & Session Modes (SessionTimer); Tiled World Streaming (intended, not yet used in code) |
 | 12 | Tornado (EF0–EF5) | Gameplay | MVP | Implemented | — | Disaster Entity Framework |
-| 13 | Disaster Alchemy (Merge / Modify) | Gameplay | Alpha | Not Started | — | Tornado, Wildfire, Hailstorm |
+| 13 | Disaster Alchemy (Merge / Modify) | Gameplay | Alpha | Not Started | — | Tornado, Wildfire, Lightning |
 | 14 | Wildfire | Gameplay | Vertical Slice | Not Started | — | Disaster Entity Framework, Wind Field, Surfaces & Terrain Modifiers |
-| 15 | Hailstorm | Gameplay | Alpha | Not Started | — | Disaster Entity Framework, Wind Field, Surfaces & Terrain Modifiers |
+| 15 | Lightning (replaced Hailstorm, Andy 2026-10-05) | Gameplay | Alpha | Not Started | — | Disaster Entity Framework, Storm Director (owns strike timing), Surfaces & Terrain Modifiers |
 | 16 | Photo Documentation | Gameplay | MVP | Implemented | design/gdd/photo-scoring.md | Camera & Aim, Disaster Entity Framework |
 | 17 | Four-Axis Scoring & Style Multiplier | Gameplay | MVP | In Design | design/gdd/photo-scoring.md (Documentation axis only) | Photo Documentation, Stunt & Style Detection, Game Events Bus |
 | 18 | Stunt & Style Detection | Gameplay | Vertical Slice | Not Started | — | Vehicle Feel, Game Events Bus |
@@ -124,7 +124,7 @@ Rationale worth keeping:
   axis rewards the wrong skill.
 - **Wildfire is Vertical Slice, not Alpha** (decided 2026-10-01): a second disaster in the
   slice is what lets Disaster Alchemy (Pillar 2) be proven before Alpha, instead of
-  arriving with Hailstorm all at once.
+  arriving with Lightning all at once.
 - **Civilians and Vehicle Damage are Vertical Slice**: Pillar 4 ("a battered car that saved
   40 NPCs beats a pristine one") has nothing to measure until both exist.
 - **Leaderboard is Alpha** because it is a Milestone 3 success criterion.
@@ -157,8 +157,8 @@ Rationale worth keeping:
 1. Camera & Aim — depends on: Vehicle Feel
 2. Tornado — depends on: Disaster Framework
 3. Wind Field — depends on: Disaster Framework, Vehicle Feel
-4. Wildfire, Hailstorm — depend on: Disaster Framework, Wind Field
-5. Disaster Alchemy — depends on: Tornado, Wildfire, Hailstorm
+4. Wildfire, Lightning — depend on: Disaster Framework, Wind Field
+5. Disaster Alchemy — depends on: Tornado, Wildfire, Lightning
 6. Vehicle Damage — depends on: Vehicle Feel, Events Bus
 7. Photo Documentation — depends on: Camera & Aim, Disaster Framework
 8. Stunt & Style Detection — depends on: Vehicle Feel, Events Bus
@@ -227,7 +227,7 @@ GDD in review are listed so the order is complete; their work is `/design-review
 | 17 | Storm Dollars & HQ Garage *(review economy-progression.md)* | Vertical Slice | Feature | economy-designer | S |
 | 18 | Garage & Pre-Run Screen | Vertical Slice | Presentation | ux-designer | S |
 | 19 | Procedural Audio | Vertical Slice | Presentation | audio-director, sound-designer | S |
-| 20 | Hailstorm | Alpha | Feature | systems-designer | S |
+| 20 | Lightning | Alpha | Feature | systems-designer | S |
 | 21 | Disaster Alchemy (Merge / Modify) | Alpha | Feature | game-designer, systems-designer | L |
 | 22 | Payload & Utility Modules | Alpha | Feature | game-designer | M |
 | 23 | Per-Run Modifiers | Alpha | Feature | game-designer, economy-designer | M |
@@ -257,7 +257,7 @@ None remain. Three near-cycles were broken by direction:
 
 | System | Risk Type | Risk Description | Mitigation |
 |--------|-----------|-----------------|------------|
-| Disaster Alchemy | Design / Scope | Emergent merge/modify interactions multiply with every disaster added; easy to become scripted or unreadable | Prove one pairing (Tornado + Wildfire → Fire Tornado) in the Vertical Slice before Hailstorm; merged entities as their own `DisasterData` (vision-1.0) |
+| Disaster Alchemy | Design / Scope | Emergent merge/modify interactions multiply with every disaster added; easy to become scripted or unreadable | Prove one pairing (Tornado + Wildfire → Fire Tornado) in the Vertical Slice before Lightning; merged entities as their own `DisasterData` (vision-1.0) |
 | Tiled World Streaming | Technical | WebGL frame-time headroom; G1 passed with a condition (physics ≤ 4 ms under real debris + vehicle) | S7-06 re-measures; 1 km fallback with the same tile code (ADR-0004 Alt 5) |
 | Destructibles & Debris | Technical | Debris counts blow the WebGL physics budget | ADR-0004 tiers + debris budget; Tier A first (S7-08), Tier B fracture after |
 | Vehicle Feel | Design | G3 feel playtest not yet run; everything in Pillar 1 rides on it | G3 at sprint end (Andy + 2 outside players); tuning continues into Sprint 8 |

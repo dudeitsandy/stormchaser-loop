@@ -120,7 +120,8 @@ All disasters implement a **DisasterEntity** interface:
 **Season 1 — Storm Season** *(current build)*
 - Tornado (EF0–EF5) — core mechanic, already implemented
 - Wildfire — spreading, wind-influenced spread direction
-- Hailstorm — area denial, visibility reduction
+- Lightning — strikes from the same supercells, owned by the Storm Director; a hazard and a photo subject
+  *(Replaced Hailstorm, Andy 2026-10-05: hail wasn't epic. Hail survives as the Tornado + hail "hail core" combination.)*
 
 **Season 2 — Ground Zero**
 - Earthquake — shockwave pulses + terrain deformation / fissure ramps
@@ -141,9 +142,9 @@ All disasters implement a **DisasterEntity** interface:
 | Season | Pairing | Effect | Model | Gameplay Impact |
 |--------|---------|--------|-------|-----------------|
 | S1 | Tornado + Wildfire | Tornado absorbs fire → Fire Tornado | Merge | ThreatClass +1. Vehicle takes heat damage; flying debris is ignited. |
-| S1 | Tornado + Hailstorm | Tornado picks up hail → Ice Vortex | Modify | Severe vehicle hull damage; PiP viewfinder glitched with heavy static. |
+| Later | Tornado + hail core | Tornado picks up hail → Ice Vortex | Modify | Severe vehicle hull damage; PiP viewfinder glitched with heavy static. *(Hailstorm left Season 1, 2026-10-05.)* |
 | S1 | Two Wildfires (adjacent) | Merge into larger wildfire front | Merge | Expanded radius and higher ThreatClass. |
-| S1 | Wildfire + Hailstorm | Fire partially suppressed; Steam Cloud | Modify | Instant dense steam reduces visibility; requires radar scanner. |
+| S1 | Wildfire + Lightning | Dry lightning ignites new spot fires | Modify | New fire fronts open behind the player; routes close mid-chase. *(Replaces Wildfire + Hailstorm, 2026-10-05.)* |
 | S1 | Two Tornadoes (close) | Merge into super-vortex or repel | Merge/Mod | Massive suction pull or violent crosswind buffeting. |
 | S2 | Tornado + Earthquake | Fissure Slingshot | Modify | Fault line launches terrain into stunt ramps; vortex path abruptly shifts. |
 | S2 | Earthquake + Flood | Dam Collapse | Event | Massive tidal surge across low ground; forces scramble to high roads. |
@@ -271,7 +272,7 @@ best photo. Full spec (masthead, headline generation, export flow) lives in
 
 | Season | Theme | New Disasters | New Biome | New Vehicles |
 |--------|-------|--------------|-----------|-------------|
-| 1 | Storm Season | Tornado, Wildfire, Hailstorm | The Heartland | Sports Car, SUV, Buggy |
+| 1 | Storm Season | Tornado, Wildfire, Lightning | The Heartland | Sports Car, SUV, Buggy |
 | 2 | Ground Zero | Earthquake, Tsunami, Sinkhole | Canyon Fault & Coast | Monster Truck, APC |
 | 3 | Kaiju Rising | Kaiju, Rogue Mech, Swarm | Metro Suburbs & Port | Motorcycle, Prototype |
 | 4 | First Contact | Alien Invasion, Dimensional Rift | Deep Crater | Hovercraft / Experimental |

@@ -51,6 +51,7 @@ Disaster Alchemy, Civilians & Rescue, S8-C2 per-truck HP redesign (deferred 2026
 (**except** the Save & Profile M1 stem for run goals and Settings, below), Story/Career mode, more
 worlds/biomes, Steam integration. These are the next milestone's candidates; `systems-index.md` tiers them.
 Parked ideas (biomes and generated locations, etc.) live in `production/backlog.md`.
+After M1: the plan to Early Access (milestones M2–M6, modes, descoping ladder) is `production/roadmap.md`.
 
 **In M1 by decision (Andy, 2026-10-04):** run-goals persistence and Settings through a Save & Profile stem. **M1 stem** (Andy, 2026-10-04): one profile file (accomplishments record, unlocks, `LastLoadout.livery`, best score, imported once from the PlayerPrefs `BestScoreStore`) and one device file (Settings), each written tmp + rename, `SchemaVersion` 0 (**disposable**: the full build may reset them; patch notes say so). Stable string IDs for goals and unlocks still apply. Gated by a ~1 h WebGL IndexedDB sync check; if it fails, M1 persistence is session-only. Nothing else from `save-profile.md` is in M1.
 
