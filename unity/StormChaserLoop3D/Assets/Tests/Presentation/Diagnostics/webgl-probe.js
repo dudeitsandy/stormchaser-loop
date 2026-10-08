@@ -20,7 +20,7 @@
       const gains = [];
       let node = audioEdges.get(item.node);
       for (let i = 0; node && i < 8; i++, node = audioEdges.get(node)) if (node.gain) gains.push(node.gain.value);
-      return {id:item.id, kind:item.kind, active:item.active, gains};
+      return {id:item.id, kind:item.kind, active:item.active, gains, playbackRate:item.node.playbackRate?.value};
     });
     (probe.audioSnapshots ||= []).push({time:lastAudioSample,nodes});
   }

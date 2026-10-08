@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-08 16:42:09Z" end-time="2026-10-08 16:42:43Z" duration="33.8002033">
+  <test-suite type="TestSuite" id="1122" name="Doomsday" fullname="Doomsday" runstate="Runnable" testcasecount="91" result="Passed" start-time="2026-10-08 16:42:09Z" end-time="2026-10-08 16:42:43Z" duration="33.800203" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1118" name="StormChaser.Presentation.PlayModeTests.dll" fullname="C:/Users/subfl/dev/games/stormchaser/unity/StormChaserLoop3D/Library/ScriptAssemblies/StormChaser.Presentation.PlayModeTests.dll" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-08 16:42:09Z" end-time="2026-10-08 16:42:43Z" duration="33.785317" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="54040" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestFixture" id="1113" name="Ca1ImpactIntegrationTests" fullname="Ca1ImpactIntegrationTests" classname="Ca1ImpactIntegrationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-08 16:42:09Z" end-time="2026-10-08 16:42:43Z" duration="33.782383" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1117" name="RealDriftAndNearMiss_DisplayStyleLabels" fullname="Ca1ImpactIntegrationTests.RealDriftAndNearMiss_DisplayStyleLabels" methodname="RealDriftAndNearMiss_DisplayStyleLabels" classname="Ca1ImpactIntegrationTests" runstate="Runnable" seed="1492418098" result="Passed" start-time="2026-10-08 16:42:09Z" end-time="2026-10-08 16:42:32Z" duration="22.635179" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[[CA1] style=Drift, amount=2.62, label=DRIFT 2.6s
+[CA1] style=NearMiss, amount=1.00, label=NEAR MISS
+]]></output>
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1116" name="SolidScenery_ProducesImpactSparksAndStopsTruck" fullname="Ca1ImpactIntegrationTests.SolidScenery_ProducesImpactSparksAndStopsTruck" classname="Ca1ImpactIntegrationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-08 16:42:32Z" end-time="2026-10-08 16:42:43Z" duration="11.118795" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+          <test-case id="1114" name="SolidScenery_ProducesImpactSparksAndStopsTruck(&quot;RuralSilo&quot;)" fullname="Ca1ImpactIntegrationTests.SolidScenery_ProducesImpactSparksAndStopsTruck(&quot;RuralSilo&quot;)" methodname="SolidScenery_ProducesImpactSparksAndStopsTruck" classname="Ca1ImpactIntegrationTests" runstate="Runnable" seed="2127957274" result="Passed" start-time="2026-10-08 16:42:32Z" end-time="2026-10-08 16:42:37Z" duration="5.544079" asserts="0">
+            <properties>
+              <property name="retryIteration" value="0" />
+              <property name="repeatIteration" value="0" />
+            </properties>
+            <output><![CDATA[[CA1] RuralSilo: impacts=2, sparks=True, past=-2.32
+]]></output>
+          </test-case>
+          <test-case id="1115" name="SolidScenery_ProducesImpactSparksAndStopsTruck(&quot;RuralPole&quot;)" fullname="Ca1ImpactIntegrationTests.SolidScenery_ProducesImpactSparksAndStopsTruck(&quot;RuralPole&quot;)" methodname="SolidScenery_ProducesImpactSparksAndStopsTruck" classname="Ca1ImpactIntegrationTests" runstate="Runnable" seed="831502821" result="Passed" start-time="2026-10-08 16:42:37Z" end-time="2026-10-08 16:42:43Z" duration="5.557360" asserts="0">
+            <properties>
+              <property name="retryIteration" value="0" />
+              <property name="repeatIteration" value="0" />
+            </properties>
+            <output><![CDATA[[CA1] RuralPole: impacts=1, sparks=True, past=-1.05
+Saving results to: C:/Users/subfl/AppData/LocalLow/Ghostweave Games/Doomsday\TestResults.xml
+]]></output>
+          </test-case>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

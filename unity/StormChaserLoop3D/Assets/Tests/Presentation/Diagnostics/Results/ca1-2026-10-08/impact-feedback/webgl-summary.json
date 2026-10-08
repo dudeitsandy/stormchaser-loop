@@ -1,0 +1,265 @@
+{
+  "gpu": {
+    "timerQueries": true,
+    "renderer": "ANGLE (AMD, AMD Radeon(TM) 890M Graphics (0x0000150E) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "vendor": "Google Inc. (AMD)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+  },
+  "canvas": {
+    "width": 960,
+    "height": 600
+  },
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+  "frames": 1343,
+  "build": "C:\\Users\\subfl\\dev\\games\\stormchaser\\builds\\ca1-snapshot-2026-10-08\\webgl",
+  "query": "seed=554",
+  "durationSeconds": 0,
+  "maxAudioSources": 8,
+  "skippedQueries": 0,
+  "categories": {
+    "pipCamera": {
+      "gpuMeanMs": 0.1414369029850745,
+      "gpuP95Ms": 0.53028,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0.1513775141045662,
+      "glSubmitP95Ms": 0.30000007152557373,
+      "drawCallsMean": 57.44229337304542,
+      "drawCallsMax": 115
+    },
+    "camcorder": {
+      "gpuMeanMs": 0.0324919402985075,
+      "gpuP95Ms": 0.03632,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0.04177215240468574,
+      "glSubmitP95Ms": 0.19999998807907104,
+      "drawCallsMean": 1,
+      "drawCallsMax": 1
+    },
+    "funnelMass": {
+      "gpuMeanMs": 0.014182649253731335,
+      "gpuP95Ms": 0.00988,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0.0005212212265736117,
+      "glSubmitP95Ms": 0,
+      "drawCallsMean": 0.9478778853313478,
+      "drawCallsMax": 2
+    },
+    "rainCards": {
+      "gpuMeanMs": 0.016813395522388055,
+      "gpuP95Ms": 0.0062,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0.0005212212709553279,
+      "glSubmitP95Ms": 0,
+      "drawCallsMean": 1.2166790766939688,
+      "drawCallsMax": 2
+    },
+    "stormSkyDeck": {
+      "gpuMeanMs": 0.013562537313432835,
+      "gpuP95Ms": 0.026600000000000002,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0.0002233805003134244,
+      "glSubmitP95Ms": 0,
+      "drawCallsMean": 1.1020104244229336,
+      "drawCallsMax": 2
+    },
+    "tornadoCards": {
+      "gpuMeanMs": 0.008513283582089555,
+      "gpuP95Ms": 0.0116,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0.014594191725539878,
+      "glSubmitP95Ms": 0.10000002384185791,
+      "drawCallsMean": 8.401340282948622,
+      "drawCallsMax": 38
+    },
+    "windCards": {
+      "gpuMeanMs": 0,
+      "gpuP95Ms": 0,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0,
+      "glSubmitP95Ms": 0,
+      "drawCallsMean": 0,
+      "drawCallsMax": 0
+    },
+    "cardsUnclassified": {
+      "gpuMeanMs": 0.03893055970149251,
+      "gpuP95Ms": 0.032,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0.02285927010399143,
+      "glSubmitP95Ms": 0.10000002384185791,
+      "drawCallsMean": 3.545048399106478,
+      "drawCallsMax": 22
+    },
+    "farFieldCards": {
+      "gpuMeanMs": 0,
+      "gpuP95Ms": 0,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0.008711839201551538,
+      "glSubmitP95Ms": 0.10000002384185791,
+      "drawCallsMean": 0,
+      "drawCallsMax": 0
+    },
+    "worldAndUI": {
+      "gpuMeanMs": 3.144472835820895,
+      "gpuP95Ms": 5.461239999999997,
+      "gpuFrames": 268,
+      "glSubmitMeanMs": 0.8948622474187538,
+      "glSubmitP95Ms": 1.5,
+      "drawCallsMean": 578.2874162323158,
+      "drawCallsMax": 657
+    }
+  },
+  "feedback": true,
+  "runningFrames": 1343,
+  "drawSignatures": {
+    "worldAndUI:36": 446404,
+    "worldAndUI:132": 119275,
+    "worldAndUI:84": 13546,
+    "worldAndUI:240": 95459,
+    "worldAndUI:324": 26346,
+    "worldAndUI:600": 24489,
+    "worldAndUI:60": 7648,
+    "worldAndUI:2304": 46891,
+    "worldAndUI:3": 57560,
+    "worldAndUI:5040": 1466,
+    "stormSkyDeck:384": 1540,
+    "rainCards:1536": 1694,
+    "worldAndUI:2022": 60,
+    "pipCamera:600": 6430,
+    "pipCamera:240": 13998,
+    "pipCamera:2304": 7766,
+    "pipCamera:36": 39012,
+    "pipCamera:3": 11248,
+    "pipCamera:5040": 1406,
+    "camcorder:6": 1406,
+    "worldAndUI:1122": 2,
+    "worldAndUI:360": 109,
+    "worldAndUI:144": 1404,
+    "worldAndUI:828": 1404,
+    "cardsUnclassified:240": 309,
+    "cardsUnclassified:36": 299,
+    "cardsUnclassified:6": 4153,
+    "worldAndUI:330": 1297,
+    "worldAndUI:48": 456,
+    "worldAndUI:30": 1297,
+    "tornadoCards:6": 11283,
+    "funnelMass:72": 1273,
+    "worldAndUI:156": 299,
+    "worldAndUI:192": 112,
+    "worldAndUI:186": 331,
+    "worldAndUI:180": 70
+  },
+  "titleFrameIntervals": {
+    "frames": 0,
+    "meanMs": null,
+    "p95Ms": null,
+    "maxMs": null,
+    "over33_3": 0,
+    "over50": 0
+  },
+  "runFrameIntervals": {
+    "frames": 1342,
+    "meanMs": 16.952086438152012,
+    "p95Ms": 17.100000000000364,
+    "maxMs": 49.79999999999927,
+    "over33_3": 11,
+    "over50": 0
+  },
+  "measurementScope": "Instrumented browser GPU/GL/audio controls. Not per-component Unity CPU or separate siren/radio DSP. Frame intervals include probe overhead and screenshot work; Cursor owns uninstrumented M1 frame capture.",
+  "totalDrawCallsMean": 651.9426656738644,
+  "titleCategories": {
+    "pipCamera": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    },
+    "camcorder": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    },
+    "funnelMass": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    },
+    "rainCards": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    },
+    "stormSkyDeck": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    },
+    "tornadoCards": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    },
+    "windCards": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    },
+    "cardsUnclassified": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    },
+    "farFieldCards": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    },
+    "worldAndUI": {
+      "gpuMeanMs": null,
+      "gpuP95Ms": null,
+      "glSubmitMeanMs": null,
+      "drawCallsMean": null
+    }
+  },
+  "titleAudioSubmitMeanMs": null,
+  "audioSubmitMeanMs": 0.014743112576868849,
+  "audioSubmitP95Ms": 0.10000002384185791,
+  "callbackMeanMs": 7.472524200014809,
+  "callbackP95Ms": 10.600000023841858,
+  "frameIntervalMeanMs": 16.952086438152012,
+  "measuredSubtotalMeanMs": 0.5364536564940124,
+  "measuredSubtotalP95Ms": 1.3113501192092898,
+  "audioTraceEvents": {
+    "RenderAudioFromSource": {
+      "calls": 2279,
+      "totalMs": 208.4840000000001
+    },
+    "IAudioClient frames": {
+      "calls": 2279,
+      "totalMs": 160.72000000000048
+    },
+    "IAudioClock position": {
+      "calls": 2279,
+      "totalMs": 8.41099999999995
+    },
+    "AudioConverter::Convert": {
+      "calls": 2279,
+      "totalMs": 98.82900000000053
+    },
+    "AudioConverter::SourceCallback": {
+      "calls": 2279,
+      "totalMs": 91.87400000000068
+    },
+    "AudioOutputDevice::FireRenderCallback": {
+      "calls": 2279,
+      "totalMs": 244.1949999999997
+    }
+  }
+}

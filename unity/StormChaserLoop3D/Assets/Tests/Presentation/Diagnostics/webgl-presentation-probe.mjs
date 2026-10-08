@@ -143,6 +143,19 @@ try {
     await input('a','KeyA',65,'keyDown'); await sleep(500); await input('a','KeyA',65,'keyUp');
     await input('w','KeyW',87,'keyUp'); await sleep(2000); await capture('coast');
     await sleep(3000); await capture('settled');
+    if (process.env.PRESENTATION_PROBE_CA1 === '1') {
+      await input('w','KeyW',87,'keyDown'); await sleep(1500); await capture('engine-load');
+      await input('Shift','ShiftLeft',16,'keyDown');
+      await sleep(250); await capture('boost-start');
+      await sleep(750); await capture('boost-held');
+      await input('Shift','ShiftLeft',16,'keyUp');
+      await sleep(350); await capture('boost-release');
+      await input('w','KeyW',87,'keyUp');
+      for (let impactFrame = 0; impactFrame < 20; impactFrame++) {
+        await sleep(100); await capture(`coast-impact-${impactFrame}`);
+      }
+      await capture('boost-settled');
+    }
     await evaluate('__presentationProbe.audioDiagnostic=false');
   }
   let lastDirection = null;

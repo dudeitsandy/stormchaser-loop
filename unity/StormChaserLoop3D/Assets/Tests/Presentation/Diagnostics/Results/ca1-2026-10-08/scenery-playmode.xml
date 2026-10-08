@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="9" result="Passed" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-08 16:32:47Z" end-time="2026-10-08 16:32:58Z" duration="11.763954">
+  <test-suite type="TestSuite" id="1116" name="Doomsday" fullname="Doomsday" runstate="Runnable" testcasecount="88" result="Passed" start-time="2026-10-08 16:32:47Z" end-time="2026-10-08 16:32:58Z" duration="11.763954" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1112" name="StormChaser.PlayModeTests.dll" fullname="C:/Users/subfl/dev/games/stormchaser/unity/StormChaserLoop3D/Library/ScriptAssemblies/StormChaser.PlayModeTests.dll" runstate="Runnable" testcasecount="88" result="Passed" start-time="2026-10-08 16:32:47Z" end-time="2026-10-08 16:32:58Z" duration="11.747184" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="22240" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestFixture" id="1024" name="LooseSceneryPlayTests" fullname="LooseSceneryPlayTests" classname="LooseSceneryPlayTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-08 16:32:47Z" end-time="2026-10-08 16:32:53Z" duration="6.743182" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1029" name="HayBale_BoostedHit_FliesAndCostsNoHp" fullname="LooseSceneryPlayTests.HayBale_BoostedHit_FliesAndCostsNoHp" methodname="HayBale_BoostedHit_FliesAndCostsNoHp" classname="LooseSceneryPlayTests" runstate="Runnable" seed="401320999" result="Passed" start-time="2026-10-08 16:32:47Z" end-time="2026-10-08 16:32:48Z" duration="1.378556" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[[Loose] bale mass=250 peak=19.6 truck=18.1 impacts=1
+]]></output>
+        </test-case>
+        <test-suite type="ParameterizedMethod" id="1028" name="LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed" fullname="LooseSceneryPlayTests.LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed" classname="LooseSceneryPlayTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-08 16:32:48Z" end-time="2026-10-08 16:32:50Z" duration="1.982396" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+          </properties>
+          <test-case id="1025" name="LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed(&quot;RuralMailbox&quot;)" fullname="LooseSceneryPlayTests.LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed(&quot;RuralMailbox&quot;)" methodname="LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed" classname="LooseSceneryPlayTests" runstate="Runnable" seed="1952359986" result="Passed" start-time="2026-10-08 16:32:48Z" end-time="2026-10-08 16:32:49Z" duration="0.663790" asserts="0">
+            <properties>
+              <property name="retryIteration" value="0" />
+              <property name="repeatIteration" value="0" />
+            </properties>
+            <output><![CDATA[[Loose] RuralMailbox mass=20 peak=22.4 truck=20.7 impacts=0
+]]></output>
+          </test-case>
+          <test-case id="1026" name="LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed(&quot;RuralRoadSign&quot;)" fullname="LooseSceneryPlayTests.LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed(&quot;RuralRoadSign&quot;)" methodname="LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed" classname="LooseSceneryPlayTests" runstate="Runnable" seed="1683467763" result="Passed" start-time="2026-10-08 16:32:49Z" end-time="2026-10-08 16:32:49Z" duration="0.653521" asserts="0">
+            <properties>
+              <property name="retryIteration" value="0" />
+              <property name="repeatIteration" value="0" />
+            </properties>
+            <output><![CDATA[[Loose] RuralRoadSign mass=15 peak=22.2 truck=20.6 impacts=0
+]]></output>
+          </test-case>
+          <test-case id="1027" name="LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed(&quot;RuralCrates&quot;)" fullname="LooseSceneryPlayTests.LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed(&quot;RuralCrates&quot;)" methodname="LightProp_BoostedHit_FliesWithNoImpact_TruckKeepsSpeed" classname="LooseSceneryPlayTests" runstate="Runnable" seed="731852951" result="Passed" start-time="2026-10-08 16:32:49Z" end-time="2026-10-08 16:32:50Z" duration="0.648388" asserts="0">
+            <properties>
+              <property name="retryIteration" value="0" />
+              <property name="repeatIteration" value="0" />
+            </properties>
+            <output><![CDATA[[Loose] RuralCrates mass=30 peak=22.3 truck=20.1 impacts=0
+]]></output>
+          </test-case>
+        </test-suite>
+        <test-case id="1030" name="Mailbox_SlowPush_MovesButIsNotLaunched" fullname="LooseSceneryPlayTests.Mailbox_SlowPush_MovesButIsNotLaunched" methodname="Mailbox_SlowPush_MovesButIsNotLaunched" classname="LooseSceneryPlayTests" runstate="Runnable" seed="489069288" result="Passed" start-time="2026-10-08 16:32:50Z" end-time="2026-10-08 16:32:52Z" duration="2.241052" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[[Loose] slow push moved=2.83 m peak=6.1 rise=0.48
+]]></output>
+        </test-case>
+        <test-case id="1031" name="Retry_ReinstallsLooseProps_AtColdBootPlaces" fullname="LooseSceneryPlayTests.Retry_ReinstallsLooseProps_AtColdBootPlaces" methodname="Retry_ReinstallsLooseProps_AtColdBootPlaces" classname="LooseSceneryPlayTests" runstate="Runnable" seed="499954768" result="Passed" start-time="2026-10-08 16:32:52Z" end-time="2026-10-08 16:32:53Z" duration="1.125230" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1042" name="ScenerySolidityTests" fullname="ScenerySolidityTests" classname="ScenerySolidityTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-08 16:32:53Z" end-time="2026-10-08 16:32:58Z" duration="4.998496" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1044" name="Barn_BlocksTruck_WithImpactButNoHpLoss" fullname="ScenerySolidityTests.Barn_BlocksTruck_WithImpactButNoHpLoss" methodname="Barn_BlocksTruck_WithImpactButNoHpLoss" classname="ScenerySolidityTests" runstate="Runnable" seed="1135308424" result="Passed" start-time="2026-10-08 16:32:53Z" end-time="2026-10-08 16:32:55Z" duration="1.669312" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[[Scenery] past=-3.03 m impacts=1 maxSpeed=13.2 hp=6/6
+]]></output>
+        </test-case>
+        <test-case id="1045" name="Fence_AtFullSpeed_GoesFlying_TruckKeepsGoing" fullname="ScenerySolidityTests.Fence_AtFullSpeed_GoesFlying_TruckKeepsGoing" methodname="Fence_AtFullSpeed_GoesFlying_TruckKeepsGoing" classname="ScenerySolidityTests" runstate="Runnable" seed="478461105" result="Passed" start-time="2026-10-08 16:32:55Z" end-time="2026-10-08 16:32:57Z" duration="1.667568" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[[Scenery] fence speed=13.4 truck=16.3 impacts=0
+]]></output>
+        </test-case>
+        <test-case id="1043" name="TreeTrunk_BlocksTruck_CanopyIsNotSolid" fullname="ScenerySolidityTests.TreeTrunk_BlocksTruck_CanopyIsNotSolid" methodname="TreeTrunk_BlocksTruck_CanopyIsNotSolid" classname="ScenerySolidityTests" runstate="Runnable" seed="1554961649" result="Passed" start-time="2026-10-08 16:32:57Z" end-time="2026-10-08 16:32:58Z" duration="1.657542" asserts="0">
+          <properties>
+            <property name="_JOINTYPE" value="UnityCombinatorial" />
+            <property name="retryIteration" value="0" />
+            <property name="repeatIteration" value="0" />
+          </properties>
+          <output><![CDATA[[Scenery] past=-1.17 m impacts=1 maxSpeed=13.7 hp=6/6
+Saving results to: C:/Users/subfl/AppData/LocalLow/Ghostweave Games/Doomsday\TestResults.xml
+]]></output>
+        </test-case>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
