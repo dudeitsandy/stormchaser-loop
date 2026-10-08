@@ -15,3 +15,8 @@ jingle_05.ogg, "jingle_05", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV
 jingle_06.ogg, "jingle_06", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +1.2 dB to match songs
 jingle_07.ogg, "jingle_07", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG, +0.8 dB to match songs
 jingle_08.ogg, "jingle_08", Suno, paid plan (Andy confirmed), by 2026-10-05, WAV->OGG
+radio_geese.ogg, "Geese", Suno, paid plan (Andy confirmed), by 2026-10-08, WAV->OGG, renamed
+radio_give_me_a_gravel_road.ogg, "Give Me a Gravel Road", Suno, paid plan (Andy confirmed), by 2026-10-08, WAV->OGG, renamed
+radio_nobody_can_leave.ogg, "Nobody Can Leave", Suno, paid plan (Andy confirmed), by 2026-10-08, WAV->OGG, renamed
+radio_one_little_cup.ogg, "One Little Cup", Suno, paid plan (Andy confirmed), by 2026-10-08, WAV->OGG, renamed
+radio_sock_me_home.ogg, "Sock Me Home", Suno, paid plan (Andy confirmed), by 2026-10-08, WAV->OGG, renamed
