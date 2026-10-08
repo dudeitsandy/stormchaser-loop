@@ -39,6 +39,10 @@ Possibly Rampage-style: runs travel through random generated towns and cities ac
 
 **Needs first:** M1 shipped; S7-09 roads and X7-05 per-tile scatter (Heartland) working on the 2 km world.
 
+**Tester signal (PT-1, P1, 2026-10-06):** asked unprompted for a random map every run from a seed. The
+generator already supports it; M1 pins the seed so run goals stay tuned. A per-run (or daily) world seed is the
+cheap first step once the Epic world lands.
+
 ---
 
 ## Other parked items (pointers only)

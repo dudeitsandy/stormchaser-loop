@@ -20,9 +20,50 @@
 
 ## Tester blocks
 
-Copy this block once per tester.
+Copy the template block (at the end of this section) once per tester.
 
-### P1
+### P1 (email, 2026-10-05 and 10-06; no form)
+
+| Field | Answer |
+|---|---|
+| Build played | unknown (emailed 10-05, so 0.8.5–0.8.8) |
+| Browser or Windows | browser on Mac (browser name unknown) |
+| Keyboard or controller | keyboard (WASD); planned to retry with a controller |
+| Prior genre experience | unknown |
+
+**Free-form**
+
+> Very silly and fun!
+>
+> WASD keys were a little wonky on my Mac -- I need to go plug my controller in and try again.
+
+> One thing to consider - try making your map procedurally generated dynamically. That way every time you play,
+> you get a random map based on rules & a starting randomly generated seed.
+
+**Follow up:** which browser (Safari or Chrome), and what "wonky" means (keys sticking, not registering, wrong
+direction, or the truck just turning too hard). Did the controller run go better?
+
+### P2 (message, ~2026-10-07; form promised)
+
+| Field | Answer |
+|---|---|
+| Build played | unknown (0.8.5–0.8.8) |
+| Browser or Windows | unknown |
+| Keyboard or controller | unknown |
+| Prior genre experience | self-described casual, doesn't game often |
+
+**Free-form**
+
+> game is super fun and easy to learn. i'll write up your form probably tomorrow. i'm probably not the ideal
+> person as i don't really game too often and im more casual. the one feedback i had was my eyes seems
+> to have to go from the top of the screen to the bottom right. like the perspective made it so that i feel like
+> i was looking at the circle part of the screen for driving but then i also had to look at the bottom right
+> square for the perspective. idk if there's a way to tighten that up. maybe move the camera to the top right
+> where it's closer to where i started to drive the truck. and demo it being bigger? the camera square.
+
+**Answers:** pending the form. Paste into a copy of the answers table below when it arrives.
+
+### Template
 
 | Field | Answer |
 |---|---|
@@ -118,7 +159,9 @@ tests green (Sprint 9 risks).
 
 | # | Finding | Testers | Seed / time | Area | Fix now (M1) or backlog | Where |
 |---|---|---|---|---|---|---|
-| | | | | Storms / Damage / Camera / UI / Bug | | sprint file, AGENTS.md (Codex) or `production/backlog.md` |
+| 1 | WASD "a little wonky" on a Mac browser | P1 | — | Bug (input) | Repro first (Safari WebGL key focus/repeat is the usual suspect). Fix now if it reproduces and is ≤ 2 h; otherwise a known-issue line in the itch notes ("Mac: controller recommended") | Sprint 9 bug row once reproduced |
+| 2 | Eyes ping-pong between the play view (top/centre) and the PiP viewfinder (bottom-right, 256 px, max 30% width). Asks for the PiP top-right and bigger | P2 | — | Camera / UI | **Fix-now candidate** (layout only, no new system). Top-right already holds the HUD right column (`HudController.cs:125`), so the choice is a swap or a different corner/size, not a straight move. Andy picks | Sprint 9 (S9-05) |
+| 3 | Random map every run from a seed | P1 | — | World | Backlog. Terrain is already a pure function of a seed (`HeightField`), but M1 pins it (scatter `_seed` 504) and the run goals are tuned on fixed seeds (554). Per-run terrain belongs with the 2 km Epic world (ADR-0004) | `production/backlog.md` → Biomes and generated locations |
 
 Freeze rule applies: fix now only if it's ≤ ~2 h, adds no new system and touches no save data
 (`milestone-1-vertical-slice.md` → Design freeze). Everything else goes to the backlog.
