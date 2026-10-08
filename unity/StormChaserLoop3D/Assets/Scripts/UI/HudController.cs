@@ -20,8 +20,6 @@ public class HudController : MonoBehaviour
     [SerializeField] private SessionTimer _sessionTimer;
     [SerializeField] private ScoreAccumulator _scoreAccumulator;
     [SerializeField] private VehicleHealth _vehicleHealth;
-    [Tooltip("Seconds remaining at which the timer turns red.")]
-    [SerializeField] private float _lowTimeWarning = 10f;
     [Tooltip("Wind multiplier above which the IN THE WIND meter appears.")]
     [SerializeField] private float _windMeterThreshold = 1.05f;
 
@@ -418,7 +416,7 @@ public class HudController : MonoBehaviour
         {
             _lastSeconds = seconds;
             _timeLabel.text = $"{seconds / 60}:{seconds % 60:D2}";
-            _timeLabel.style.color = _sessionTimer.IsRunning && seconds <= _lowTimeWarning ? HpHit : Color.white;
+            _timeLabel.style.color = _sessionTimer.IsRunning && seconds <= _sessionTimer.CountdownSeconds ? HpHit : Color.white;
         }
 
         UpdateWindMeter();

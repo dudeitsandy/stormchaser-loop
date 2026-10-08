@@ -184,6 +184,11 @@ public static class GameEvents
     public static event Action<int, int> FilmChanged;
     /// <summary>Fired when the player vehicle takes damage. Args: current HP, max HP.</summary>
     public static event Action<int, int> PlayerDamaged;
+    /// <summary>
+    /// Final countdown: fires as the HUD timer shows each of the last <see cref="SessionTimer.CountdownSeconds"/>
+    /// seconds (5, 4, 3, 2, 1), then 0 as the timer runs out (just before <see cref="RunEnded"/>). Not on a wreck.
+    /// </summary>
+    public static event Action<int> CountdownTick;
     /// <summary>Fired once when the run ends (timer or wreck).</summary>
     public static event Action<RunSummary> RunEnded;
     /// <summary>Fired when a run pauses (true) or resumes (false), with why it paused.</summary>
@@ -215,6 +220,7 @@ public static class GameEvents
     public static void RaiseOutOfFilm() => OutOfFilm?.Invoke();
     public static void RaiseFilmChanged(int remaining, int capacity) => FilmChanged?.Invoke(remaining, capacity);
     public static void RaisePlayerDamaged(int current, int max) => PlayerDamaged?.Invoke(current, max);
+    public static void RaiseCountdownTick(int secondsLeft) => CountdownTick?.Invoke(secondsLeft);
     public static void RaiseRunEnded(RunSummary summary) => RunEnded?.Invoke(summary);
     public static void RaisePauseChanged(bool paused, PauseReason reason) => PauseChanged?.Invoke(paused, reason);
     public static void RaiseRunForfeited() => RunForfeited?.Invoke();
@@ -255,6 +261,7 @@ public static class GameEvents
         FilmChanged = null;
         PlayerDamaged = null;
         RunEnded = null;
+        CountdownTick = null;
         PauseChanged = null;
         RunForfeited = null;
         GoalCompleted = null;

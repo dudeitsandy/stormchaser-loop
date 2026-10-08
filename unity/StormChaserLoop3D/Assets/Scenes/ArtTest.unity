@@ -1044,7 +1044,6 @@ MonoBehaviour:
   _sessionTimer: {fileID: 1705244359}
   _scoreAccumulator: {fileID: 1705244361}
   _vehicleHealth: {fileID: 2137005999}
-  _lowTimeWarning: 10
   _windMeterThreshold: 1.05
 --- !u!114 &640469158
 MonoBehaviour:
