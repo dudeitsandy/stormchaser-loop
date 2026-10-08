@@ -34,7 +34,7 @@ public class RadioSkipPlayTests
     }
 
     [UnityTest]
-    public IEnumerator Skip_IgnoredOnAJingle_MovesToADifferentSong()
+    public IEnumerator Skip_IgnoredOnAJingle_MovesToADifferentSong_JingleFollows()
     {
         var run = Object.FindAnyObjectByType<RunManager>();
         var radio = Object.FindAnyObjectByType<RadioLite>();
@@ -44,8 +44,9 @@ public class RadioSkipPlayTests
         Assert.IsFalse(radio.SkipSong(), "jingles can't be skipped");
 
         // Jump past the jingle to the first song (what Update does when the jingle ends).
-        typeof(RadioLite).GetMethod("NextTrack", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                         .Invoke(radio, null);
+        var nextTrack = typeof(RadioLite).GetMethod("NextTrack",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        nextTrack.Invoke(radio, null);
         yield return null;
         string first = radio.CurrentClip;
         Assert.IsTrue(RadioLite.IsSong(first));
@@ -56,6 +57,14 @@ public class RadioSkipPlayTests
         Assert.IsTrue(RadioLite.IsSong(radio.CurrentClip));
         Assert.AreNotEqual(first, radio.CurrentClip, "never the same song twice in a row");
         Assert.AreEqual(RadioLite.SongTitle(radio.CurrentClip), toast);
+
+        // The rotation resumes after a skip: the skipped-to song is followed by a jingle, then a song (never two jingles).
+        nextTrack.Invoke(radio, null);
+        yield return null;
+        Assert.IsTrue(RadioLite.IsJingle(radio.CurrentClip), "a jingle follows the skipped-to song");
+        nextTrack.Invoke(radio, null);
+        yield return null;
+        Assert.IsTrue(RadioLite.IsSong(radio.CurrentClip), "then a song, never a second jingle");
     }
 
     [UnityTest]

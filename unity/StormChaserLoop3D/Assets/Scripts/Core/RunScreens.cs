@@ -72,6 +72,7 @@ public class RunScreens : MonoBehaviour
         _overlay.Add(MakeLabel("DRIVE  WASD  /  RT LT + LEFT STICK   |   SHOOT  LEFT MOUSE  /  RB", 16, Bone, letterSpacing: 2));
         _overlay.Add(MakeLabel("SLIDE  CTRL / X   |   JUMP  SPACE / A   |   BOOST  SHIFT / B", 16, Bone, letterSpacing: 2));
         _overlay.Add(MakeLabel("CAMERA  MOUSE / RIGHT STICK   |   STORM CAM  TAB / Y", 16, Bone, letterSpacing: 2));
+        _overlay.Add(MakeLabel("NEXT SONG  N / D-PAD RIGHT", 16, Bone, letterSpacing: 2)); // radio skip, songs only
         if (bestScore > 0f)
         {
             _overlay.Add(Spacer(10));
