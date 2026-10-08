@@ -149,12 +149,32 @@ public sealed class RadioLite : MonoBehaviour
     public static bool IsJingle(string clipName) =>
         clipName.StartsWith(JinglePrefix, System.StringComparison.Ordinal) || clipName == LegacyJingle;
 
+    /// <summary>Display title from a song's clip name: "radio_give_me_a_gravel_road" → "GIVE ME A GRAVEL ROAD".</summary>
+    public static string SongTitle(string clipName)
+    {
+        string bare = IsSong(clipName) ? clipName.Substring(SongPrefix.Length) : clipName;
+        return bare.Replace('_', ' ').ToUpperInvariant();
+    }
+
+    /// <summary>
+    /// Skip rule (Andy 2026-10-08): only a song playing on the in-run radio can be skipped; jingles, the title loop and
+    /// silence can't. Ducking doesn't block it: the next song comes in at the ducked level, so warnings stay audible.
+    /// </summary>
+    public static bool CanSkip(bool radioOn, string playingClip) =>
+        radioOn && playingClip != null && IsSong(playingClip);
+
+    /// <summary>Raised when the player skips to a new song. Arg: its display title (<see cref="SongTitle"/>).</summary>
+    public event System.Action<string> SongSkipped;
+
     [SerializeField] private float _fadeSeconds = 1.2f;
     [SerializeField] private float _duckRampSeconds = 0.5f;
 
     private enum Mode { Silent, Title, Radio }
 
     private AudioSource _source;
+    private AudioSource _preview; // Settings RADIO row; ignores the listener pause so it plays from the pause menu
+    private bool _previewing;
+    private float _previewMix;    // 0..1: how far the title / radio has faded under a preview
     private AudioClip _title;
     private readonly List<AudioClip> _songs = new List<AudioClip>();
     private readonly List<AudioClip> _jingles = new List<AudioClip>();
@@ -173,6 +193,11 @@ public sealed class RadioLite : MonoBehaviour
         _source = gameObject.AddComponent<AudioSource>();
         _source.playOnAwake = false;
         _source.spatialBlend = 0f;
+        _preview = gameObject.AddComponent<AudioSource>();
+        _preview.playOnAwake = false;
+        _preview.spatialBlend = 0f;
+        _preview.loop = true;
+        _preview.ignoreListenerPause = true;
         _title = Resources.Load<AudioClip>("Music/title_loop");
         foreach (AudioClip clip in Resources.LoadAll<AudioClip>("Music"))
         {
@@ -230,6 +255,57 @@ public sealed class RadioLite : MonoBehaviour
         NextTrack();
     }
 
+    /// <summary>Name of the clip on the main source (title loop, jingle or song), or null.</summary>
+    public string CurrentClip => _source != null && _source.clip != null ? _source.clip.name : null;
+
+    /// <summary>Name of the song being previewed from Settings, or null when no preview plays.</summary>
+    public string PreviewClip => _previewing && _preview.clip != null ? _preview.clip.name : null;
+
+    /// <summary>Song titles in Settings order (clip names sorted), for the RADIO preview row.</summary>
+    public IReadOnlyList<string> SongTitles
+    {
+        get
+        {
+            var titles = new List<string>(_songs.Count);
+            foreach (AudioClip clip in _songs) titles.Add(SongTitle(clip.name));
+            return titles;
+        }
+    }
+
+    /// <summary>
+    /// Skips the playing song for the next one in the shuffle (N / D-pad right in a run). A jingle still follows it as
+    /// usual. Returns false when <see cref="CanSkip"/> says no.
+    /// </summary>
+    public bool SkipSong()
+    {
+        if (!CanSkip(_mode == Mode.Radio && _source.isPlaying, _source.clip != null ? _source.clip.name : null)) return false;
+        int i = _playlist.Next();
+        if (i < 0) return false;
+        _jingleNext = true;
+        Play(_songs[i], loop: false);
+        SongSkipped?.Invoke(SongTitle(_songs[i].name));
+        return true;
+    }
+
+    /// <summary>
+    /// Settings RADIO row: plays song <paramref name="index"/> (in <see cref="SongTitles"/> order) on a loop at the
+    /// MUSIC volume while the title loop or radio fades under it; −1 stops the preview.
+    /// </summary>
+    public void PreviewSong(int index)
+    {
+        if (index < 0 || index >= _songs.Count) { StopPreview(); return; }
+        _preview.clip = _songs[index];
+        _preview.Play();
+        _previewing = true;
+    }
+
+    /// <summary>Stops any preview; the title loop or radio comes back up.</summary>
+    public void StopPreview()
+    {
+        _preview.Stop();
+        _previewing = false;
+    }
+
     private void OnRunEnded(RunSummary _) => FadeOut();
 
     private void FadeOut()
@@ -245,13 +321,15 @@ public sealed class RadioLite : MonoBehaviour
 
     private void Update()
     {
+        DeviceSettings s = ProfileStore.Shared.Settings;
+        _preview.volume = s.MusicVolume; // live while the MUSIC row changes, paused or not
         if (AudioListener.pause) return; // paused: the listener holds the music where it is
         float dt = Time.unscaledDeltaTime;
         _clock += dt;
         _fade = Mathf.MoveTowards(_fade, _fadeTarget, dt / Mathf.Max(0.01f, _fadeSeconds));
         _duckGain = Mathf.MoveTowards(_duckGain, _duck.TargetGain(_clock), dt / Mathf.Max(0.01f, _duckRampSeconds));
-        DeviceSettings s = ProfileStore.Shared.Settings;
-        _source.volume = _fade * _duckGain * s.MusicVolume; // MASTER is AudioListener.volume (Settings)
+        _previewMix = Mathf.MoveTowards(_previewMix, _previewing ? 1f : 0f, dt / Mathf.Max(0.01f, _duckRampSeconds));
+        _source.volume = _fade * _duckGain * (1f - _previewMix) * s.MusicVolume; // MASTER is AudioListener.volume (Settings)
         if (_mode == Mode.Silent && _fade <= 0f && _source.isPlaying) _source.Stop();
         if (_mode == Mode.Radio && !_source.isPlaying) NextTrack();
     }

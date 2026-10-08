@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>A row in the Settings panel (design/ux/run-screens.md Layout: Settings).</summary>
-public enum SettingRow { Camera, Sensitivity, InvertY, Brightness, Master, Effects, Music, Fullscreen, Resolution, Back }
+public enum SettingRow { Camera, Sensitivity, InvertY, Brightness, Master, Effects, Music, Radio, Fullscreen, Resolution, Back }
 
 /// <summary>
 /// Settings panel model (run-screens story 002): rows over a <see cref="DeviceSettings"/>, focus, and stepped value
@@ -15,22 +15,30 @@ public sealed class SettingsMenu
     public const float BrightnessMin = -0.5f, BrightnessMax = 0.5f, BrightnessStep = 0.1f;
     public const float VolumeStep = 0.1f;
 
-    private readonly List<SettingRow> _rows = new List<SettingRow>(10);
+    private readonly List<SettingRow> _rows = new List<SettingRow>(11);
     private readonly IReadOnlyList<Vector2Int> _resolutions;
+    private readonly IReadOnlyList<string> _songs;
 
     public DeviceSettings Settings { get; }
     public IReadOnlyList<SettingRow> Rows => _rows;
     public int Focus { get; private set; }
     public SettingRow Focused => _rows[Focus];
+    /// <summary>RADIO row: the song being previewed (index into the song titles), or −1 for OFF. Never saved.</summary>
+    public int PreviewIndex { get; private set; } = -1;
 
     /// <param name="desktop">False on WebGL: no RESOLUTION row.</param>
     /// <param name="resolutions">Desktop resolutions, smallest first (may be empty).</param>
-    public SettingsMenu(DeviceSettings settings, bool desktop, IReadOnlyList<Vector2Int> resolutions = null)
+    /// <param name="songs">Radio song titles for the RADIO preview row (Andy 2026-10-08); none = no row.</param>
+    public SettingsMenu(DeviceSettings settings, bool desktop, IReadOnlyList<Vector2Int> resolutions = null,
+                        IReadOnlyList<string> songs = null)
     {
         Settings = settings;
         _resolutions = resolutions ?? new List<Vector2Int>();
+        _songs = songs ?? new List<string>();
         _rows.AddRange(new[] { SettingRow.Camera, SettingRow.Sensitivity, SettingRow.InvertY, SettingRow.Brightness,
-                               SettingRow.Master, SettingRow.Effects, SettingRow.Music, SettingRow.Fullscreen });
+                               SettingRow.Master, SettingRow.Effects, SettingRow.Music });
+        if (_songs.Count > 0) _rows.Add(SettingRow.Radio);
+        _rows.Add(SettingRow.Fullscreen);
         if (desktop && _resolutions.Count > 0) _rows.Add(SettingRow.Resolution);
         _rows.Add(SettingRow.Back);
     }
@@ -66,6 +74,10 @@ public sealed class SettingsMenu
             case SettingRow.Master: s.MasterVolume = Step(s.MasterVolume, dir * VolumeStep, 0f, 1f); break;
             case SettingRow.Effects: s.EffectsVolume = Step(s.EffectsVolume, dir * VolumeStep, 0f, 1f); break;
             case SettingRow.Music: s.MusicVolume = Step(s.MusicVolume, dir * VolumeStep, 0f, 1f); break;
+            case SettingRow.Radio:
+                // OFF, then each song, wrapping: index −1 .. n−1.
+                PreviewIndex = Wrap(PreviewIndex + 1 + dir, _songs.Count + 1) - 1;
+                break;
             case SettingRow.Fullscreen: s.Fullscreen = !s.Fullscreen; break;
             case SettingRow.Resolution:
                 if (_resolutions.Count == 0) return null;
@@ -89,6 +101,7 @@ public sealed class SettingsMenu
             case SettingRow.Master: return "MASTER VOLUME";
             case SettingRow.Effects: return "EFFECTS";
             case SettingRow.Music: return "MUSIC";
+            case SettingRow.Radio: return "RADIO";
             case SettingRow.Fullscreen: return "FULLSCREEN";
             case SettingRow.Resolution: return "RESOLUTION";
             default: return "BACK";
@@ -110,6 +123,7 @@ public sealed class SettingsMenu
             case SettingRow.Master: return Percent(s.MasterVolume);
             case SettingRow.Effects: return Percent(s.EffectsVolume);
             case SettingRow.Music: return Percent(s.MusicVolume);
+            case SettingRow.Radio: return PreviewIndex < 0 ? "OFF" : _songs[PreviewIndex];
             case SettingRow.Fullscreen: return s.Fullscreen ? "ON" : "OFF";
             case SettingRow.Resolution: return s.ResolutionWidth > 0 ? $"{s.ResolutionWidth}x{s.ResolutionHeight}" : "AUTO";
             default: return "";

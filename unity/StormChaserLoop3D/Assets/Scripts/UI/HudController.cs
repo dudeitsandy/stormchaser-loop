@@ -76,6 +76,10 @@ public class HudController : MonoBehaviour
     private VisualElement _bountyBlock;
     private readonly Dictionary<string, Label> _bountyRows = new Dictionary<string, Label>();
     private Label _goalPopup;
+    [SerializeField] private float _nowPlayingSeconds = 2f;
+    private RadioLite _radio;
+    private Label _nowPlaying;
+    private IVisualElementScheduledItem _nowPlayingHide;
     private IVisualElementScheduledItem _goalPopupHide;
 
     private void Awake()
@@ -225,6 +229,10 @@ public class HudController : MonoBehaviour
 
         BuildNewsCrawl(root);
         BuildGoalPopup(root);
+        BuildNowPlaying(root);
+        // In Start, not Awake: RunManager may add the RadioLite in its own Awake.
+        _radio = FindAnyObjectByType<RadioLite>();
+        if (_radio != null) _radio.SongSkipped += ShowNowPlaying;
         _goals = FindAnyObjectByType<GoalRunner>();
         if (_goals != null && _sessionTimer != null && _sessionTimer.IsRunning) OnRunStarted(); // retry skips the title
     }
@@ -261,6 +269,37 @@ public class HudController : MonoBehaviour
         holder.Add(_goalPopup);
         root.Add(holder);
     }
+
+    // Radio skip toast (Andy 2026-10-08): bottom-left, just above the news crawl, for 2 s.
+    private void BuildNowPlaying(VisualElement root)
+    {
+        _nowPlaying = MakePanelLabel("", 16);
+        _nowPlaying.pickingMode = PickingMode.Ignore;
+        _nowPlaying.style.position = Position.Absolute;
+        _nowPlaying.style.left = 16;
+        _nowPlaying.style.bottom = 44;
+        _nowPlaying.style.letterSpacing = 3;
+        _nowPlaying.style.display = DisplayStyle.None;
+        root.Add(_nowPlaying);
+    }
+
+    private void OnDestroy()
+    {
+        if (_radio != null) _radio.SongSkipped -= ShowNowPlaying;
+    }
+
+    private void ShowNowPlaying(string title)
+    {
+        if (_nowPlaying == null) return;
+        _nowPlayingHide?.Pause();
+        _nowPlaying.text = NowPlayingText(title);
+        _nowPlaying.style.display = DisplayStyle.Flex;
+        _nowPlayingHide = _nowPlaying.schedule.Execute(() => _nowPlaying.style.display = DisplayStyle.None)
+                                              .StartingIn((long)(_nowPlayingSeconds * 1000f));
+    }
+
+    /// <summary>Radio skip toast text: "KTVR RADIO  ·  GEESE".</summary>
+    public static string NowPlayingText(string title) => $"KTVR RADIO  ·  {title}";
 
     private VisualElement _hudRoot;
 

@@ -225,6 +225,12 @@ BIG AIR and TOSS SURVIVOR in the same moment: two of ten career goals from one e
 2 km world land (see Run pacing, Arenas that change phase): retarget BIG AIR at a ramp jump that clears 1.0 s, and
 leave tosses to TOSS SURVIVOR.
 
+**Generated ramps (Andy, 2026-10-08, asked for M1 "if possible"):** seeded ramps on the compact map so a jump gets
+real air. Parked by the freeze: a new system (seeded placement, collision, attract-mode AI pathing around them) and it
+re-opens landing/air-control feel while PT-1/PT-2 are closing feel for M1. **Strong first M2 item:** fixes this BIG AIR
+overlap and fills the run's dead moments (Run pacing) in one go. Retune `BigAirSeconds` against a measured ramp jump
+(`AirtimeProbeTests`) when it lands.
+
 
 ---
 

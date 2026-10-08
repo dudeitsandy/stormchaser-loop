@@ -151,6 +151,24 @@ public class RadioLiteTests
         Assert.AreEqual(jingle, RadioLite.IsJingle(name));
     }
 
+    [TestCase("radio_give_me_a_gravel_road", "GIVE ME A GRAVEL ROAD")]
+    [TestCase("radio_geese", "GEESE")]
+    public void SongTitle_FromClipName_UppercaseWithSpaces(string clip, string title)
+    {
+        Assert.AreEqual(title, RadioLite.SongTitle(clip));
+    }
+
+    [TestCase(true, "radio_geese", true)]
+    [TestCase(true, "jingle_03", false)]
+    [TestCase(true, "storm_radio_jingle", false)]
+    [TestCase(false, "title_loop", false)]
+    [TestCase(false, "radio_geese", false)]
+    [TestCase(true, null, false)]
+    public void CanSkip_OnlyASongOnTheRunRadio(bool radioOn, string playing, bool expected)
+    {
+        Assert.AreEqual(expected, RadioLite.CanSkip(radioOn, playing));
+    }
+
     [Test]
     public void JingleRotation_FiveJingles_NeverBackToBack()
     {

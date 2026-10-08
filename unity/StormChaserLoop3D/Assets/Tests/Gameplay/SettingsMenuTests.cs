@@ -25,6 +25,37 @@ public class SettingsMenuTests
     }
 
     [Test]
+    public void RadioRow_OnlyWithSongs_SitsUnderMusic()
+    {
+        CollectionAssert.DoesNotContain(Menu().Rows, SettingRow.Radio);
+        var m = new SettingsMenu(new DeviceSettings(), true, Res, new[] { "GEESE", "SOCK ME HOME" });
+        int music = -1, radio = -1;
+        for (int i = 0; i < m.Rows.Count; i++)
+        {
+            if (m.Rows[i] == SettingRow.Music) music = i;
+            if (m.Rows[i] == SettingRow.Radio) radio = i;
+        }
+        Assert.AreEqual(music + 1, radio);
+    }
+
+    [Test]
+    public void RadioRow_StartsOff_StepsThroughSongs_WrapsBothWays()
+    {
+        var m = new SettingsMenu(new DeviceSettings(), true, Res, new[] { "GEESE", "SOCK ME HOME" });
+        FocusRow(m, SettingRow.Radio);
+        Assert.AreEqual("OFF", m.Value(SettingRow.Radio));
+        Assert.AreEqual(SettingRow.Radio, m.Change(1));
+        Assert.AreEqual("GEESE", m.Value(SettingRow.Radio));
+        Assert.AreEqual(0, m.PreviewIndex);
+        m.Change(1);
+        Assert.AreEqual("SOCK ME HOME", m.Value(SettingRow.Radio));
+        m.Change(1);
+        Assert.AreEqual(-1, m.PreviewIndex, "wraps back to OFF after the last song");
+        m.Change(-1);
+        Assert.AreEqual("SOCK ME HOME", m.Value(SettingRow.Radio), "left from OFF goes to the last song");
+    }
+
+    [Test]
     public void Brightness_StepsInTens_ClampsAtPlusMinusFifty_WithoutFloatDrift()
     {
         SettingsMenu m = Menu();

@@ -165,6 +165,16 @@ public class RunManager : MonoBehaviour
         if (_settingsMenu != null) { HandleSettingsInput(); return; }
         if (Current == State.Running && PausePressed()) Pause(PauseReason.Manual);
         else if (Current == State.Paused) HandlePauseInput();
+        else if (Current == State.Running && SkipSongPressed()) _radio.SkipSong();
+    }
+
+    // Radio skip (Andy 2026-10-08): N / D-pad right, songs only (RadioLite.CanSkip).
+    private static bool SkipSongPressed()
+    {
+        if (Keyboard.current != null && Keyboard.current.nKey.wasPressedThisFrame) return true;
+        foreach (Gamepad pad in Gamepad.all)
+            if (pad.dpad.right.wasPressedThisFrame) return true;
+        return false;
     }
 
     /// <summary>
@@ -504,7 +514,7 @@ public class RunManager : MonoBehaviour
         _anyButton = null;
         _settingsFromTitle = fromTitle;
         if (fromTitle) _attract.Paused = true;
-        _settingsMenu = new SettingsMenu(ProfileStore.Shared.Settings, CanQuit, DesktopResolutions());
+        _settingsMenu = new SettingsMenu(ProfileStore.Shared.Settings, CanQuit, DesktopResolutions(), _radio.SongTitles);
         RefreshSettings();
     }
 
@@ -513,6 +523,7 @@ public class RunManager : MonoBehaviour
     {
         if (_settingsMenu == null) return;
         _settingsMenu = null;
+        _radio.StopPreview();
         ProfileStore.Shared.SaveSettings();
         if (_settingsFromTitle) EnterTitle();
         else if (_pauseMenu != null) _screens.ShowPause(_pauseMenu, null, OnPauseHover, OnPauseClick);
@@ -523,6 +534,7 @@ public class RunManager : MonoBehaviour
     {
         SettingRow? changed = _settingsMenu?.Change(dir);
         if (changed == null) return;
+        if (changed == SettingRow.Radio) _radio.PreviewSong(_settingsMenu.PreviewIndex);
         SettingsApplier.ApplyLive(_settingsMenu.Settings);
         if (changed == SettingRow.Fullscreen || changed == SettingRow.Resolution)
             SettingsApplier.ApplyDisplay(_settingsMenu.Settings, fromUserInput: true);
