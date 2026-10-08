@@ -55,6 +55,7 @@ presentation listens. Presentation must never call `GameEvents.Raise*`.
 - `PhotoResult.RepeatMultiplier` / `.IsStaleRepeat`, `.WindMultiplier` / `.InTheWind`
 - `GameEvents.PlayerDamaged(int current, int max)`
 - `GameEvents.RunEnded(RunSummary)`
+- `GameEvents.CountdownTick(int secondsLeft)` — 5..1 as the HUD shows each, then 0 at time-out; not on a wreck
 
 Other read-only things presentation can query:
 - `DisasterEntity.Active` — live disasters (no `FindObjectsByType` per frame)
