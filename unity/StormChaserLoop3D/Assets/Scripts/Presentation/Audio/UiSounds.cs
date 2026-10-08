@@ -6,9 +6,10 @@ public sealed class UiSounds : MonoBehaviour
 {
     private readonly PresentationEffectsGain _gain = new PresentationEffectsGain();
     [SerializeField, Range(0f, 1f)] private float _volume = 0.38f;
+    [SerializeField, Range(0f, 1f)] private float _countdownVolume = 0.32f;
     private static UiSounds _current;
     private AudioSource _menu, _goals;
-    private AudioClip _move, _pick, _complete, _firstEver, _miss;
+    private AudioClip _move, _pick, _complete, _firstEver, _miss, _countdownTick, _countdownEnd;
     private readonly List<AudioClip> _clips = new List<AudioClip>();
     private float _lastMove = float.NegativeInfinity;
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -38,15 +39,23 @@ public sealed class UiSounds : MonoBehaviour
         _move = Clip("MenuMoveTick", 0.045f, 0); _pick = Clip("MenuPickClunk", 0.12f, 1);
         _complete = Clip("GoalCompleteSting", 0.42f, 2); _firstEver = Clip("FirstEverGoalSting", 0.7f, 3);
         _miss = Clip("BountyMiss", 0.18f, 4);
+        _countdownTick = Clip("CountdownTick", 0.09f, 5);
+        _countdownEnd = Clip("CountdownEnd", 0.24f, 6);
     }
     private void OnEnable()
     {
         _gain.Enable();
         _current = this; GameEvents.GoalCompleted += Completed; GameEvents.BountyFailed += Failed;
         GameEvents.MenuMoved += MenuMove; GameEvents.MenuPicked += MenuPick;
+        GameEvents.CountdownTick += Countdown;
     }
     private void Completed(GoalCompletion goal) => _goals.PlayOneShot(goal.FirstEver ? _firstEver : _complete, _volume);
     private void Failed(string id) => _goals.PlayOneShot(_miss, _volume * 0.7f);
+    private void Countdown(int secondsLeft)
+    {
+        if (secondsLeft < 0) return;
+        _goals.PlayOneShot(secondsLeft == 0 ? _countdownEnd : _countdownTick, _countdownVolume);
+    }
     private AudioClip Clip(string name, float seconds, int kind)
     {
         const int rate = 22050;
@@ -61,6 +70,8 @@ public sealed class UiSounds : MonoBehaviour
                     + ((float)random.NextDouble() * 2f - 1f) * 0.12f) * Mathf.Exp(-t * (kind == 0 ? 80f : 25f));
             else if (kind == 4)
                 value = Mathf.Sin(2f * Mathf.PI * (300f * t - 350f * t * t)) * Mathf.Exp(-t * 12f) * 0.45f;
+            else if (kind == 5 || kind == 6)
+                value = Mathf.Sin(2f * Mathf.PI * (kind == 5 ? 880f : 1320f) * t) * 0.5f;
             else
             {
                 int note = Mathf.Min(kind == 3 ? 3 : 2, (int)(t / (kind == 3 ? 0.14f : 0.12f)));
@@ -79,6 +90,7 @@ public sealed class UiSounds : MonoBehaviour
         _gain.Disable();
         GameEvents.GoalCompleted -= Completed; GameEvents.BountyFailed -= Failed;
         GameEvents.MenuMoved -= MenuMove; GameEvents.MenuPicked -= MenuPick;
+        GameEvents.CountdownTick -= Countdown;
         if (_current == this) _current = null;
         if (_menu != null) _menu.Stop(); if (_goals != null) _goals.Stop();
     }
