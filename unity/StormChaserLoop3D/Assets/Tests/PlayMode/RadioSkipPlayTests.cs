@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 /// <summary>
-/// Radio skip and the Settings RADIO preview (Andy 2026-10-08) in the real scene: a jingle can't be skipped, a song
+/// Radio skip and the Settings SOUND TEST preview (Andy 2026-10-08) in the real scene: a jingle can't be skipped, a song
 /// can and the next one differs; the preview plays the chosen song from the pause menu and stops on close.
 /// </summary>
 public class RadioSkipPlayTests
@@ -82,12 +82,12 @@ public class RadioSkipPlayTests
             .GetField("_settingsMenu", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
             .GetValue(run);
         for (int i = 0; i < menu.Rows.Count; i++) if (menu.Rows[i] == SettingRow.Radio) menu.FocusOn(i);
-        Assert.AreEqual(SettingRow.Radio, menu.Focused, "the RADIO row is there when songs are");
+        Assert.AreEqual(SettingRow.Radio, menu.Focused, "the SOUND TEST row is there when songs are");
 
         run.ChangeSetting(1);
-        Assert.AreEqual(menu.Value(SettingRow.Radio), RadioLite.SongTitle(radio.PreviewClip));
+        StringAssert.EndsWith(RadioLite.SongTitle(radio.PreviewClip), menu.Value(SettingRow.Radio), "SOUND TEST shows the song that plays");
         run.ChangeSetting(-1);
-        Assert.IsNull(radio.PreviewClip, "back to OFF stops the preview");
+        Assert.IsNull(radio.PreviewClip, "back to idle stops the preview");
 
         run.ChangeSetting(1);
         run.CloseSettings();

@@ -14,6 +14,8 @@ public sealed class SettingsMenu
     public const float SensitivityMin = 0.25f, SensitivityMax = 2f, SensitivityStep = 0.25f;
     public const float BrightnessMin = -0.5f, BrightnessMax = 0.5f, BrightnessStep = 0.1f;
     public const float VolumeStep = 0.1f;
+    /// <summary>SOUND TEST value while nothing previews (Andy 2026-10-08: not "OFF", the radio isn't being switched off).</summary>
+    public const string IdleSoundTest = "—";
 
     private readonly List<SettingRow> _rows = new List<SettingRow>(11);
     private readonly IReadOnlyList<Vector2Int> _resolutions;
@@ -23,12 +25,12 @@ public sealed class SettingsMenu
     public IReadOnlyList<SettingRow> Rows => _rows;
     public int Focus { get; private set; }
     public SettingRow Focused => _rows[Focus];
-    /// <summary>RADIO row: the song being previewed (index into the song titles), or −1 for OFF. Never saved.</summary>
+    /// <summary>SOUND TEST row: the song being previewed (index into the song titles), or −1 for idle ("—"). Never saved.</summary>
     public int PreviewIndex { get; private set; } = -1;
 
     /// <param name="desktop">False on WebGL: no RESOLUTION row.</param>
     /// <param name="resolutions">Desktop resolutions, smallest first (may be empty).</param>
-    /// <param name="songs">Radio song titles for the RADIO preview row (Andy 2026-10-08); none = no row.</param>
+    /// <param name="songs">Radio song titles for the SOUND TEST row (Andy 2026-10-08); none = no row.</param>
     public SettingsMenu(DeviceSettings settings, bool desktop, IReadOnlyList<Vector2Int> resolutions = null,
                         IReadOnlyList<string> songs = null)
     {
@@ -75,7 +77,7 @@ public sealed class SettingsMenu
             case SettingRow.Effects: s.EffectsVolume = Step(s.EffectsVolume, dir * VolumeStep, 0f, 1f); break;
             case SettingRow.Music: s.MusicVolume = Step(s.MusicVolume, dir * VolumeStep, 0f, 1f); break;
             case SettingRow.Radio:
-                // OFF, then each song, wrapping: index −1 .. n−1.
+                // Idle, then each song, wrapping: index −1 .. n−1.
                 PreviewIndex = Wrap(PreviewIndex + 1 + dir, _songs.Count + 1) - 1;
                 break;
             case SettingRow.Fullscreen: s.Fullscreen = !s.Fullscreen; break;
@@ -101,7 +103,7 @@ public sealed class SettingsMenu
             case SettingRow.Master: return "MASTER VOLUME";
             case SettingRow.Effects: return "EFFECTS";
             case SettingRow.Music: return "MUSIC";
-            case SettingRow.Radio: return "RADIO";
+            case SettingRow.Radio: return "SOUND TEST";
             case SettingRow.Fullscreen: return "FULLSCREEN";
             case SettingRow.Resolution: return "RESOLUTION";
             default: return "BACK";
@@ -123,7 +125,7 @@ public sealed class SettingsMenu
             case SettingRow.Master: return Percent(s.MasterVolume);
             case SettingRow.Effects: return Percent(s.EffectsVolume);
             case SettingRow.Music: return Percent(s.MusicVolume);
-            case SettingRow.Radio: return PreviewIndex < 0 ? "OFF" : _songs[PreviewIndex];
+            case SettingRow.Radio: return PreviewIndex < 0 ? IdleSoundTest : $"{PreviewIndex + 1:00} {_songs[PreviewIndex]}";
             case SettingRow.Fullscreen: return s.Fullscreen ? "ON" : "OFF";
             case SettingRow.Resolution: return s.ResolutionWidth > 0 ? $"{s.ResolutionWidth}x{s.ResolutionHeight}" : "AUTO";
             default: return "";

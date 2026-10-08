@@ -132,7 +132,7 @@ SETTINGS (overlay; same panel from Title and Pause; changes apply live)
         MASTER VOLUME  ◂ ━━━━━○━ ▸
         EFFECTS        ◂ ━━━━━○━ ▸
         MUSIC          ◂ ━━━○━━━ ▸
-        RADIO          ◂ OFF ▸          OFF · each song; previews at MUSIC volume, never saved (2026-10-08)
+        SOUND TEST     ◂ — ▸            — · 01 GEESE … each song, numbered; previews at MUSIC volume, never saved
         FULLSCREEN     ◂ ON ▸
         RESOLUTION     ◂ 1920×1080 ▸    ← Windows only
         BACK                            (Esc / B also backs out; saved on close)
@@ -182,7 +182,7 @@ reward-name text to "1 MORE". Panels are anchored to a 16 px safe margin.
 | KTVR WANTS bounty list (3 rows: open · done ✓ + bonus · failed ✕ struck) | HUD | New |
 | Career-goal pop-up ("GOAL! BIG AIR +150", "NEW" on first ever) | HUD | New |
 | Pause menu (Resume, Settings, Quit Run, Quit to Desktop on Windows, confirm, this run's goals) | Pause | New |
-| Settings panel (camera preset, sensitivity, invert Y, brightness, master / effects / music volume, RADIO song preview, fullscreen, resolution on Windows) | Title + Pause overlay | New (RADIO row 2026-10-08) |
+| Settings panel (camera preset, sensitivity, invert Y, brightness, master / effects / music volume, SOUND TEST song preview, fullscreen, resolution on Windows) | Title + Pause overlay | New (SOUND TEST row 2026-10-08) |
 | Radio skip toast ("KTVR RADIO  ·  GEESE", 2 s, bottom-left above the news crawl) | HUD | New (2026-10-08) |
 | Quit-game confirm ("QUIT GAME? ESC AGAIN") | Title, Windows only | New |
 | WRECKED slam + slow-mo | Wrecked | New (today: results header only) |
@@ -253,7 +253,7 @@ Mapping interactions for keyboard/mouse and full gamepad (Platform Target). Touc
 | Menu pick | Enter / Space | Click | A | Clunk sound | Item action |
 | Menu back | Esc | — | B | — | Previous panel (Settings → Pause / Title; confirm → menu) |
 | Settings value | A / D, ← / → | Click ◂ ▸ | D-pad / stick left-right | Value changes live, tick | Applied live; saved when the panel closes |
-| Settings RADIO preview | A / D, ← / → on RADIO | Click the row | D-pad / stick left-right | Song plays on a loop at MUSIC volume; title loop / radio fades under it | OFF · each song (wraps); stops when the panel closes; never saved |
+| Settings SOUND TEST | A / D, ← / → on SOUND TEST | Click the row | D-pad / stick left-right | Song plays on a loop at MUSIC volume; title loop / radio fades under it | — (idle) · "01 GEESE" … each song (wraps); stops when the panel closes; never saved |
 | Radio skip (in a run) | N | — | D-pad right | "KTVR RADIO  ·  TITLE" toast, 2 s | Next song in the shuffle; songs only (jingles and the title loop can't be skipped); allowed while warnings duck the music (new song comes in ducked) |
 | Quit confirm | Enter on QUIT | Click QUIT | A on QUIT | — | Forfeit; Title or desktop |
 | Results: retry | Any key except Esc (after 1.0 s) | Click | Any button except B (after 1.0 s) | Prompt flash | New run |
@@ -409,8 +409,8 @@ scores should be culture-invariant.
 - Reduced motion: add a setting for the WRECKED slam, NEW pulse and slow-mo, or accept for M1?
 - Glyphs: verify ✓ ✕ ▪ ◂ ▸ in the HUD font on WebGL; fall back to text if missing.
 - ~~Music volume label~~ Resolved (Andy, 2026-10-04): keep **MUSIC** for the volume; title music is in M1 (Sprint 8
-  S8-09). Superseded in part (Andy, 2026-10-08): a **RADIO** row now sits under MUSIC as a song preview (OFF + each
-  song, never saved), and N / D-pad right skips songs in a run. MUSIC stays the volume label; the full KTVR Storm
+  S8-09). Superseded in part (Andy, 2026-10-08): a **SOUND TEST** row now sits under MUSIC as a song preview (idle "—" + each
+  song numbered, never saved; renamed from RADIO / OFF the same day: "OFF" read as turning the radio off), and N / D-pad right skips songs in a run. MUSIC stays the volume label; the full KTVR Storm
   Radio system (DJ breaks, static with storminess) is still post-M1 (`production/backlog.md`).
 - Steam Deck: verify layout, text size and button prompts on the Deck (post-M1 target).
 - Mouse hit-target minimum size.

@@ -39,20 +39,21 @@ public class SettingsMenuTests
     }
 
     [Test]
-    public void RadioRow_StartsOff_StepsThroughSongs_WrapsBothWays()
+    public void SoundTestRow_StartsIdle_StepsThroughNumberedSongs_WrapsBothWays()
     {
         var m = new SettingsMenu(new DeviceSettings(), true, Res, new[] { "GEESE", "SOCK ME HOME" });
         FocusRow(m, SettingRow.Radio);
-        Assert.AreEqual("OFF", m.Value(SettingRow.Radio));
+        Assert.AreEqual("SOUND TEST", SettingsMenu.Label(SettingRow.Radio));
+        Assert.AreEqual(SettingsMenu.IdleSoundTest, m.Value(SettingRow.Radio));
         Assert.AreEqual(SettingRow.Radio, m.Change(1));
-        Assert.AreEqual("GEESE", m.Value(SettingRow.Radio));
+        Assert.AreEqual("01 GEESE", m.Value(SettingRow.Radio));
         Assert.AreEqual(0, m.PreviewIndex);
         m.Change(1);
-        Assert.AreEqual("SOCK ME HOME", m.Value(SettingRow.Radio));
+        Assert.AreEqual("02 SOCK ME HOME", m.Value(SettingRow.Radio));
         m.Change(1);
-        Assert.AreEqual(-1, m.PreviewIndex, "wraps back to OFF after the last song");
+        Assert.AreEqual(-1, m.PreviewIndex, "wraps back to idle after the last song");
         m.Change(-1);
-        Assert.AreEqual("SOCK ME HOME", m.Value(SettingRow.Radio), "left from OFF goes to the last song");
+        Assert.AreEqual("02 SOCK ME HOME", m.Value(SettingRow.Radio), "left from idle goes to the last song");
     }
 
     [Test]

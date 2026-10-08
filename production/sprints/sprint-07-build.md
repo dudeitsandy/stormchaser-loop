@@ -132,6 +132,12 @@ the start so players see the new look while the feel work happens.
   Can Leave, One Little Cup, Sock Me Home; 10 in rotation, 70d3d08). EditMode 412 passed / 4 skipped, PlayMode 81 / 10
   skipped (Explicit probes), WebGL 57 MB, 0 console errors (80 s seed 554 smoke, p95 17.2 ms). Watch: RadioLite loads
   all songs at start (≈ 37 MB compressed in memory on WebGL), check in S10-03.
+- 2026-10-08 — **0.8.10 pushed** (html5 + windows): radio skip (N / D-pad right, songs only, "KTVR RADIO · TITLE"
+  toast; title controls line), Settings SOUND TEST song preview (idle "—", numbered songs, plays from pause too),
+  final countdown (timer red at 5 s; Codex's 880 Hz ticks + 1320 Hz zero tone via `CountdownTick`), radio memory fix
+  (a song's audio released once nothing plays it: WebGL flat across 11 skips, was +550 MB). Andy listened on Windows:
+  preview, skip, countdown all OK. EditMode 435 / 4 skipped, PlayMode 83 / 10 skipped, WebGL 0 console errors (80 s
+  seed 554, p95 17 ms). Open: controller didn't respond in Andy's local browser test; check on itch.
 - 2026-10-05 — **0.8.7 pushed** (html5 + windows): a flipped truck never stays stuck on its back (no phantom wheels
   when flipped, 3 s failsafe, jump rights it), near-miss bounty text "TWO NEAR MISSES, TEN SECONDS". EditMode 409/409,
   PlayMode 78/78, WebGL 0 console errors (30 s smoke p95 17.1 ms, max 33.7 ms).
