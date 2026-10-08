@@ -1,6 +1,6 @@
 # Sprint 10 — M1 Close: 0.9 + Outside Playtest (2026-10-20 → 2026-11-02)
 
-> **Status:** **DRAFT** (Claude, 2026-10-05, for Andy's approval). Follows Sprint 9 directly (re-dated 10-06 → 10-19), so
+> **Status:** **APPROVED** (Andy, 2026-10-08; drafted by Claude 2026-10-05). Follows Sprint 9 directly (re-dated 10-06 → 10-19), so
 > M1 can close ≈ 2 weeks ahead of its 2026-11-16 target. Scope is M1's remaining criteria only; design freeze applies.
 > **Milestone:** M1 — Vertical Slice 0.9 (`production/milestones/milestone-1-vertical-slice.md`)
 

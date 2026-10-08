@@ -215,6 +215,19 @@ simpler one. Decide with Andy, ideally with PT-1 answers to "did any goal feel i
 
 ---
 
+## BIG AIR becomes a jump goal once there's something to jump off (Andy, 2026-10-08)
+
+**Today:** `big_air` needs 1.0 s counted airtime (`BigAirSeconds`). A full jump counts ≈ 0.6 s (0.8.4), an EF4/EF5 toss
+1.12–1.36 s (`production/qa/evidence/rg-airtime-evidence.md`), so only a toss earns it. Any EF4+ toss therefore clears
+BIG AIR and TOSS SURVIVOR in the same moment: two of ten career goals from one event.
+
+**Decision:** keep it toss-only through M1 (freeze; no tuning change). **Revisit when** ramps, terrain launches or the
+2 km world land (see Run pacing, Arenas that change phase): retarget BIG AIR at a ramp jump that clears 1.0 s, and
+leave tosses to TOSS SURVIVOR.
+
+
+---
+
 ## Storm visuals pass, before any Steam page (Andy, 2026-10-05)
 
 **Finding:** the HUD-free capture (`?clean=1`, `production/qa/evidence/clean-title-attract.png`) shows the slice's
