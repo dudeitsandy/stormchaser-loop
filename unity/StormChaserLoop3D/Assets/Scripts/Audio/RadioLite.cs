@@ -163,6 +163,14 @@ public sealed class RadioLite : MonoBehaviour
     public static bool CanSkip(bool radioOn, string playingClip) =>
         radioOn && playingClip != null && IsSong(playingClip);
 
+    /// <summary>
+    /// Memory rule (2026-10-08): a song's decoded audio is released once neither the radio nor the Settings preview
+    /// holds it. On WebGL the browser keeps each played song decoded (~60–80 MB for 3 min), so without this every song
+    /// heard stays resident (~630 MB for 10, measured). Jingles and the title loop are short and stay loaded.
+    /// </summary>
+    public static bool ShouldRelease(string clip, string mainClip, string previewClip) =>
+        clip != null && IsSong(clip) && clip != mainClip && clip != previewClip;
+
     /// <summary>Raised when the player skips to a new song. Arg: its display title (<see cref="SongTitle"/>).</summary>
     public event System.Action<string> SongSkipped;
 
@@ -294,9 +302,11 @@ public sealed class RadioLite : MonoBehaviour
     public void PreviewSong(int index)
     {
         if (index < 0 || index >= _songs.Count) { StopPreview(); return; }
+        AudioClip previous = _preview.clip;
         _preview.clip = _songs[index];
         _preview.Play();
         _previewing = true;
+        Release(previous);
     }
 
     /// <summary>Stops any preview; the title loop or radio comes back up.</summary>
@@ -304,6 +314,7 @@ public sealed class RadioLite : MonoBehaviour
     {
         _preview.Stop();
         _previewing = false;
+        Release(_preview.clip);
     }
 
     private void OnRunEnded(RunSummary _) => FadeOut();
@@ -349,8 +360,16 @@ public sealed class RadioLite : MonoBehaviour
 
     private void Play(AudioClip clip, bool loop)
     {
+        AudioClip previous = _source.clip;
         _source.clip = clip;
         _source.loop = loop;
         _source.Play();
+        Release(previous);
+    }
+
+    // Frees a song's decoded audio once nothing plays it (ShouldRelease); it reloads on its next play.
+    private void Release(AudioClip clip)
+    {
+        if (clip != null && ShouldRelease(clip.name, CurrentClip, PreviewClip)) clip.UnloadAudioData();
     }
 }

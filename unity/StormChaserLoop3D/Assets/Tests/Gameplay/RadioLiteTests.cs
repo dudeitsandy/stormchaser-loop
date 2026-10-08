@@ -169,6 +169,17 @@ public class RadioLiteTests
         Assert.AreEqual(expected, RadioLite.CanSkip(radioOn, playing));
     }
 
+    [TestCase("radio_geese", "radio_sock_me_home", null, true)]          // radio moved on, no preview
+    [TestCase("radio_geese", "radio_geese", null, false)]                // still on the radio
+    [TestCase("radio_geese", "jingle_03", "radio_geese", false)]         // still in the Settings preview
+    [TestCase("jingle_03", "radio_geese", null, false)]                  // jingles stay loaded
+    [TestCase("title_loop", "jingle_01", null, false)]                   // so does the title loop
+    [TestCase(null, "radio_geese", null, false)]
+    public void ShouldRelease_OnlyASongNothingPlays(string clip, string main, string preview, bool expected)
+    {
+        Assert.AreEqual(expected, RadioLite.ShouldRelease(clip, main, preview));
+    }
+
     [Test]
     public void JingleRotation_FiveJingles_NeverBackToBack()
     {

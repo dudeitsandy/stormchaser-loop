@@ -57,6 +57,8 @@ public class RadioSkipPlayTests
         Assert.IsTrue(RadioLite.IsSong(radio.CurrentClip));
         Assert.AreNotEqual(first, radio.CurrentClip, "never the same song twice in a row");
         Assert.AreEqual(RadioLite.SongTitle(radio.CurrentClip), toast);
+        AudioClip skipped = Resources.Load<AudioClip>("Music/" + first);
+        Assert.AreEqual(AudioDataLoadState.Unloaded, skipped.loadState, "a skipped song's audio is released");
 
         // The rotation resumes after a skip: the skipped-to song is followed by a jingle, then a song (never two jingles).
         nextTrack.Invoke(radio, null);
