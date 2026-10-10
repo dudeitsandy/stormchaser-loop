@@ -24,3 +24,6 @@ radio_one_little_cup.ogg, "One Little Cup", Suno, paid plan (Andy confirmed), by
 radio_sock_me_home.ogg, "Sock Me Home", Suno, paid plan (Andy confirmed), by 2026-10-08, WAV->OGG, renamed
 radio_dark.ogg, "Dark", Suno, paid plan (Andy confirmed), by 2026-10-10, WAV->OGG, renamed
 radio_dead_to_me_literally.ogg, "Dead to Me (Literally)", Suno, paid plan (Andy confirmed), by 2026-10-10, WAV->OGG, renamed, +0.5 dB to match songs
+radio_keep_the_fire_low.ogg, "Keep the Fire Low", Suno, paid plan (Andy confirmed), by 2026-10-10, WAV->OGG, renamed, +0.6 dB to match songs
+radio_reply_all.ogg, "Reply All", Suno, paid plan (Andy confirmed), by 2026-10-10, WAV->OGG, renamed
+radio_no_big_deal.ogg, "No Big Deal", Suno, paid plan (Andy confirmed), by 2026-10-10, WAV->OGG, renamed
