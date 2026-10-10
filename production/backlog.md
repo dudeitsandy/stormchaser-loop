@@ -39,6 +39,9 @@ Possibly Rampage-style: runs travel through random generated towns and cities ac
 
 **Needs first:** M1 shipped; S7-09 roads and X7-05 per-tile scatter (Heartland) working on the 2 km world.
 
+**Garage link (2026-10-10):** each biome kit should declare its surface set (road / dirt / snow / ash / wet) and
+obstacle style, so cars' grip and clearance stats read it (Garage entry below).
+
 **Tester signal (PT-1, P1, 2026-10-06):** asked unprompted for a random map every run from a seed. The
 generator already supports it; M1 pins the seed so run goals stay tuned. A per-run (or daily) world seed is the
 cheap first step once the Epic world lands.
@@ -71,6 +74,9 @@ cheap first step once the Epic world lands.
 
 **Needs first:** the Disaster Alchemy / interaction design (out of M1 scope), a second `DisasterEntity` type,
 and for lightning a strike-photo scoring rule in `photo-scoring.md`.
+
+**Garage link (2026-10-10):** every new disaster names which car stats it pushes on (mass, clearance, grip by
+surface, armour, profile): lightning = profile, volcano = armour + ash grip. See the Garage entry.
 
 **Lightning in two steps (Andy, 2026-10-05):** first **visual-only lightning** in storm cells: flashes in the cloud
 deck, cloud-to-ground bolts near the anchor, thunder on a distance delay. It's presentation (Codex) and would also
@@ -335,3 +341,56 @@ service) from the start, so roads, spawn zones, civilians and streaming tiles ca
 
 **When:** Season 2 with the earthquake; a small first taste (one collapsible bridge or overpass) could come with
 the 2 km Heartland world.
+
+---
+
+## Garage: unlockable novelty cars (Andy, 2026-10-10, for M4)
+
+**Idea:** unlockable cars beyond the pickup, in the spirit of Initial D's hatchback or the Simpsons' family car: fun,
+recognisable archetypes. If the game takes off, real licensed cars and collabs later (the Rocket League / Fortnite
+route: originals at launch, licences after the player base exists).
+
+**Where it fits:** `production/roadmap.md` M4 already has "meta loop (Storm Dollars, Garage, trucks)" (4 trucks, 2 on
+the descoping ladder). This extends the Garage; nothing in M1 (freeze).
+
+**Licensing rule (not legal advice; have the final names and designs checked before Steam):** no real makes, models,
+badges, grilles or distinctive body shapes (car makers protect trade dress), and no show or manga specifics (the
+Simpsons' car, the Initial D tofu-shop decal). Use the **archetype plus our own joke**, GTA-style: mixed-source
+shapes, fake brands, names that wink without copying.
+
+**Stat model (one physics model, a stat block per car + a body model):** five stats, each tied to a hazard.
+
+| Stat | Decides | Pushed by |
+|---|---|---|
+| Mass | How easily wind lifts and throws you (toss threshold) | Tornadoes, downbursts |
+| Clearance | Water depth, rubble and bumps you can cross | Flash flood, earthquake fissures, city debris |
+| Grip by surface (road / dirt / snow / ash / wet) | Handling per ground type | Blizzard/avalanche, volcano ash, rain; biome surfaces |
+| Armour | Damage from impacts and falling objects | Debris, hail, volcanic bombs, collapses |
+| Profile | Height: photo height and sightline vs target size | Lightning (tall attracts strikes), wind exposure, city traffic |
+
+**Starter roster (archetypes; + suits, − struggles):**
+
+| Car | Nods to | Tornado | Lightning | Flood | Blizzard | Fire/ash | City |
+|---|---|---|---|---|---|---|---|
+| 80s rear-drive hatchback, delivery-shop decal (our joke) | Initial D | − | + | − | + | + | + |
+| Pink dented family sedan, one hubcap missing | The Simpsons | − | + | − | − | − | − |
+| Wood-panel minivan | 90s family van | − | − | ~ | ~ | ~ | + rescues |
+| Armoured intercept truck, roof hatch (generic) | Storm intercept vehicles | + | ~ | + | ~ | + | − |
+| KTVR news van with dish | Our station | ~ | − dish | ~ | − | ~ | + photo height |
+| Ice cream truck with jingle (ducks under sirens like the radio) | — | − | ~ | − | − | − | + draws civilians |
+| Farm tractor (joke career-goal unlock) | — | + | + | + | + | − | − |
+| Rally car | Group B era | ~ | + | ~ | + | + | ~ |
+
+Sketch, not tuned. First two to prototype: the **hatchback** (skill car) and the **pink sedan** (joke car), to test
+the range.
+
+**Per mode:** Arcade = free pick (sandbox: "can the tractor survive an EF5?"). Doomsday Chase = pick before seeing
+the weather; the forecast panel becomes the strategy. Storm of the Day = the day assigns the car (fair leaderboard).
+Bounties = KTVR sometimes wants a stunt car ("photo an EF3 from the ice cream truck").
+
+**Guardrails:** no car dominates everywhere (survival costs speed and turning). Survival bonus scales with how badly
+the car fits the weather, so joke cars pay off. New disasters and biomes add hazard checks against the same five
+stats, never per-car code. Unlocks come through career goals (the KTVR paint job is the first unlock already).
+
+**Needs first:** M4 meta loop (Storm Dollars, Garage), the vehicle stat-block refactor ("modular payloads become stat
+blocks", roadmap descoping note), surface types per biome kit (Biomes entry above).
