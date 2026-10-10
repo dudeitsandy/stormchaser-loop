@@ -1,5 +1,7 @@
 # Music rights log. One line per file: file, original title, tool, plan, generated, edits.
 # Needed for commercial rights and Steam's AI-content disclosure. Keep in sync with the files here.
+# Authorship (Andy, 2026-10-10): every track is composed and written by Andy Styx. Suno (paid plan) was used for vocals
+# and some mastering. The "Suno" field below means that, not AI-composed music. Use this wording for AI disclosures.
 # WAV masters live in audio-staging/music/ (gitignored). In-game files are OGG Vorbis q6, converted with ffmpeg 2026-10-05.
 title_loop.ogg, "title_loop", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG
 storm_radio_jingle.ogg, "storm_radio_jingle", Suno, paid plan (Andy confirmed), by 2026-10-04, WAV->OGG
@@ -20,3 +22,5 @@ radio_give_me_a_gravel_road.ogg, "Give Me a Gravel Road", Suno, paid plan (Andy 
 radio_nobody_can_leave.ogg, "Nobody Can Leave", Suno, paid plan (Andy confirmed), by 2026-10-08, WAV->OGG, renamed
 radio_one_little_cup.ogg, "One Little Cup", Suno, paid plan (Andy confirmed), by 2026-10-08, WAV->OGG, renamed
 radio_sock_me_home.ogg, "Sock Me Home", Suno, paid plan (Andy confirmed), by 2026-10-08, WAV->OGG, renamed
+radio_dark.ogg, "Dark", Suno, paid plan (Andy confirmed), by 2026-10-10, WAV->OGG, renamed
+radio_dead_to_me_literally.ogg, "Dead to Me (Literally)", Suno, paid plan (Andy confirmed), by 2026-10-10, WAV->OGG, renamed, +0.5 dB to match songs
