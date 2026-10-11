@@ -138,6 +138,11 @@ the start so players see the new look while the feel work happens.
   (a song's audio released once nothing plays it: WebGL flat across 11 skips, was +550 MB). Andy listened on Windows:
   preview, skip, countdown all OK. EditMode 435 / 4 skipped, PlayMode 83 / 10 skipped, WebGL 0 console errors (80 s
   seed 554, p95 17 ms). Open: controller didn't respond in Andy's local browser test; check on itch.
+- 2026-10-10 — **0.8.11 pushed** (html5 + windows, e13c691): five new KTVR radio songs (Dark, Dead to Me (Literally),
+  Keep the Fire Low, No Big Deal, Reply All; 15 in rotation, de3b530 + e9c43ca), radio now-playing card replaces the
+  skip toast (17b1bf7). EditMode 446 / 4 skipped, PlayMode 83 / 10 skipped (Explicit probes), WebGL 72 MB / Windows
+  145 MB, WebGL 0 console errors (80 s seed 554 smoke, p95 17.5 ms). Held until after the current playtest (Andy):
+  controller in browser, PiP viewfinder move.
 - 2026-10-05 — **0.8.7 pushed** (html5 + windows): a flipped truck never stays stuck on its back (no phantom wheels
   when flipped, 3 s failsafe, jump rights it), near-miss bounty text "TWO NEAR MISSES, TEN SECONDS". EditMode 409/409,
   PlayMode 78/78, WebGL 0 console errors (30 s smoke p95 17.1 ms, max 33.7 ms).
