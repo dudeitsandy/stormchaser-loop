@@ -114,8 +114,10 @@ every track (commercial rights) and make the Steam AI-content disclosure.
 **Needs first:** M1 shipped; an audio direction pass (audio-director) covering the playlist, DJ voice lines
 and how the station reacts to storminess `s` and to cell events.
 
-**Polish (Andy, 2026-10-08):** the radio skip toast ("KTVR RADIO  ·  TITLE", plain text bottom-left since 0.8.10)
-should become a graphical now-playing card around the text that slides in and fades. Design in the polish pass.
+**Polish (Andy, 2026-10-08):** ~~the radio skip toast ("KTVR RADIO  ·  TITLE", plain text bottom-left since 0.8.10)
+should become a graphical now-playing card around the text that slides in and fades.~~ **Done 2026-10-10 in
+17b1bf7** (Andy pulled it into the 0.8.11 build): red tag + blue panel, slides in, fades out drifting left. Spec in
+`design/ux/run-screens.md`.
 
 ---
 

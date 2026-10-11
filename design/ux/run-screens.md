@@ -183,7 +183,7 @@ reward-name text to "1 MORE". Panels are anchored to a 16 px safe margin.
 | Career-goal pop-up ("GOAL! BIG AIR +150", "NEW" on first ever) | HUD | New |
 | Pause menu (Resume, Settings, Quit Run, Quit to Desktop on Windows, confirm, this run's goals) | Pause | New |
 | Settings panel (camera preset, sensitivity, invert Y, brightness, master / effects / music volume, SOUND TEST song preview, fullscreen, resolution on Windows) | Title + Pause overlay | New (SOUND TEST row 2026-10-08) |
-| Radio skip toast ("KTVR RADIO  ·  GEESE", 2 s, bottom-left above the news crawl) | HUD | New (2026-10-08) |
+| Radio now-playing card: red KTVR RADIO tag + blue panel (news-crawl colours), NOW PLAYING caption over the amber song title; bottom-left above the crawl; slides in 0.25 s, holds to 2 s, fades out drifting left 0.35 s; a second skip restarts it | HUD | New (2026-10-08; card 2026-10-10, replaces the plain-text toast) |
 | Quit-game confirm ("QUIT GAME? ESC AGAIN") | Title, Windows only | New |
 | WRECKED slam + slow-mo | Wrecked | New (today: results header only) |
 | Score, best / NEW BEST, photos, best shot | Results | Built |
