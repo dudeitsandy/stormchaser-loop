@@ -74,10 +74,12 @@ public class HudController : MonoBehaviour
     private VisualElement _bountyBlock;
     private readonly Dictionary<string, Label> _bountyRows = new Dictionary<string, Label>();
     private Label _goalPopup;
+    [Tooltip("Seconds the radio now-playing card is fully shown, slide-in included (it then fades out).")]
     [SerializeField] private float _nowPlayingSeconds = 2f;
     private RadioLite _radio;
-    private Label _nowPlaying;
-    private IVisualElementScheduledItem _nowPlayingHide;
+    private VisualElement _nowPlaying;
+    private Label _nowPlayingTitle;
+    private float _nowPlayingAge = -1f; // seconds since the last skip; < 0 = hidden
     private IVisualElementScheduledItem _goalPopupHide;
 
     private void Awake()
@@ -268,16 +270,51 @@ public class HudController : MonoBehaviour
         root.Add(holder);
     }
 
-    // Radio skip toast (Andy 2026-10-08): bottom-left, just above the news crawl, for 2 s.
+    // Radio now-playing card (Andy 2026-10-08, polish 2026-10-10): bottom-left above the news crawl, in the crawl's
+    // broadcast colours (red station tag, blue panel); slides in, holds, fades out (NowPlayingEnvelope).
     private void BuildNowPlaying(VisualElement root)
     {
-        _nowPlaying = MakePanelLabel("", 16);
-        _nowPlaying.pickingMode = PickingMode.Ignore;
+        _nowPlaying = new VisualElement { pickingMode = PickingMode.Ignore };
         _nowPlaying.style.position = Position.Absolute;
         _nowPlaying.style.left = 16;
         _nowPlaying.style.bottom = 44;
-        _nowPlaying.style.letterSpacing = 3;
+        _nowPlaying.style.flexDirection = FlexDirection.Row;
+        _nowPlaying.style.alignItems = Align.Stretch;
         _nowPlaying.style.display = DisplayStyle.None;
+
+        var tag = new Label("KTVR\nRADIO") { pickingMode = PickingMode.Ignore };
+        tag.style.unityFontStyleAndWeight = FontStyle.Bold;
+        tag.style.fontSize = 13;
+        tag.style.letterSpacing = 2;
+        tag.style.color = Color.white;
+        tag.style.backgroundColor = new Color(0.85f, 0.1f, 0.1f);
+        tag.style.paddingLeft = 10;
+        tag.style.paddingRight = 10;
+        tag.style.unityTextAlign = TextAnchor.MiddleCenter;
+
+        var panel = new VisualElement { pickingMode = PickingMode.Ignore };
+        panel.style.backgroundColor = NewsBlue;
+        panel.style.paddingLeft = 12;
+        panel.style.paddingRight = 14;
+        panel.style.paddingTop = 6;
+        panel.style.paddingBottom = 7;
+        var caption = new Label("NOW PLAYING") { pickingMode = PickingMode.Ignore };
+        caption.style.fontSize = 11;
+        caption.style.letterSpacing = 3;
+        caption.style.color = GoalOpen;
+        caption.style.paddingLeft = 0;
+        caption.style.marginBottom = 1;
+        _nowPlayingTitle = new Label { pickingMode = PickingMode.Ignore };
+        _nowPlayingTitle.style.fontSize = 18;
+        _nowPlayingTitle.style.letterSpacing = 2;
+        _nowPlayingTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+        _nowPlayingTitle.style.color = HpFull;
+        _nowPlayingTitle.style.paddingLeft = 0;
+        panel.Add(caption);
+        panel.Add(_nowPlayingTitle);
+
+        _nowPlaying.Add(tag);
+        _nowPlaying.Add(panel);
         root.Add(_nowPlaying);
     }
 
@@ -289,15 +326,55 @@ public class HudController : MonoBehaviour
     private void ShowNowPlaying(string title)
     {
         if (_nowPlaying == null) return;
-        _nowPlayingHide?.Pause();
-        _nowPlaying.text = NowPlayingText(title);
-        _nowPlaying.style.display = DisplayStyle.Flex;
-        _nowPlayingHide = _nowPlaying.schedule.Execute(() => _nowPlaying.style.display = DisplayStyle.None)
-                                              .StartingIn((long)(_nowPlayingSeconds * 1000f));
+        _nowPlayingTitle.text = title;
+        _nowPlayingAge = 0f; // a second skip restarts the card
+        UpdateNowPlaying(0f);
     }
 
-    /// <summary>Radio skip toast text: "KTVR RADIO  ·  GEESE".</summary>
-    public static string NowPlayingText(string title) => $"KTVR RADIO  ·  {title}";
+    private void UpdateNowPlaying(float dt)
+    {
+        if (_nowPlaying == null || _nowPlayingAge < 0f) return;
+        _nowPlayingAge += dt;
+        Vector2 e = NowPlayingEnvelope(_nowPlayingAge, _nowPlayingSeconds);
+        if (e.x <= 0f && _nowPlayingAge > NowPlayingInSeconds)
+        {
+            _nowPlayingAge = -1f;
+            _nowPlaying.style.display = DisplayStyle.None;
+            return;
+        }
+        _nowPlaying.style.display = DisplayStyle.Flex;
+        _nowPlaying.style.opacity = e.x;
+        _nowPlaying.style.translate = new Translate(e.y, 0f);
+    }
+
+    /// <summary>Now-playing card slide-in, seconds.</summary>
+    public const float NowPlayingInSeconds = 0.25f;
+    /// <summary>Now-playing card fade-out after the hold, seconds.</summary>
+    public const float NowPlayingOutSeconds = 0.35f;
+    /// <summary>How far left of its spot the card starts and leaves, px.</summary>
+    public const float NowPlayingSlidePx = 40f;
+
+    /// <summary>
+    /// Now-playing card envelope at <paramref name="age"/> seconds since a skip: x = opacity, y = horizontal offset (px,
+    /// negative = left). Slides in from −<see cref="NowPlayingSlidePx"/> with an ease-out over
+    /// <see cref="NowPlayingInSeconds"/>, holds until <paramref name="holdSeconds"/>, then fades out drifting left over
+    /// <see cref="NowPlayingOutSeconds"/>. Opacity 0 after that.
+    /// </summary>
+    public static Vector2 NowPlayingEnvelope(float age, float holdSeconds)
+    {
+        if (age < 0f) return new Vector2(0f, -NowPlayingSlidePx);
+        if (age < NowPlayingInSeconds)
+        {
+            float t = age / NowPlayingInSeconds;
+            float ease = 1f - (1f - t) * (1f - t);
+            return new Vector2(ease, -NowPlayingSlidePx * (1f - ease));
+        }
+        float hold = Mathf.Max(holdSeconds, NowPlayingInSeconds);
+        if (age < hold) return new Vector2(1f, 0f);
+        float o = (age - hold) / NowPlayingOutSeconds;
+        if (o >= 1f) return new Vector2(0f, -NowPlayingSlidePx * 0.5f);
+        return new Vector2(1f - o, -NowPlayingSlidePx * 0.5f * o * o);
+    }
 
     private VisualElement _hudRoot;
 
@@ -420,6 +497,7 @@ public class HudController : MonoBehaviour
         }
 
         UpdateWindMeter();
+        UpdateNowPlaying(Time.unscaledDeltaTime);
         UpdateStormCam();
         UpdateNewsCrawl();
         UpdateForecast();
